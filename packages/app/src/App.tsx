@@ -33,7 +33,7 @@ import { AppRouter, FlatRoutes } from '@backstage/core-app-api';
 import { CatalogGraphPage } from '@backstage/plugin-catalog-graph';
 import { RequirePermission } from '@backstage/plugin-permission-react';
 import { catalogEntityCreatePermission } from '@backstage/plugin-catalog-common/alpha';
-import { BackstagePluginCoderPage } from '@coder/backstage-plugin-coder';
+import { CoderPage } from '@coder/backstage-plugin-coder';
 
 const app = createApp({
   apis,
@@ -56,6 +56,13 @@ const app = createApp({
   },
 });
 
+/**
+ * 2024-02-13 - The version of TechDocsAddons that Backstage ships with makes
+ * the TypeScript compiler complain when you try to render it as JSX. This seems
+ * like it's just a type mismatch issue, and things still work at runtime
+ */
+const FixedTechDocsAddons = TechDocsAddons as React.FC<unknown>;
+
 const routes = (
   <FlatRoutes>
     <Route path="/" element={<Navigate to="catalog" />} />
@@ -71,9 +78,9 @@ const routes = (
       path="/docs/:namespace/:kind/:name/*"
       element={<TechDocsReaderPage />}
     >
-      <TechDocsAddons>
+      <FixedTechDocsAddons>
         <ReportIssue />
-      </TechDocsAddons>
+      </FixedTechDocsAddons>
     </Route>
     <Route path="/create" element={<ScaffolderPage />} />
     <Route path="/api-docs" element={<ApiExplorerPage />} />
@@ -94,10 +101,7 @@ const routes = (
     </Route>
     <Route path="/settings" element={<UserSettingsPage />} />
     <Route path="/catalog-graph" element={<CatalogGraphPage />} />
-    <Route
-      path="/backstage-plugin-coder"
-      element={<BackstagePluginCoderPage />}
-    />
+    <Route path="/backstage-plugin-coder" element={<CoderPage />} />
   </FlatRoutes>
 );
 

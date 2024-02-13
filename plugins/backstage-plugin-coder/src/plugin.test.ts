@@ -1,7 +1,7 @@
-import { backstagePluginCoderPlugin } from './plugin';
+import { coderPlugin } from './plugin';
 
-describe('backstage-plugin-coder', () => {
+describe('coder', () => {
   it('should export plugin', () => {
-    expect(backstagePluginCoderPlugin).toBeDefined();
+    expect(coderPlugin).toBeDefined();
   });
 });

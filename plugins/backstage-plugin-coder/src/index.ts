@@ -1,1 +1,1 @@
-export { backstagePluginCoderPlugin, BackstagePluginCoderPage } from './plugin';
+export * from './plugin';

@@ -6,16 +6,18 @@ import {
   Page,
   Content,
   ContentHeader,
-  HeaderLabel,
   SupportButton,
 } from '@backstage/core-components';
 import { ExampleFetchComponent } from '../ExampleFetchComponent';
 
 export const ExampleComponent = () => (
   <Page themeId="tool">
-    <Header title="Welcome to backstage-plugin-coder!" subtitle="Optional subtitle">
-      <HeaderLabel label="Owner" value="Team X" />
-      <HeaderLabel label="Lifecycle" value="Alpha" />
+    <Header
+      title="Coder Workspaces"
+      subtitle="Manage your development environments"
+    >
+      {/* <HeaderLabel label="Owner" value="Team X" />
+      <HeaderLabel label="Lifecycle" value="Alpha" /> */}
     </Header>
     <Content>
       <ContentHeader title="Plugin title">

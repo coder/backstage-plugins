@@ -1,12 +1,12 @@
 import React from 'react';
 import { createDevApp } from '@backstage/dev-utils';
-import { backstagePluginCoderPlugin, BackstagePluginCoderPage } from '../src/plugin';
+import { coderPlugin, CoderPage } from '../src/plugin';
 
 createDevApp()
-  .registerPlugin(backstagePluginCoderPlugin)
+  .registerPlugin(coderPlugin)
   .addPage({
-    element: <BackstagePluginCoderPage />,
+    element: <CoderPage />,
     title: 'Root Page',
-    path: '/backstage-plugin-coder'
+    path: '/backstage-plugin-coder',
   })
   .render();
