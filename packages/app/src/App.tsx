@@ -33,7 +33,7 @@ import { AppRouter, FlatRoutes } from '@backstage/core-app-api';
 import { CatalogGraphPage } from '@backstage/plugin-catalog-graph';
 import { RequirePermission } from '@backstage/plugin-permission-react';
 import { catalogEntityCreatePermission } from '@backstage/plugin-catalog-common/alpha';
-import { BackstagePluginCoderPage } from '@internal/plugin-backstage-plugin-coder';
+import { BackstagePluginCoderPage } from '@coder/backstage-plugin-coder';
 
 const app = createApp({
   apis,
@@ -94,7 +94,10 @@ const routes = (
     </Route>
     <Route path="/settings" element={<UserSettingsPage />} />
     <Route path="/catalog-graph" element={<CatalogGraphPage />} />
-    <Route path="/backstage-plugin-coder" element={<BackstagePluginCoderPage />} />
+    <Route
+      path="/backstage-plugin-coder"
+      element={<BackstagePluginCoderPage />}
+    />
   </FlatRoutes>
 );
 
