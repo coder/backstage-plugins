@@ -21,24 +21,22 @@ export const CoderWorkspacesCard = (
   const styles = useStyles();
 
   return (
-    <>
-      <Root {...props}>
-        <HeaderRow
-          headerLevel="h2"
-          actions={
-            <>
-              <RefreshButton />
-              <CreateWorkspaceLink />
-            </>
-          }
-        />
+    <Root {...props}>
+      <HeaderRow
+        headerLevel="h2"
+        actions={
+          <>
+            <RefreshButton />
+            <CreateWorkspaceLink />
+          </>
+        }
+      />
 
-        <div className={styles.searchWrapper}>
-          <SearchBox />
-        </div>
+      <div className={styles.searchWrapper}>
+        <SearchBox />
+      </div>
 
-        <WorkspacesList />
-      </Root>
-    </>
+      <WorkspacesList />
+    </Root>
   );
 };
