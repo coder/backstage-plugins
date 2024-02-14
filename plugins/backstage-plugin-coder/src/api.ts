@@ -12,7 +12,7 @@ import {
   CoderAuth,
   CoderWorkspaceConfig,
   assertValidCoderAuth,
-} from './plugin';
+} from './components/CoderProvider';
 
 export const CODER_QUERY_KEY_PREFIX = 'coder-backstage-plugin';
 
