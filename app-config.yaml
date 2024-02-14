@@ -2,6 +2,18 @@ app:
   title: Scaffolded Backstage App
   baseUrl: http://localhost:3000
 
+  support:
+    # Used by common ErrorPage
+    url: https://github.com/coder/backstage-plugins
+
+    # Used by common SupportButton component
+    items:
+      - title: Issues
+        icon: github
+        links:
+          - url: https://github.com/coder/backstage-plugins
+            title: Plugin repo
+
 organization:
   name: My Company
 
