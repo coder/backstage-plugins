@@ -194,7 +194,7 @@ function generateAuthState(
   const isInitializing =
     authValidityQuery.isLoading &&
     authValidityQuery.isFetching &&
-    authValidityQuery.isFetchedAfterMount;
+    !authValidityQuery.isFetchedAfterMount;
 
   if (isInitializing) {
     return {
