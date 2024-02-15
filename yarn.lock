@@ -2785,6 +2785,31 @@
     zod "^3.22.4"
     zod-to-json-schema "^3.21.4"
 
+"@backstage/plugin-catalog-backend-module-github@^0.4.7":
+  version "0.4.7"
+  resolved "https://registry.yarnpkg.com/@backstage/plugin-catalog-backend-module-github/-/plugin-catalog-backend-module-github-0.4.7.tgz#5123eb8a6f491d925d2d0ef399318412ab012a96"
+  integrity sha512-PrS7IH246I7+osfwJLO5f2UfOlUWpsrC5JZu3E5K3TIjaIiOW9VQxvKAzEj6bjJLfxj9jh8M5ag1Y8hANpsCNw==
+  dependencies:
+    "@backstage/backend-common" "^0.20.1"
+    "@backstage/backend-plugin-api" "^0.6.9"
+    "@backstage/backend-tasks" "^0.5.14"
+    "@backstage/catalog-client" "^1.5.2"
+    "@backstage/catalog-model" "^1.4.3"
+    "@backstage/config" "^1.1.1"
+    "@backstage/integration" "^1.8.0"
+    "@backstage/plugin-catalog-backend" "^1.16.1"
+    "@backstage/plugin-catalog-common" "^1.0.20"
+    "@backstage/plugin-catalog-node" "^1.6.1"
+    "@backstage/plugin-events-node" "^0.2.18"
+    "@octokit/graphql" "^5.0.0"
+    "@octokit/rest" "^19.0.3"
+    git-url-parse "^13.0.0"
+    lodash "^4.17.21"
+    minimatch "^5.1.2"
+    node-fetch "^2.6.7"
+    uuid "^8.0.0"
+    winston "^3.2.1"
+
 "@backstage/plugin-catalog-backend-module-scaffolder-entity-model@^0.1.6":
   version "0.1.6"
   resolved "https://registry.yarnpkg.com/@backstage/plugin-catalog-backend-module-scaffolder-entity-model/-/plugin-catalog-backend-module-scaffolder-entity-model-0.1.6.tgz#0ea62233a916b86bf3ae8ba09fd93ff007bac0f0"

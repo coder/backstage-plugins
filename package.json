@@ -6,7 +6,8 @@
     "node": "18 || 20"
   },
   "scripts": {
-    "dev": "concurrently \"yarn start\" \"yarn start-backend\"",
+    "dev": "concurrently \"yarn dev-init\" \"yarn start\" \"yarn start-backend\"",
+    "dev-init": "/bin/bash ./scripts/dev-init.sh",
     "start": "yarn workspace app start",
     "start-backend": "yarn workspace backend start",
     "build:backend": "yarn workspace backend build",

@@ -63,3 +63,8 @@ export const CoderWorkspacesCard = coderPlugin.provide(
  */
 export { useCoderEntityConfig } from './hooks/useCoderEntityConfig';
 export { useCoderWorkspaces } from './hooks/useCoderWorkspaces';
+
+/**
+ * All custom types
+ */
+export type { CoderAppConfig } from './components/CoderProvider';

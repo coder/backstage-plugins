@@ -58,11 +58,20 @@ import {
 import { TechDocsAddons } from '@backstage/plugin-techdocs-react';
 import { ReportIssue } from '@backstage/plugin-techdocs-module-addons-contrib';
 
+import { CoderWorkspacesCard } from '@coder/backstage-plugin-coder';
+
+/**
+ * 2024-02-13 - The version of TechDocsAddons that Backstage ships with makes
+ * the TypeScript compiler complain when you try to render it as JSX. This seems
+ * like it's just a type mismatch issue, and things still work at runtime
+ */
+const FixedTechDocsAddons = TechDocsAddons as React.FC<unknown>;
+
 const techdocsContent = (
   <EntityTechdocsContent>
-    <TechDocsAddons>
+    <FixedTechDocsAddons>
       <ReportIssue />
-    </TechDocsAddons>
+    </FixedTechDocsAddons>
   </EntityTechdocsContent>
 );
 
@@ -128,9 +137,11 @@ const overviewContent = (
       <EntityAboutCard variant="gridItem" />
     </Grid>
     <Grid item md={6} xs={12}>
+      <CoderWorkspacesCard readEntityData />
+    </Grid>
+    <Grid item md={6} xs={12}>
       <EntityCatalogGraphCard variant="gridItem" height={400} />
     </Grid>
-
     <Grid item md={4} xs={12}>
       <EntityLinksCard />
     </Grid>
@@ -300,11 +311,8 @@ const groupPage = (
         <Grid item xs={12} md={6}>
           <EntityOwnershipCard variant="gridItem" />
         </Grid>
-        <Grid item xs={12} md={6}>
+        <Grid item xs={12}>
           <EntityMembersListCard />
-        </Grid>
-        <Grid item xs={12} md={6}>
-          <EntityLinksCard />
         </Grid>
       </Grid>
     </EntityLayout.Route>

@@ -2,20 +2,8 @@ app:
   title: Scaffolded Backstage App
   baseUrl: http://localhost:3000
 
-  support:
-    # Used by common ErrorPage
-    url: https://github.com/coder/backstage-plugins
-
-    # Used by common SupportButton component
-    items:
-      - title: Issues
-        icon: github
-        links:
-          - url: https://github.com/coder/backstage-plugins
-            title: Plugin repo
-
 organization:
-  name: My Company
+  name: Coder
 
 backend:
   # Used for enabling authentication, secret is shared by all backend plugins
@@ -40,8 +28,12 @@ backend:
   # This is for local development only, it is not recommended to use this in production
   # The production database configuration is stored in app-config.production.yaml
   database:
-    client: better-sqlite3
-    connection: ':memory:'
+    client: pg
+    connection:
+      host: ${POSTGRES_HOST}
+      port: ${POSTGRES_PORT}
+      user: ${POSTGRES_USER}
+      password: ${POSTGRES_PASSWORD}
   # workingDirectory: /tmp # Use this to configure a working directory for the scaffolder, defaults to the OS temp-dir
 
 integrations:
@@ -83,7 +75,6 @@ auth:
 scaffolder:
   # see https://backstage.io/docs/features/software-templates/configuration for software template options
   {}
-
 catalog:
   import:
     entityFilename: catalog-info.yaml
