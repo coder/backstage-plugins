@@ -1,0 +1,102 @@
+import React, {
+  ForwardedRef,
+  HTMLAttributes,
+  forwardRef,
+  useState,
+} from 'react';
+import { useBackstageEndpoints } from '../../hooks/useBackstageEndpoints';
+import { Theme, makeStyles } from '@material-ui/core';
+
+type WorkspaceListIconProps = Readonly<
+  Omit<HTMLAttributes<HTMLDivElement>, 'children' | 'aria-hidden'> & {
+    src: string;
+    workspaceName: string;
+    imageClassName?: string;
+    imageRef?: ForwardedRef<HTMLImageElement>;
+  }
+>;
+
+type StyleKey = 'root' | 'image';
+
+type MakeStylesInput = Readonly<{
+  isEmoji: boolean;
+}>;
+
+const useStyles = makeStyles<Theme, MakeStylesInput, StyleKey>(theme => ({
+  root: {
+    width: theme.spacing(2.5),
+    height: theme.spacing(2.5),
+    fontSize: '0.625rem',
+    backgroundColor: theme.palette.background.default,
+    borderRadius: '9999px',
+    display: 'flex',
+    justifyContent: 'center',
+    alignItems: 'center',
+
+    // Necessary to make sure that super-wide workspace names in
+    // WorkspaceListItem don't cause the icon to get squished when the list item
+    // runs out of room
+    flexShrink: 0,
+  },
+
+  image: ({ isEmoji }) => {
+    // Have to shrink emoji icons to make sure they don't get cut off by border
+    // radius removing corners from the image container
+    const imageScalePercent = isEmoji ? 65 : 100;
+
+    return {
+      width: `${imageScalePercent}%`,
+      height: `${imageScalePercent}%`,
+      borderRadius: '9999px',
+    };
+  },
+}));
+
+export const WorkspacesListIcon = forwardRef<
+  HTMLDivElement,
+  WorkspaceListIconProps
+>((props, ref) => {
+  const {
+    src,
+    workspaceName,
+    className,
+    imageClassName,
+    imageRef,
+    ...delegatedProps
+  } = props;
+
+  const [hasError, setHasError] = useState(false);
+  const { assetsProxyUrl } = useBackstageEndpoints();
+
+  const styles = useStyles({
+    isEmoji: src.startsWith(`${assetsProxyUrl}/emoji`),
+  });
+
+  return (
+    <div
+      ref={ref}
+      aria-hidden
+      className={`${styles.root} ${className ?? ''}`}
+      {...delegatedProps}
+    >
+      {hasError ? (
+        <span role="none">{getFirstLetter(workspaceName)}</span>
+      ) : (
+        <img
+          ref={imageRef}
+          role="none"
+          src={src}
+          alt="" // Empty because icon should purely decorative
+          onError={() => setHasError(true)}
+          className={`${styles.image} ${imageClassName ?? ''}`}
+        />
+      )}
+    </div>
+  );
+});
+
+const firstLetterRe = /([a-zA-Z])/;
+function getFirstLetter(text: string): string {
+  const [, firstLetter] = firstLetterRe.exec(text) ?? [];
+  return (firstLetter ?? 'W').toUpperCase();
+}
