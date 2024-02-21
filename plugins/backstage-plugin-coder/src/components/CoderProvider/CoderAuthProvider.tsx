@@ -54,7 +54,8 @@ type AuthState = Readonly<
 export type CoderAuthStatus = AuthState['status'];
 export type CoderAuth = Readonly<
   AuthState & {
-    isAuthed: boolean;
+    isAuthenticated: boolean;
+    tokenLoadedOnMount: boolean;
     registerNewToken: (newToken: string) => void;
     ejectToken: () => void;
   }
@@ -98,20 +99,24 @@ type CoderAuthProviderProps = Readonly<PropsWithChildren<unknown>>;
 export const CoderAuthProvider = ({ children }: CoderAuthProviderProps) => {
   const { baseUrl } = useBackstageEndpoints();
   const [isInsideGracePeriod, setIsInsideGracePeriod] = useState(true);
-  const [authToken, setAuthToken] = useState(
-    () => window.localStorage.getItem(TOKEN_STORAGE_KEY) ?? '',
-  );
+
+  // Need to split hairs, because the query object can be disabled. Only want to
+  // expose the initializing state if the app mounts with a token already in
+  // localStorage
+  const [authToken, setAuthToken] = useState(readAuthToken);
+  const [readonlyInitialAuthToken] = useState(authToken);
 
   const authValidityQuery = useQuery({
     ...authValidation({ baseUrl, authToken }),
     refetchOnWindowFocus: query => query.state.data !== false,
   });
 
-  const authState = generateAuthState(
+  const authState = generateAuthState({
     authToken,
     authValidityQuery,
     isInsideGracePeriod,
-  );
+    initialAuthToken: readonlyInitialAuthToken,
+  });
 
   // Mid-render state sync to avoid unnecessary re-renders that useEffect would
   // introduce, especially since we don't know how costly re-renders could be in
@@ -161,7 +166,8 @@ export const CoderAuthProvider = ({ children }: CoderAuthProviderProps) => {
     <AuthContext.Provider
       value={{
         ...authState,
-        isAuthed: isAuthValid(authState),
+        isAuthenticated: isAuthValid(authState),
+        tokenLoadedOnMount: readonlyInitialAuthToken !== '',
         registerNewToken: newToken => {
           if (newToken !== '') {
             setAuthToken(newToken);
@@ -179,19 +185,28 @@ export const CoderAuthProvider = ({ children }: CoderAuthProviderProps) => {
   );
 };
 
+type GenerateAuthStateInputs = Readonly<{
+  authToken: string;
+  initialAuthToken: string;
+  authValidityQuery: UseQueryResult<boolean>;
+  isInsideGracePeriod: boolean;
+}>;
+
 /**
  * This function isn't too big, but it is accounting for a lot of possible
  * configurations that authValidityQuery can be in while background fetches and
- * refetches are happening. Can't get away with checking the .status alone
+ * re-fetches are happening. Can't get away with checking the .status alone
  *
  * @see {@link https://tkdodo.eu/blog/status-checks-in-react-query}
  */
-function generateAuthState(
-  authToken: string,
-  authValidityQuery: UseQueryResult<boolean>,
-  isInsideAuthGracePeriod: boolean,
-): AuthState {
+function generateAuthState({
+  authToken,
+  initialAuthToken,
+  authValidityQuery,
+  isInsideGracePeriod,
+}: GenerateAuthStateInputs): AuthState {
   const isInitializing =
+    initialAuthToken !== '' &&
     authValidityQuery.isLoading &&
     authValidityQuery.isFetching &&
     !authValidityQuery.isFetchedAfterMount;
@@ -226,7 +241,7 @@ function generateAuthState(
       };
     }
 
-    if (isInsideAuthGracePeriod) {
+    if (isInsideGracePeriod) {
       return {
         status: 'distrustedWithGracePeriod',
         token: authToken,
@@ -287,4 +302,8 @@ function generateAuthState(
     token: undefined,
     error: authValidityQuery.error,
   };
+}
+
+function readAuthToken(): string {
+  return window.localStorage.getItem(TOKEN_STORAGE_KEY) ?? '';
 }

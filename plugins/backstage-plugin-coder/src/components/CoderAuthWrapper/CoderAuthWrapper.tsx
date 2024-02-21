@@ -1,72 +1,25 @@
 import React, { type FC, type PropsWithChildren } from 'react';
-import {
-  type CoderAuth,
-  type CoderAuthStatus,
-  useCoderAuth,
-  useCoderAppConfig,
-} from '../CoderProvider';
+import { useCoderAuth } from '../CoderProvider';
+import { InfoCard } from '@backstage/core-components';
+import { CoderAuthDistrustedForm } from './CoderAuthDistrustedForm';
+import { makeStyles } from '@material-ui/core';
+import { CoderAuthLoadingState } from './CoderAuthLoadingState';
+import { CoderAuthInputForm } from './CoderAuthInputForm';
 
-import { LinkButton } from '@backstage/core-components';
-import { VisuallyHidden } from '../VisuallyHidden';
-import { Card } from '../Card';
+const useStyles = makeStyles(theme => ({
+  cardContent: {
+    paddingTop: theme.spacing(5),
+    paddingBottom: theme.spacing(5),
+  },
+}));
 
-type FormProps = Readonly<Pick<CoderAuth, 'registerNewToken' | 'status'>>;
-
-const CoderAuthForm = ({ registerNewToken, status }: FormProps) => {
-  const appConfig = useCoderAppConfig();
-
+function CoderAuthCard({ children }: PropsWithChildren<unknown>) {
+  const styles = useStyles();
   return (
-    <form
-      onSubmit={event => {
-        event.preventDefault();
-        const formData = Object.fromEntries(new FormData(event.currentTarget));
-        const newToken =
-          typeof formData.authToken === 'string' ? formData.authToken : '';
-
-        registerNewToken(newToken);
-      }}
-    >
-      <p>PLACEHOLDER STYLING</p>
-      <p>Status: {status}</p>
-
-      <p>
-        Your Coder session token is {mapAuthStatusToText(status)}. Please enter
-        a new token from our{' '}
-        <a
-          href={`${appConfig.deployment.accessUrl}/cli-auth`}
-          target="_blank"
-          style={{
-            color: 'hsl(185deg, 70%, 45%)',
-            textDecoration: 'underline',
-          }}
-        >
-          Token page
-          <VisuallyHidden> (link opens in new tab)</VisuallyHidden>
-        </a>
-        .
-      </p>
-
-      <label>
-        Auth token
-        <input name="authToken" type="password" defaultValue="" />
-      </label>
-
-      <LinkButton
-        component="button"
-        to=""
-        type="submit"
-        variant="contained"
-        style={{ display: 'block', marginTop: '1rem' }}
-      >
-        Authenticate
-      </LinkButton>
-    </form>
+    <InfoCard title="Authenticate with Coder">
+      <div className={styles.cardContent}>{children}</div>
+    </InfoCard>
   );
-};
-
-type LayoutComponentProps = PropsWithChildren<unknown>;
-function CoderAuthCard({ children }: LayoutComponentProps) {
-  return <Card>{children}</Card>;
 }
 
 type WrapperProps = Readonly<
@@ -77,17 +30,15 @@ type WrapperProps = Readonly<
 
 export const CoderAuthWrapper = ({ children, type }: WrapperProps) => {
   const auth = useCoderAuth();
-  if (auth.isAuthed) {
+  if (auth.isAuthenticated) {
     return <>{children}</>;
   }
-
   let Wrapper: FC<PropsWithChildren<unknown>>;
   switch (type) {
     case 'card': {
       Wrapper = CoderAuthCard;
       break;
     }
-
     default: {
       throw new Error(
         `Unknown CoderAuthWrapper display type ${type} encountered`,
@@ -95,33 +46,15 @@ export const CoderAuthWrapper = ({ children, type }: WrapperProps) => {
     }
   }
 
+  const isInitializing = auth.status === 'initializing';
+  const ableToVerify =
+    auth.status !== 'distrusted' && auth.status !== 'noInternetConnection';
+
   return (
     <Wrapper>
-      {auth.status === 'initializing' ? (
-        <p>Loading&hellip;</p>
-      ) : (
-        <CoderAuthForm
-          status={auth.status}
-          registerNewToken={auth.registerNewToken}
-        />
-      )}
+      {isInitializing && <CoderAuthLoadingState />}
+      {!ableToVerify && <CoderAuthDistrustedForm />}
+      {!isInitializing && ableToVerify && <CoderAuthInputForm />}
     </Wrapper>
   );
 };
-
-function mapAuthStatusToText(status: CoderAuthStatus): string {
-  switch (status) {
-    case 'tokenMissing': {
-      return 'missing';
-    }
-
-    case 'initializing':
-    case 'reauthenticating': {
-      return status;
-    }
-
-    default: {
-      return 'invalid';
-    }
-  }
-}

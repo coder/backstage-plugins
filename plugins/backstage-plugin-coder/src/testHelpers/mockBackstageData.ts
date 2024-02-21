@@ -110,7 +110,7 @@ export const mockAppConfig = {
 const authedState = {
   token: mockCoderAuthToken,
   error: undefined,
-  isAuthed: true,
+  isAuthenticated: true,
   registerNewToken: jest.fn(),
   ejectToken: jest.fn(),
 } as const satisfies Partial<CoderAuth>;
@@ -118,7 +118,7 @@ const authedState = {
 const notAuthedState = {
   token: undefined,
   error: undefined,
-  isAuthed: false,
+  isAuthenticated: false,
   registerNewToken: jest.fn(),
   ejectToken: jest.fn(),
 } as const satisfies Partial<CoderAuth>;
