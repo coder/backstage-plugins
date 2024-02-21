@@ -97,6 +97,7 @@ export const CoderAuthInputForm = () => {
   };
 
   const legendId = `${hookId}-legend`;
+  const authTokenInputId = `${hookId}-auth-token`;
   const warningBannerId = `${hookId}-warning-banner`;
 
   return (
@@ -123,13 +124,19 @@ export const CoderAuthInputForm = () => {
         </legend>
 
         <TextField
-          style={{ width: '100%' }}
-          required
+          // For some reason, adding the label prop directly to the TextField
+          // will place a label in the HTML, but it won't be linked to the
+          // input in any way (which is the entire point of labels?). Have to
+          // wire up ID values manually, sadly
           label="Auth token"
+          id={authTokenInputId}
+          InputLabelProps={{ htmlFor: authTokenInputId }}
+          required
           name="authToken"
           type="password"
           defaultValue=""
           aria-errormessage={warningBannerId}
+          style={{ width: '100%' }}
         />
 
         <LinkButton
