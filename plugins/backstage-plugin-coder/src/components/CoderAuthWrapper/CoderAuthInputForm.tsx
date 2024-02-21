@@ -124,10 +124,10 @@ export const CoderAuthInputForm = () => {
         </legend>
 
         <TextField
-          // For some reason, adding the label prop directly to the TextField
-          // will place a label in the HTML, but it won't be linked to the
-          // input in any way (which is the entire point of labels?). Have to
-          // wire up ID values manually, sadly
+          // Adding the label prop directly to the TextField will place a label
+          // in the HTML, so sighted users are fine. But for some reason, it
+          // won't connect the label and input together, which breaks
+          // accessibility for screen readers. Need to wire up extra IDs, sadly.
           label="Auth token"
           id={authTokenInputId}
           InputLabelProps={{ htmlFor: authTokenInputId }}
