@@ -20,6 +20,8 @@ const usePlaceholderStyles = makeStyles(theme => ({
   },
 
   text: {
+    textAlign: 'center',
+    padding: `0 ${theme.spacing(2.5)}px`,
     fontWeight: 400,
     fontSize: '1.125rem',
     color: theme.palette.text.secondary,
