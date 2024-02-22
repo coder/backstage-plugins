@@ -112,8 +112,8 @@ export const Root = forwardRef<HTMLDivElement, WorkspacesCardProps>(
             {/* Want to expose the overall container as a form for good
                 semantics and screen reader support, but since there isn't an
                 explicit submission process (queries happen automatically),
-                using a base div with a role override to side-step keyboard
-                input and button child edge cases seems like the easiest
+                using a base div with a role override to side-step edge cases
+                around keyboard input and button children seems like the easiest
                 approach */}
             <div role="form">{children}</div>
           </Card>
