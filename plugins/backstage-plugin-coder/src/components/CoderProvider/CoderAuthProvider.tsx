@@ -45,7 +45,8 @@ type AuthState = Readonly<
         | 'authenticating'
         | 'invalid'
         | 'distrusted'
-        | 'noInternetConnection';
+        | 'noInternetConnection'
+        | 'deploymentUnavailable';
       token: undefined;
       error: unknown;
     }
@@ -235,6 +236,21 @@ function generateAuthState({
       token: undefined,
       error: undefined,
     };
+  }
+
+  if (authValidityQuery.error instanceof BackstageHttpError) {
+    const deploymentLikelyUnavailable =
+      authValidityQuery.error.status === 504 ||
+      (authValidityQuery.error.status === 200 &&
+        authValidityQuery.error.contentType !== 'application/json');
+
+    if (deploymentLikelyUnavailable) {
+      return {
+        status: 'deploymentUnavailable',
+        token: undefined,
+        error: authValidityQuery.error,
+      };
+    }
   }
 
   const isTokenValidFromPrevFetch = authValidityQuery.data === true;

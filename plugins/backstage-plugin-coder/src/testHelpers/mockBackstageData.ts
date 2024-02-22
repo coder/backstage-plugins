@@ -165,6 +165,11 @@ export const mockAuthStates = {
     ...notAuthedState,
     status: 'tokenMissing',
   },
+
+  deploymentUnavailable: {
+    ...notAuthedState,
+    status: 'deploymentUnavailable',
+  },
 } as const satisfies Record<CoderAuthStatus, CoderAuth>;
 
 export function getMockConfigApi() {

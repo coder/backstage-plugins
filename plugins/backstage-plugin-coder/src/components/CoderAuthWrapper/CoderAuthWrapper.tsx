@@ -56,7 +56,8 @@ export const CoderAuthWrapper = ({ children, type }: WrapperProps) => {
           }
 
           case 'distrusted':
-          case 'noInternetConnection': {
+          case 'noInternetConnection':
+          case 'deploymentUnavailable': {
             return <CoderAuthDistrustedForm />;
           }
 
