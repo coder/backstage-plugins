@@ -90,6 +90,7 @@ const useStyles = makeStyles<Theme, MakeStylesInput, StyleKey>(theme => ({
     color: theme.palette.text.primary,
     opacity: isInputEmpty ? '40%' : '100%',
     outline: 'none',
+    cursor: 'pointer',
 
     '&:focus': {
       boxShadow: '0 0 0 1px hsl(213deg, 94%, 68%)',
