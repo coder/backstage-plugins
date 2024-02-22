@@ -123,6 +123,7 @@ export const ExtraActionsButton = forwardRef<
           id={buttonId}
           aria-controls={isOpen ? menuId : undefined}
           className={`${styles.root} ${className ?? ''}`}
+          // type="button"
           onClick={event => {
             setLoadedAnchor(event.currentTarget);
             outerOnClick?.(event);
