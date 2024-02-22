@@ -116,7 +116,7 @@ export const WorkspacesList = ({
           {workspacesQuery.fetchStatus === 'fetching' ? (
             <>Loading&hellip;</>
           ) : (
-            <>Use the searchbar to find matching Coder workspaces</>
+            <>Use the search bar to find matching Coder workspaces</>
           )}
         </Placeholder>
       )}
