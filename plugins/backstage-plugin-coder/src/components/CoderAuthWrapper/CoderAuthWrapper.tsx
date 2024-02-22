@@ -30,9 +30,7 @@ type WrapperProps = Readonly<
 
 export const CoderAuthWrapper = ({ children, type }: WrapperProps) => {
   const auth = useCoderAuth();
-  if (auth.isAuthenticated) {
-    return <>{children}</>;
-  }
+
   let Wrapper: FC<PropsWithChildren<unknown>>;
   switch (type) {
     case 'card': {
@@ -40,21 +38,54 @@ export const CoderAuthWrapper = ({ children, type }: WrapperProps) => {
       break;
     }
     default: {
-      throw new Error(
-        `Unknown CoderAuthWrapper display type ${type} encountered`,
-      );
+      assertExhaustion(type);
     }
   }
 
-  const isInitializing = auth.status === 'initializing';
-  const ableToVerify =
-    auth.status !== 'distrusted' && auth.status !== 'noInternetConnection';
-
   return (
     <Wrapper>
-      {isInitializing && <CoderAuthLoadingState />}
-      {!ableToVerify && <CoderAuthDistrustedForm />}
-      {!isInitializing && ableToVerify && <CoderAuthInputForm />}
+      {/* Slightly awkward syntax with the IIFE, but need something switch-like
+          to make sure that all status cases are handled exhaustively */}
+      {(() => {
+        switch (auth.status) {
+          case 'authenticated':
+          case 'distrustedWithGracePeriod': {
+            return <>{children}</>;
+          }
+
+          case 'initializing': {
+            return <CoderAuthLoadingState />;
+          }
+
+          case 'distrusted':
+          case 'noInternetConnection': {
+            return <CoderAuthDistrustedForm />;
+          }
+
+          case 'authenticating':
+          case 'invalid':
+          case 'tokenMissing': {
+            return <CoderAuthInputForm />;
+          }
+
+          default: {
+            return assertExhaustion(auth);
+          }
+        }
+      })()}
     </Wrapper>
   );
 };
+
+function assertExhaustion(...inputs: readonly never[]): never {
+  let inputsToLog: unknown;
+  try {
+    inputsToLog = JSON.stringify(inputs);
+  } catch {
+    inputsToLog = inputs;
+  }
+
+  throw new Error(
+    `Not all possibilities for inputs (${inputsToLog}) have been exhausted`,
+  );
+}
