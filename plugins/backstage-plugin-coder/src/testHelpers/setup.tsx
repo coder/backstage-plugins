@@ -8,12 +8,15 @@ import {
 } from '@testing-library/react-hooks';
 /* eslint-enable @backstage/no-undeclared-imports */
 
-import React, { ReactElement, type PropsWithChildren } from 'react';
+import React, { ReactElement } from 'react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 
 import { scmIntegrationsApiRef } from '@backstage/integration-react';
-import { EntityProvider } from '@backstage/plugin-catalog-react';
 import { configApiRef, errorApiRef } from '@backstage/core-plugin-api';
+import {
+  type EntityProviderProps,
+  EntityProvider,
+} from '@backstage/plugin-catalog-react';
 
 import {
   type CoderProviderProps,
@@ -116,7 +119,7 @@ export const CoderProviderWithMockAuth = ({
   );
 };
 
-type ChildProps = Readonly<PropsWithChildren<unknown>>;
+type ChildProps = EntityProviderProps;
 type RenderResultWithErrorApi = ReturnType<typeof render> & {
   errorApi: MockErrorApi;
 };
@@ -221,7 +224,9 @@ export const renderHookAsCoderEntity = <
           queryClient={mockQueryClient}
           authStatus={authStatus}
         >
-          <EntityProvider entity={mockEntity}>{children}</EntityProvider>
+          <EntityProvider entity={mockEntity}>
+            <>{children}</>
+          </EntityProvider>
         </CoderProviderWithMockAuth>
       </TestApiProvider>
     ),
