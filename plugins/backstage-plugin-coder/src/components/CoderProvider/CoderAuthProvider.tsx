@@ -148,15 +148,23 @@ export const CoderAuthProvider = ({ children }: CoderAuthProviderProps) => {
   // outside React because we let the user connect their own queryClient
   const queryClient = useQueryClient();
   useEffect(() => {
+    let isRefetchingTokenQuery = false;
     const queryCache = queryClient.getQueryCache();
-    const unsubscribe = queryCache.subscribe(event => {
+
+    const unsubscribe = queryCache.subscribe(async event => {
       const queryError = event.query.state.error;
       const shouldRevalidate =
-        queryError instanceof BackstageHttpError && !queryError.ok;
+        !isRefetchingTokenQuery &&
+        queryError instanceof BackstageHttpError &&
+        queryError.status === 401;
 
-      if (shouldRevalidate) {
-        queryClient.refetchQueries({ queryKey: authQueryKey });
+      if (!shouldRevalidate) {
+        return;
       }
+
+      isRefetchingTokenQuery = true;
+      await queryClient.refetchQueries({ queryKey: authQueryKey });
+      isRefetchingTokenQuery = false;
     });
 
     return unsubscribe;
