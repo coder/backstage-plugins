@@ -2,7 +2,7 @@ import React, { PropsWithChildren } from 'react';
 import { renderHook } from '@testing-library/react';
 import { act, waitFor } from '@testing-library/react';
 
-import { TestApiProvider } from '@backstage/test-utils';
+import { TestApiProvider, wrapInTestApp } from '@backstage/test-utils';
 import { configApiRef, errorApiRef } from '@backstage/core-plugin-api';
 
 import { CoderProvider } from './CoderProvider';
@@ -28,13 +28,13 @@ describe(`${CoderProvider.name}`, () => {
       });
     }
 
-    test(`Context hook exposes the same config that the provider has`, () => {
-      const { result } = renderUseAppConfig();
+    test(`Context hook exposes the same config that the provider has`, async () => {
+      const { result } = await renderUseAppConfig();
       expect(result.current).toBe(mockAppConfig);
     });
 
-    test('Context value remains stable across re-renders if appConfig is defined outside', () => {
-      const { result, rerender } = renderUseAppConfig();
+    test('Context value remains stable across re-renders if appConfig is defined outside', async () => {
+      const { result, rerender } = await renderUseAppConfig();
       expect(result.current).toBe(mockAppConfig);
 
       for (let i = 0; i < 10; i++) {
@@ -51,7 +51,7 @@ describe(`${CoderProvider.name}`, () => {
       const ParentComponent = ({ children }: PropsWithChildren<unknown>) => {
         const configThatChangesEachRender = { ...mockAppConfig };
 
-        return (
+        return wrapInTestApp(
           <TestApiProvider
             apis={[
               [errorApiRef, getMockErrorApi()],
@@ -61,7 +61,7 @@ describe(`${CoderProvider.name}`, () => {
             <CoderProvider appConfig={configThatChangesEachRender}>
               {children}
             </CoderProvider>
-          </TestApiProvider>
+          </TestApiProvider>,
         );
       };
 

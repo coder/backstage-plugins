@@ -1,10 +1,15 @@
 /* eslint-disable @backstage/no-undeclared-imports -- For test helpers only */
-import { MockErrorApi, TestApiProvider } from '@backstage/test-utils';
+import {
+  MockErrorApi,
+  TestApiProvider,
+  wrapInTestApp,
+} from '@backstage/test-utils';
 import {
   type RenderHookOptions,
   type RenderHookResult,
   render,
   renderHook,
+  waitFor,
 } from '@testing-library/react';
 /* eslint-enable @backstage/no-undeclared-imports */
 
@@ -210,39 +215,43 @@ type RenderHookAsCoderEntityOptions<TProps extends NonNullable<unknown>> = Omit<
   authStatus?: CoderAuthStatus;
 };
 
-export const renderHookAsCoderEntity = <
+export const renderHookAsCoderEntity = async <
   TReturn = unknown,
   TProps extends NonNullable<unknown> = NonNullable<unknown>,
 >(
   hook: (props: TProps) => TReturn,
   options?: RenderHookAsCoderEntityOptions<TProps>,
-): RenderHookResult<TReturn, TProps> => {
+): Promise<RenderHookResult<TReturn, TProps>> => {
   const { authStatus, ...delegatedOptions } = options ?? {};
   const mockErrorApi = getMockErrorApi();
   const mockSourceControl = getMockSourceControl();
   const mockConfigApi = getMockConfigApi();
   const mockQueryClient = getMockQueryClient();
 
-  return renderHook(hook, {
+  const renderHookValue = renderHook(hook, {
     ...delegatedOptions,
-    wrapper: ({ children }) => (
-      <TestApiProvider
-        apis={[
-          [errorApiRef, mockErrorApi],
-          [scmIntegrationsApiRef, mockSourceControl],
-          [configApiRef, mockConfigApi],
-        ]}
-      >
-        <CoderProviderWithMockAuth
-          appConfig={mockAppConfig}
-          queryClient={mockQueryClient}
-          authStatus={authStatus}
+    wrapper: ({ children }) =>
+      wrapInTestApp(
+        <TestApiProvider
+          apis={[
+            [errorApiRef, mockErrorApi],
+            [scmIntegrationsApiRef, mockSourceControl],
+            [configApiRef, mockConfigApi],
+          ]}
         >
-          <EntityProvider entity={mockEntity}>
-            <>{children}</>
-          </EntityProvider>
-        </CoderProviderWithMockAuth>
-      </TestApiProvider>
-    ),
+          <CoderProviderWithMockAuth
+            appConfig={mockAppConfig}
+            queryClient={mockQueryClient}
+            authStatus={authStatus}
+          >
+            <EntityProvider entity={mockEntity}>
+              <>{children}</>
+            </EntityProvider>
+          </CoderProviderWithMockAuth>
+        </TestApiProvider>,
+      ),
   });
+
+  await waitFor(() => expect(renderHookValue.result.current).not.toBe(null));
+  return renderHookValue;
 };
