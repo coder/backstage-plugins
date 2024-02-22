@@ -110,6 +110,7 @@ export const mockAppConfig = {
 const authedState = {
   token: mockCoderAuthToken,
   error: undefined,
+  tokenLoadedOnMount: true,
   isAuthenticated: true,
   registerNewToken: jest.fn(),
   ejectToken: jest.fn(),
@@ -118,6 +119,7 @@ const authedState = {
 const notAuthedState = {
   token: undefined,
   error: undefined,
+  tokenLoadedOnMount: false,
   isAuthenticated: false,
   registerNewToken: jest.fn(),
   ejectToken: jest.fn(),
@@ -139,9 +141,9 @@ export const mockAuthStates = {
     status: 'invalid',
   },
 
-  reauthenticating: {
+  authenticating: {
     ...notAuthedState,
-    status: 'reauthenticating',
+    status: 'authenticating',
   },
 
   distrusted: {

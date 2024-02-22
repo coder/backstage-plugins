@@ -152,11 +152,11 @@ export const CoderAuthInputForm = () => {
         </LinkButton>
       </fieldset>
 
-      {(status === 'invalid' || status === 'reauthenticating') && (
+      {(status === 'invalid' || status === 'authenticating') && (
         <div className={styles.warningBannerContainer}>
           <div id={warningBannerId} className={styles.warningBanner}>
             {status === 'invalid' && 'Invalid token'}
-            {status === 'reauthenticating' && <>Reauthenticating&hellip;</>}
+            {status === 'authenticating' && <>Authenticating&hellip;</>}
           </div>
         </div>
       )}
@@ -171,7 +171,7 @@ function mapAuthStatusToText(status: CoderAuthStatus): string {
     }
 
     case 'initializing':
-    case 'reauthenticating': {
+    case 'authenticating': {
       return status;
     }
 

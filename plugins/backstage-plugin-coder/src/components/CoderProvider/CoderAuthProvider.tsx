@@ -42,7 +42,7 @@ type AuthState = Readonly<
       // Distrusted represents a token that could be valid, but we are unable to
       // verify it within an allowed window. invalid is definitely, 100% invalid
       status:
-        | 'reauthenticating'
+        | 'authenticating'
         | 'invalid'
         | 'distrusted'
         | 'noInternetConnection';
@@ -259,15 +259,15 @@ function generateAuthState({
   // Have to include isLoading here because the auth query uses the
   // isPreviousData property to mask the fact that we're shifting to different
   // query keys and cache pockets each time the token value changes
-  const isReauthenticating =
+  const isAuthenticating =
     authValidityQuery.isLoading ||
     (authValidityQuery.isRefetching &&
       ((authValidityQuery.isError && authValidityQuery.data !== true) ||
         (authValidityQuery.isSuccess && authValidityQuery.data === false)));
 
-  if (isReauthenticating) {
+  if (isAuthenticating) {
     return {
-      status: 'reauthenticating',
+      status: 'authenticating',
       token: undefined,
       error: authValidityQuery.error,
     };
