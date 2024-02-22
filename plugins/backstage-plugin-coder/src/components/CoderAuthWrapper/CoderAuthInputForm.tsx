@@ -32,9 +32,8 @@ const useStyles = makeStyles<Theme, UseStyleInput, StyleKeys>(theme => ({
     display: 'flex',
     flexFlow: 'column nowrap',
     rowGap: theme.spacing(2),
-    marginTop: theme.spacing(-0.5),
+    margin: `${theme.spacing(-0.5)} 0 0 0`,
     border: 'none',
-    margin: 0,
     padding: 0,
   },
 
