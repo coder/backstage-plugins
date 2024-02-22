@@ -30,6 +30,9 @@ type WrapperProps = Readonly<
 
 export const CoderAuthWrapper = ({ children, type }: WrapperProps) => {
   const auth = useCoderAuth();
+  if (auth.isAuthenticated) {
+    return <>{children}</>;
+  }
 
   let Wrapper: FC<PropsWithChildren<unknown>>;
   switch (type) {
@@ -48,11 +51,6 @@ export const CoderAuthWrapper = ({ children, type }: WrapperProps) => {
           to make sure that all status cases are handled exhaustively */}
       {(() => {
         switch (auth.status) {
-          case 'authenticated':
-          case 'distrustedWithGracePeriod': {
-            return <>{children}</>;
-          }
-
           case 'initializing': {
             return <CoderAuthLoadingState />;
           }
@@ -66,6 +64,13 @@ export const CoderAuthWrapper = ({ children, type }: WrapperProps) => {
           case 'invalid':
           case 'tokenMissing': {
             return <CoderAuthInputForm />;
+          }
+
+          case 'authenticated':
+          case 'distrustedWithGracePeriod': {
+            throw new Error(
+              'This code should be unreachable because of the auth check near the start of the component',
+            );
           }
 
           default: {
