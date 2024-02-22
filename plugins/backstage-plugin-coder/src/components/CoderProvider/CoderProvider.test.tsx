@@ -47,7 +47,7 @@ describe(`${CoderProvider.name}`, () => {
     // just to stabilize the memory reference for the value, and make sure that
     // memoization caches don't get invalidated too often. This test is just a
     // safety net to catch what happens if someone forgets
-    test('Context value will change by reference on re-render if defined inline in a parent', () => {
+    test('Context value will change by reference on re-render if defined inline inside a parent', () => {
       const ParentComponent = ({ children }: PropsWithChildren<unknown>) => {
         const configThatChangesEachRender = { ...mockAppConfig };
 
@@ -101,7 +101,7 @@ describe(`${CoderProvider.name}`, () => {
       });
     };
 
-    it('Should clear out the auth token when the user logs out', async () => {
+    it('Should let the user eject their auth token', async () => {
       const { result } = renderUseCoderAuth();
       act(() => result.current.registerNewToken(mockCoderAuthToken));
 

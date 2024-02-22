@@ -1,11 +1,11 @@
 /* eslint-disable @backstage/no-undeclared-imports -- For test helpers only */
-import { render } from '@testing-library/react';
 import { MockErrorApi, TestApiProvider } from '@backstage/test-utils';
 import {
-  RenderHookOptions,
-  RenderHookResult,
+  type RenderHookOptions,
+  type RenderHookResult,
+  render,
   renderHook,
-} from '@testing-library/react-hooks';
+} from '@testing-library/react';
 /* eslint-enable @backstage/no-undeclared-imports */
 
 import React, { ReactElement } from 'react';
@@ -32,8 +32,22 @@ import {
   getMockConfigApi,
   mockAuthStates,
 } from './mockBackstageData';
-
 import { CoderErrorBoundary } from '../plugin';
+
+const initialAbortSignalTimeout = AbortSignal.timeout;
+beforeAll(() => {
+  if (!AbortSignal.timeout) {
+    AbortSignal.timeout = ms => {
+      const controller = new AbortController();
+      setTimeout(() => controller.abort(new DOMException('TimeoutError')), ms);
+      return controller.signal;
+    };
+  }
+});
+
+afterAll(() => {
+  AbortSignal.timeout = initialAbortSignalTimeout;
+});
 
 const afterEachCleanupFunctions: (() => void)[] = [];
 
@@ -197,12 +211,12 @@ type RenderHookAsCoderEntityOptions<TProps extends NonNullable<unknown>> = Omit<
 };
 
 export const renderHookAsCoderEntity = <
-  TProps extends NonNullable<unknown> = NonNullable<unknown>,
   TReturn = unknown,
+  TProps extends NonNullable<unknown> = NonNullable<unknown>,
 >(
   hook: (props: TProps) => TReturn,
   options?: RenderHookAsCoderEntityOptions<TProps>,
-): RenderHookResult<TProps, TReturn> => {
+): RenderHookResult<TReturn, TProps> => {
   const { authStatus, ...delegatedOptions } = options ?? {};
   const mockErrorApi = getMockErrorApi();
   const mockSourceControl = getMockSourceControl();
