@@ -12,8 +12,8 @@ import {
 } from '../testHelpers/mockBackstageData';
 
 describe(`${useBackstageEndpoints.name}`, () => {
-  it('Should provide pre-formatted URLs for interacting with Backstage endpoints', () => {
-    const { result } = renderHookAsCoderEntity(useBackstageEndpoints);
+  it('Should provide pre-formatted URLs for interacting with Backstage endpoints', async () => {
+    const { result } = await renderHookAsCoderEntity(useBackstageEndpoints);
 
     expect(result.current).toEqual(
       expect.objectContaining<UseBackstageEndpointResult>({

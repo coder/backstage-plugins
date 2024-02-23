@@ -1,8 +1,8 @@
 import React, { PropsWithChildren } from 'react';
-import { renderHook } from '@testing-library/react-hooks';
+import { renderHook } from '@testing-library/react';
 import { act, waitFor } from '@testing-library/react';
 
-import { TestApiProvider } from '@backstage/test-utils';
+import { TestApiProvider, wrapInTestApp } from '@backstage/test-utils';
 import { configApiRef, errorApiRef } from '@backstage/core-plugin-api';
 
 import { CoderProvider } from './CoderProvider';
@@ -28,13 +28,13 @@ describe(`${CoderProvider.name}`, () => {
       });
     }
 
-    test(`Context hook exposes the same config that the provider has`, () => {
-      const { result } = renderUseAppConfig();
+    test(`Context hook exposes the same config that the provider has`, async () => {
+      const { result } = await renderUseAppConfig();
       expect(result.current).toBe(mockAppConfig);
     });
 
-    test('Context value remains stable across re-renders if appConfig is defined outside', () => {
-      const { result, rerender } = renderUseAppConfig();
+    test('Context value remains stable across re-renders if appConfig is defined outside', async () => {
+      const { result, rerender } = await renderUseAppConfig();
       expect(result.current).toBe(mockAppConfig);
 
       for (let i = 0; i < 10; i++) {
@@ -47,11 +47,11 @@ describe(`${CoderProvider.name}`, () => {
     // just to stabilize the memory reference for the value, and make sure that
     // memoization caches don't get invalidated too often. This test is just a
     // safety net to catch what happens if someone forgets
-    test('Context value will change by reference on re-render if defined inline in a parent', () => {
+    test('Context value will change by reference on re-render if defined inline inside a parent', () => {
       const ParentComponent = ({ children }: PropsWithChildren<unknown>) => {
         const configThatChangesEachRender = { ...mockAppConfig };
 
-        return (
+        return wrapInTestApp(
           <TestApiProvider
             apis={[
               [errorApiRef, getMockErrorApi()],
@@ -61,7 +61,7 @@ describe(`${CoderProvider.name}`, () => {
             <CoderProvider appConfig={configThatChangesEachRender}>
               {children}
             </CoderProvider>
-          </TestApiProvider>
+          </TestApiProvider>,
         );
       };
 
@@ -101,7 +101,7 @@ describe(`${CoderProvider.name}`, () => {
       });
     };
 
-    it('Should clear out the auth token when the user logs out', async () => {
+    it('Should let the user eject their auth token', async () => {
       const { result } = renderUseCoderAuth();
       act(() => result.current.registerNewToken(mockCoderAuthToken));
 

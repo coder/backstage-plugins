@@ -14,7 +14,7 @@ afterAll(() => {
 
 describe(`${useCoderWorkspaces.name}`, () => {
   it('Will make a request when provided correct inputs', async () => {
-    const { result } = renderHookAsCoderEntity(() => {
+    const { result } = await renderHookAsCoderEntity(() => {
       return useCoderWorkspaces('owner:me');
     });
 
@@ -22,7 +22,7 @@ describe(`${useCoderWorkspaces.name}`, () => {
   });
 
   it('Will not be enabled if auth token is missing', async () => {
-    const { result } = renderHookAsCoderEntity(
+    const { result } = await renderHookAsCoderEntity(
       () => useCoderWorkspaces('owner:me'),
       { authStatus: 'invalid' },
     );
@@ -47,7 +47,7 @@ describe(`${useCoderWorkspaces.name}`, () => {
   });
 
   it('Will only return workspaces for a given repo when a repoConfig is provided', async () => {
-    const { result } = renderHookAsCoderEntity(() => {
+    const { result } = await renderHookAsCoderEntity(() => {
       return useCoderWorkspaces('owner:me', {
         repoConfig: mockCoderEntityConfig,
       });

@@ -110,7 +110,8 @@ export const mockAppConfig = {
 const authedState = {
   token: mockCoderAuthToken,
   error: undefined,
-  isAuthed: true,
+  tokenLoadedOnMount: true,
+  isAuthenticated: true,
   registerNewToken: jest.fn(),
   ejectToken: jest.fn(),
 } as const satisfies Partial<CoderAuth>;
@@ -118,7 +119,8 @@ const authedState = {
 const notAuthedState = {
   token: undefined,
   error: undefined,
-  isAuthed: false,
+  tokenLoadedOnMount: false,
+  isAuthenticated: false,
   registerNewToken: jest.fn(),
   ejectToken: jest.fn(),
 } as const satisfies Partial<CoderAuth>;
@@ -139,9 +141,9 @@ export const mockAuthStates = {
     status: 'invalid',
   },
 
-  reauthenticating: {
+  authenticating: {
     ...notAuthedState,
-    status: 'reauthenticating',
+    status: 'authenticating',
   },
 
   distrusted: {
@@ -162,6 +164,11 @@ export const mockAuthStates = {
   tokenMissing: {
     ...notAuthedState,
     status: 'tokenMissing',
+  },
+
+  deploymentUnavailable: {
+    ...notAuthedState,
+    status: 'deploymentUnavailable',
   },
 } as const satisfies Record<CoderAuthStatus, CoderAuth>;
 

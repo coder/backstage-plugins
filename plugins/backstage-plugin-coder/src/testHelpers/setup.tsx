@@ -1,19 +1,27 @@
 /* eslint-disable @backstage/no-undeclared-imports -- For test helpers only */
-import { render } from '@testing-library/react';
-import { MockErrorApi, TestApiProvider } from '@backstage/test-utils';
 import {
-  RenderHookOptions,
-  RenderHookResult,
+  MockErrorApi,
+  TestApiProvider,
+  wrapInTestApp,
+} from '@backstage/test-utils';
+import {
+  type RenderHookOptions,
+  type RenderHookResult,
+  render,
   renderHook,
-} from '@testing-library/react-hooks';
+  waitFor,
+} from '@testing-library/react';
 /* eslint-enable @backstage/no-undeclared-imports */
 
-import React, { ReactElement, type PropsWithChildren } from 'react';
+import React, { ReactElement } from 'react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 
 import { scmIntegrationsApiRef } from '@backstage/integration-react';
-import { EntityProvider } from '@backstage/plugin-catalog-react';
 import { configApiRef, errorApiRef } from '@backstage/core-plugin-api';
+import {
+  type EntityProviderProps,
+  EntityProvider,
+} from '@backstage/plugin-catalog-react';
 
 import {
   type CoderProviderProps,
@@ -29,8 +37,22 @@ import {
   getMockConfigApi,
   mockAuthStates,
 } from './mockBackstageData';
-
 import { CoderErrorBoundary } from '../plugin';
+
+const initialAbortSignalTimeout = AbortSignal.timeout;
+beforeAll(() => {
+  if (!AbortSignal.timeout) {
+    AbortSignal.timeout = ms => {
+      const controller = new AbortController();
+      setTimeout(() => controller.abort(new DOMException('TimeoutError')), ms);
+      return controller.signal;
+    };
+  }
+});
+
+afterAll(() => {
+  AbortSignal.timeout = initialAbortSignalTimeout;
+});
 
 const afterEachCleanupFunctions: (() => void)[] = [];
 
@@ -116,7 +138,7 @@ export const CoderProviderWithMockAuth = ({
   );
 };
 
-type ChildProps = Readonly<PropsWithChildren<unknown>>;
+type ChildProps = EntityProviderProps;
 type RenderResultWithErrorApi = ReturnType<typeof render> & {
   errorApi: MockErrorApi;
 };
@@ -193,37 +215,43 @@ type RenderHookAsCoderEntityOptions<TProps extends NonNullable<unknown>> = Omit<
   authStatus?: CoderAuthStatus;
 };
 
-export const renderHookAsCoderEntity = <
-  TProps extends NonNullable<unknown> = NonNullable<unknown>,
+export const renderHookAsCoderEntity = async <
   TReturn = unknown,
+  TProps extends NonNullable<unknown> = NonNullable<unknown>,
 >(
   hook: (props: TProps) => TReturn,
   options?: RenderHookAsCoderEntityOptions<TProps>,
-): RenderHookResult<TProps, TReturn> => {
+): Promise<RenderHookResult<TReturn, TProps>> => {
   const { authStatus, ...delegatedOptions } = options ?? {};
   const mockErrorApi = getMockErrorApi();
   const mockSourceControl = getMockSourceControl();
   const mockConfigApi = getMockConfigApi();
   const mockQueryClient = getMockQueryClient();
 
-  return renderHook(hook, {
+  const renderHookValue = renderHook(hook, {
     ...delegatedOptions,
-    wrapper: ({ children }) => (
-      <TestApiProvider
-        apis={[
-          [errorApiRef, mockErrorApi],
-          [scmIntegrationsApiRef, mockSourceControl],
-          [configApiRef, mockConfigApi],
-        ]}
-      >
-        <CoderProviderWithMockAuth
-          appConfig={mockAppConfig}
-          queryClient={mockQueryClient}
-          authStatus={authStatus}
+    wrapper: ({ children }) =>
+      wrapInTestApp(
+        <TestApiProvider
+          apis={[
+            [errorApiRef, mockErrorApi],
+            [scmIntegrationsApiRef, mockSourceControl],
+            [configApiRef, mockConfigApi],
+          ]}
         >
-          <EntityProvider entity={mockEntity}>{children}</EntityProvider>
-        </CoderProviderWithMockAuth>
-      </TestApiProvider>
-    ),
+          <CoderProviderWithMockAuth
+            appConfig={mockAppConfig}
+            queryClient={mockQueryClient}
+            authStatus={authStatus}
+          >
+            <EntityProvider entity={mockEntity}>
+              <>{children}</>
+            </EntityProvider>
+          </CoderProviderWithMockAuth>
+        </TestApiProvider>,
+      ),
   });
+
+  await waitFor(() => expect(renderHookValue.result.current).not.toBe(null));
+  return renderHookValue;
 };

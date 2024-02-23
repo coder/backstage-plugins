@@ -109,14 +109,13 @@ export const Root = forwardRef<HTMLDivElement, WorkspacesCardProps>(
             aria-labelledby={headerId}
             {...delegatedProps}
           >
-            <form
-              // Using <form> element for semantics, but never want to go
-              // through a full native HTML form submission when the user does
-              // things like hitting the Enter key
-              onSubmit={event => event.preventDefault()}
-            >
-              {children}
-            </form>
+            {/* Want to expose the overall container as a form for good
+                semantics and screen reader support, but since there isn't an
+                explicit submission process (queries happen automatically),
+                using a base div with a role override to side-step edge cases
+                around keyboard input and button children seems like the easiest
+                approach */}
+            <div role="form">{children}</div>
           </Card>
         </CardContext.Provider>
       </CoderAuthWrapper>

@@ -6,31 +6,29 @@ import { CoderAppConfigProvider } from './CoderAppConfigProvider';
 import { CoderErrorBoundary } from '../CoderErrorBoundary';
 import { BackstageHttpError } from '../../api';
 
+const MAX_FETCH_FAILURES = 3;
+
 export type CoderProviderProps = ComponentProps<typeof CoderAuthProvider> &
   ComponentProps<typeof CoderAppConfigProvider> & {
     queryClient?: QueryClient;
   };
 
 const shouldRetryRequest = (failureCount: number, error: unknown): boolean => {
-  const tooManyFailures = failureCount >= 3;
-
-  // Have to duplicate a logic a little bit to improve type narrowing
+  const isBelowThreshold = failureCount < MAX_FETCH_FAILURES;
   if (!(error instanceof BackstageHttpError)) {
-    return tooManyFailures;
+    return isBelowThreshold;
   }
 
-  // This should trigger when there is an issue with the Backstage auth setup;
-  // just immediately give up on retries
-  if (error.status === 401) {
-    return false;
-  }
+  const isAuthenticationError = error.status === 401;
+  const isLikelyProxyConfigurationError =
+    error.status === 504 ||
+    (error.status === 200 && error.contentType !== 'application/json');
 
-  // This is rare, but a likely a sign that the proxy isn't set up properly
-  if (error.status === 200 && error.contentType !== 'application/json') {
-    return false;
-  }
-
-  return tooManyFailures;
+  return (
+    !isAuthenticationError &&
+    !isLikelyProxyConfigurationError &&
+    isBelowThreshold
+  );
 };
 
 const defaultClient = new QueryClient({

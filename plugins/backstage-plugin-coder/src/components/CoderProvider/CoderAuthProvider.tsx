@@ -42,10 +42,11 @@ type AuthState = Readonly<
       // Distrusted represents a token that could be valid, but we are unable to
       // verify it within an allowed window. invalid is definitely, 100% invalid
       status:
-        | 'reauthenticating'
+        | 'authenticating'
         | 'invalid'
         | 'distrusted'
-        | 'noInternetConnection';
+        | 'noInternetConnection'
+        | 'deploymentUnavailable';
       token: undefined;
       error: unknown;
     }
@@ -54,7 +55,8 @@ type AuthState = Readonly<
 export type CoderAuthStatus = AuthState['status'];
 export type CoderAuth = Readonly<
   AuthState & {
-    isAuthed: boolean;
+    isAuthenticated: boolean;
+    tokenLoadedOnMount: boolean;
     registerNewToken: (newToken: string) => void;
     ejectToken: () => void;
   }
@@ -98,20 +100,24 @@ type CoderAuthProviderProps = Readonly<PropsWithChildren<unknown>>;
 export const CoderAuthProvider = ({ children }: CoderAuthProviderProps) => {
   const { baseUrl } = useBackstageEndpoints();
   const [isInsideGracePeriod, setIsInsideGracePeriod] = useState(true);
-  const [authToken, setAuthToken] = useState(
-    () => window.localStorage.getItem(TOKEN_STORAGE_KEY) ?? '',
-  );
+
+  // Need to split hairs, because the query object can be disabled. Only want to
+  // expose the initializing state if the app mounts with a token already in
+  // localStorage
+  const [authToken, setAuthToken] = useState(readAuthToken);
+  const [readonlyInitialAuthToken] = useState(authToken);
 
   const authValidityQuery = useQuery({
     ...authValidation({ baseUrl, authToken }),
     refetchOnWindowFocus: query => query.state.data !== false,
   });
 
-  const authState = generateAuthState(
+  const authState = generateAuthState({
     authToken,
     authValidityQuery,
     isInsideGracePeriod,
-  );
+    initialAuthToken: readonlyInitialAuthToken,
+  });
 
   // Mid-render state sync to avoid unnecessary re-renders that useEffect would
   // introduce, especially since we don't know how costly re-renders could be in
@@ -143,15 +149,23 @@ export const CoderAuthProvider = ({ children }: CoderAuthProviderProps) => {
   // outside React because we let the user connect their own queryClient
   const queryClient = useQueryClient();
   useEffect(() => {
+    let isRefetchingTokenQuery = false;
     const queryCache = queryClient.getQueryCache();
-    const unsubscribe = queryCache.subscribe(event => {
+
+    const unsubscribe = queryCache.subscribe(async event => {
       const queryError = event.query.state.error;
       const shouldRevalidate =
-        queryError instanceof BackstageHttpError && !queryError.ok;
+        !isRefetchingTokenQuery &&
+        queryError instanceof BackstageHttpError &&
+        queryError.status === 401;
 
-      if (shouldRevalidate) {
-        queryClient.refetchQueries({ queryKey: authQueryKey });
+      if (!shouldRevalidate) {
+        return;
       }
+
+      isRefetchingTokenQuery = true;
+      await queryClient.refetchQueries({ queryKey: authQueryKey });
+      isRefetchingTokenQuery = false;
     });
 
     return unsubscribe;
@@ -161,7 +175,8 @@ export const CoderAuthProvider = ({ children }: CoderAuthProviderProps) => {
     <AuthContext.Provider
       value={{
         ...authState,
-        isAuthed: isAuthValid(authState),
+        isAuthenticated: isAuthValid(authState),
+        tokenLoadedOnMount: readonlyInitialAuthToken !== '',
         registerNewToken: newToken => {
           if (newToken !== '') {
             setAuthToken(newToken);
@@ -179,19 +194,28 @@ export const CoderAuthProvider = ({ children }: CoderAuthProviderProps) => {
   );
 };
 
+type GenerateAuthStateInputs = Readonly<{
+  authToken: string;
+  initialAuthToken: string;
+  authValidityQuery: UseQueryResult<boolean>;
+  isInsideGracePeriod: boolean;
+}>;
+
 /**
  * This function isn't too big, but it is accounting for a lot of possible
  * configurations that authValidityQuery can be in while background fetches and
- * refetches are happening. Can't get away with checking the .status alone
+ * re-fetches are happening. Can't get away with checking the .status alone
  *
  * @see {@link https://tkdodo.eu/blog/status-checks-in-react-query}
  */
-function generateAuthState(
-  authToken: string,
-  authValidityQuery: UseQueryResult<boolean>,
-  isInsideAuthGracePeriod: boolean,
-): AuthState {
+function generateAuthState({
+  authToken,
+  initialAuthToken,
+  authValidityQuery,
+  isInsideGracePeriod,
+}: GenerateAuthStateInputs): AuthState {
   const isInitializing =
+    initialAuthToken !== '' &&
     authValidityQuery.isLoading &&
     authValidityQuery.isFetching &&
     !authValidityQuery.isFetchedAfterMount;
@@ -214,6 +238,21 @@ function generateAuthState(
     };
   }
 
+  if (authValidityQuery.error instanceof BackstageHttpError) {
+    const deploymentLikelyUnavailable =
+      authValidityQuery.error.status === 504 ||
+      (authValidityQuery.error.status === 200 &&
+        authValidityQuery.error.contentType !== 'application/json');
+
+    if (deploymentLikelyUnavailable) {
+      return {
+        status: 'deploymentUnavailable',
+        token: undefined,
+        error: authValidityQuery.error,
+      };
+    }
+  }
+
   const isTokenValidFromPrevFetch = authValidityQuery.data === true;
   if (isTokenValidFromPrevFetch) {
     const canTrustAuthThisRender =
@@ -226,7 +265,7 @@ function generateAuthState(
       };
     }
 
-    if (isInsideAuthGracePeriod) {
+    if (isInsideGracePeriod) {
       return {
         status: 'distrustedWithGracePeriod',
         token: authToken,
@@ -244,15 +283,15 @@ function generateAuthState(
   // Have to include isLoading here because the auth query uses the
   // isPreviousData property to mask the fact that we're shifting to different
   // query keys and cache pockets each time the token value changes
-  const isReauthenticating =
+  const isAuthenticating =
     authValidityQuery.isLoading ||
     (authValidityQuery.isRefetching &&
       ((authValidityQuery.isError && authValidityQuery.data !== true) ||
         (authValidityQuery.isSuccess && authValidityQuery.data === false)));
 
-  if (isReauthenticating) {
+  if (isAuthenticating) {
     return {
-      status: 'reauthenticating',
+      status: 'authenticating',
       token: undefined,
       error: authValidityQuery.error,
     };
@@ -287,4 +326,8 @@ function generateAuthState(
     token: undefined,
     error: authValidityQuery.error,
   };
+}
+
+function readAuthToken(): string {
+  return window.localStorage.getItem(TOKEN_STORAGE_KEY) ?? '';
 }

@@ -5,8 +5,8 @@ import { type WorkspacesCardProps, Root } from './Root';
 import { HeaderRow } from './HeaderRow';
 import { SearchBox } from './SearchBox';
 import { WorkspacesList } from './WorkspacesList';
-import { RefreshButton } from './RefreshButton';
 import { CreateWorkspaceLink } from './CreateWorkspaceLink';
+import { ExtraActionsButton } from './ExtraActionsButton';
 
 const useStyles = makeStyles(theme => ({
   searchWrapper: {
@@ -26,8 +26,8 @@ export const CoderWorkspacesCard = (
         headerLevel="h2"
         actions={
           <>
-            <RefreshButton />
             <CreateWorkspaceLink />
+            <ExtraActionsButton />
           </>
         }
       />
