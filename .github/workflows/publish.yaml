@@ -1,0 +1,32 @@
+name: Publish
+
+# This workflow will publish releases published on GitHub to NPM.
+
+on:
+  release:
+    types:
+      - released
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: The tag to publish (for example "coder/v0.0.0")
+        type: string
+        required: true
+
+concurrency: ${{ github.workflow }}-${{ github.ref }}
+
+jobs:
+  npm:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: robinraju/release-downloader@v1.9
+        with:
+          tag: ${{ github.event.inputs.tag || github.ref_name }}
+          fileName: "*.tgz"
+      # Although we are publishing the tarball, yarn will not actually look at
+      # the package.json in the tarball so we have to extract it first.
+      - run: tar -xf *.tgz
+      - run: mv package/package.json package.json
+      - run: yarn publish *.tgz
+        env:
+          NPM_TOKEN: ${{ secrets.NPM_TOKEN }}

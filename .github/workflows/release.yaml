@@ -1,0 +1,54 @@
+name: Release
+
+# This workflow will draft a release for a plugin when tagged.
+# The tag format is <name>/v<version> without the backstage-plugin- prefix.
+
+on:
+  push:
+    tags:
+      - "*/v*"
+
+permissions:
+  contents: write # For creating releases.
+
+concurrency: ${{ github.workflow }}-${{ github.ref }}
+
+jobs:
+  split-tag:
+    runs-on: ubuntu-latest
+    outputs:
+      plugin: ${{ steps.split.outputs.plugin }}
+      version: ${{ steps.split.outputs.version }}
+    steps:
+      - env:
+          TAG: ${{ github.ref_name }}
+        id: split
+        run: |
+          parts=(${TAG//\/v/ })
+          echo "plugin=${parts[0]}" >> $GITHUB_OUTPUT
+          echo "version=${parts[1]}" >> $GITHUB_OUTPUT
+  plugin:
+    needs: split-tag
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: plugins/backstage-plugin-${{ needs.split-tag.outputs.plugin }}
+    name: ${{ needs.split-tag.outputs.plugin }} v${{ needs.split-tag.outputs.version }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .node-version
+          cache: yarn
+      - run: yarn install --frozen-lockfile
+      - run: yarn lint
+      - run: yarn tsc
+      - run: yarn test
+      - run: yarn build
+      # Version it with the version in the tag and upload it to a draft release.
+      - run: yarn version --new-version ${{ needs.split-tag.outputs.version }}
+      - run: yarn pack
+      - uses: softprops/action-gh-release@v1
+        with:
+          draft: true
+          files: plugins/backstage-plugin-${{ needs.split-tag.outputs.plugin }}/*.tgz
