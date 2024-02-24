@@ -60,18 +60,11 @@ import { ReportIssue } from '@backstage/plugin-techdocs-module-addons-contrib';
 
 import { CoderWorkspacesCard } from '@coder/backstage-plugin-coder';
 
-/**
- * 2024-02-13 - The version of TechDocsAddons that Backstage ships with makes
- * the TypeScript compiler complain when you try to render it as JSX. This seems
- * like it's just a type mismatch issue, and things still work at runtime
- */
-const FixedTechDocsAddons = TechDocsAddons as React.FC<unknown>;
-
 const techdocsContent = (
   <EntityTechdocsContent>
-    <FixedTechDocsAddons>
+    <TechDocsAddons>
       <ReportIssue />
-    </FixedTechDocsAddons>
+    </TechDocsAddons>
   </EntityTechdocsContent>
 );
 

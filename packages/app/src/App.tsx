@@ -79,13 +79,6 @@ const app = createApp({
   },
 });
 
-/**
- * 2024-02-13 - The version of TechDocsAddons that Backstage ships with makes
- * the TypeScript compiler complain when you try to render it as JSX. This seems
- * like it's just a type mismatch issue, and things still work at runtime
- */
-const FixedTechDocsAddons = TechDocsAddons as React.FC<unknown>;
-
 const routes = (
   <FlatRoutes>
     <Route path="/" element={<Navigate to="catalog" />} />
@@ -101,9 +94,9 @@ const routes = (
       path="/docs/:namespace/:kind/:name/*"
       element={<TechDocsReaderPage />}
     >
-      <FixedTechDocsAddons>
+      <TechDocsAddons>
         <ReportIssue />
-      </FixedTechDocsAddons>
+      </TechDocsAddons>
     </Route>
     <Route path="/create" element={<ScaffolderPage />} />
     <Route path="/api-docs" element={<ApiExplorerPage />} />
