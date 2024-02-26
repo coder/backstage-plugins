@@ -17,6 +17,10 @@ yarn install
 yarn start
 ```
 
+Note that the Coder plugin does not support running like this as it currently
+uses a backend proxy that is not available when running independently of the
+Backstage app.
+
 ## Releasing
 
 To draft a release for a plugin push a tag named `$name/v$version` without the
