@@ -1,7 +1,7 @@
 name: Release
 
-# This workflow will draft a release for a plugin when tagged.
-# The tag format is <name>/v<version> without the backstage-plugin- prefix.
+# This workflow will draft a release for a plugin when tagged.  The tag format
+# is <name>/v<version> without the backstage-plugin- prefix, e.g. coder/v0.0.0
 
 on:
   push:
