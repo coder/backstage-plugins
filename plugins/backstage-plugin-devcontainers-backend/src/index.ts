@@ -1,10 +1,23 @@
-import { CatalogProcessor } from '@backstage/plugin-catalog-node';
-import { Entity } from '@backstage/catalog-model';
-import { UrlReaders, UrlReader } from '@backstage/backend-common';
-import { Config } from '@backstage/config';
-import { Logger } from 'winston';
+/**
+ * @todo Add nice backend logging for files (probably using Winston)
+ * @todo Figure out if monorepos affect the parsing logic at all
+ * @todo Verify that all URLs are correct and will always succeed
+ * @todo Test out globs, particularly for root/recursive searches
+ * @todo Determine how exactly we'll be detecting devcontainer.json files. Three
+ *       likely options:
+ *       - .devcontainer/devcontainer.json
+ *       - .devcontainer.json
+ *       - .devcontainer/<folder>/devcontainer.json
+ *         (where <folder> is a sub-folder, one level deep)
+ */
+import { type CatalogProcessor } from '@backstage/plugin-catalog-node';
+import { type Entity } from '@backstage/catalog-model';
+import { type Config } from '@backstage/config';
+import { type Logger } from 'winston';
+import { type UrlReader, UrlReaders } from '@backstage/backend-common';
+import { ANNOTATION_SOURCE_LOCATION } from '@backstage/catalog-model';
 
-const DEVCONTAINERS_TAG = 'devcontainers';
+const DEVCONTAINERS_TAG = 'devcontainers-plugin';
 
 type ProcessorOptions = Readonly<{
   eraseTags: boolean;
@@ -35,63 +48,70 @@ export class DevcontainersProcessor implements CatalogProcessor {
   }
 
   getProcessorName(): string {
-    return 'coder/devcontainers';
+    // Very specific name to avoid name conflicts
+    return 'backstage-plugin-devcontainers-backend/devcontainers-processor';
   }
 
-  async postProcessEntity(entity: Entity): Promise<Entity> {
-    console.log('>>>>>>>>>>>>>>>>>>', entity.kind);
+  async preProcessEntity(entity: Entity): Promise<Entity> {
     if (entity.kind !== 'Component') {
       return entity;
     }
 
-    // TODO: use logger and make some nice logs
-    console.log('>>>>>>>>>>>>>>>>>>', typeof entity.metadata.tags);
-    console.log('>>>>>>>>>>>>>>>>>>', entity);
+    const cleanUrl = (
+      entity.metadata.annotations?.[ANNOTATION_SOURCE_LOCATION] ?? ''
+    ).replace(/^url:/, '');
 
-    // TODO: what about monorepos?
-    // TODO: is this the right URL?
-    const url =
-      entity.metadata.annotations?.['backstage.io/source-location'] ?? '';
-    const cleanUrl = url.replace(/^url:/, '');
-
-    /*
-      TODO: need to test globs, should find from root and recursive
-
-      TODO: either test these three or maybe just devcontainer.json?
-      .devcontainer/devcontainer.json
-      .devcontainer.json
-      .devcontainer/<folder>/devcontainer.json (where <folder> is a sub-folder, one level deep)
-    */
     const isGithubComponent = cleanUrl.includes('github.com');
     if (!isGithubComponent) {
-      const skipTagErase =
-        !this.options.eraseTags ||
-        !Array.isArray(entity.metadata.tags) ||
-        entity.metadata.tags.length === 0;
-
-      if (skipTagErase) {
-        return entity;
-      }
-
-      return {
-        ...entity,
-        metadata: {
-          ...entity.metadata,
-          tags: entity.metadata.tags?.filter(t => t !== DEVCONTAINERS_TAG),
-        },
-      };
+      return this.eraseTag(entity, DEVCONTAINERS_TAG);
     }
 
     const fullSearchPath = `${cleanUrl}.devcontainer/devcontainer.json`;
-    const results = await this.urlReader.search(fullSearchPath);
-    console.log('>>>>', results);
+    const response = await this.urlReader.search(fullSearchPath);
 
-    // TODO: add devcontainer tag only if we found a devcontainer.
+    // Placeholder stub until we look into the URLReader more. File traversal
+    // could be expensive; probably want to do as many early returns as possible
+    // before reaching this point
+    const tagDetected = response.files.some(f =>
+      f.url.includes('.devcontainer.json'),
+    );
+
+    if (tagDetected) {
+      return this.addTag(entity, DEVCONTAINERS_TAG);
+    }
+
+    return this.eraseTag(entity, DEVCONTAINERS_TAG);
+  }
+
+  private addTag(entity: Entity, newTag: string): Entity {
+    if (entity.metadata.tags?.includes(newTag)) {
+      return entity;
+    }
+
     return {
       ...entity,
       metadata: {
         ...entity.metadata,
-        tags: [...(entity.metadata.tags ?? []), 'devcontainers'],
+        tags: [...(entity.metadata?.tags ?? []), newTag],
+      },
+    };
+  }
+
+  private eraseTag(entity: Entity, targetTag: string): Entity {
+    const skipTagErasure =
+      !this.options.eraseTags ||
+      !Array.isArray(entity.metadata.tags) ||
+      entity.metadata.tags.length === 0;
+
+    if (skipTagErasure) {
+      return entity;
+    }
+
+    return {
+      ...entity,
+      metadata: {
+        ...entity.metadata,
+        tags: entity.metadata.tags?.filter(tag => tag !== targetTag),
       },
     };
   }
