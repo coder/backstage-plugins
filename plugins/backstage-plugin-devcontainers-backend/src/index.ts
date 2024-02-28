@@ -76,8 +76,8 @@ export class DevcontainersProcessor implements CatalogProcessor {
 
     const fullSearchPath = `${cleanUrl}.devcontainer/devcontainer.json`;
     const response = await this.urlReader.search(fullSearchPath);
-    const tagDetected = this.searchFiles(response, '.devcontainer.json');
 
+    const tagDetected = this.searchFiles(response, '.devcontainer.json');
     if (tagDetected) {
       return this.addTag(entity, DEVCONTAINERS_TAG);
     }
@@ -120,8 +120,9 @@ export class DevcontainersProcessor implements CatalogProcessor {
 
   private searchFiles(res: SearchResponse, glob: string): boolean {
     // Placeholder stub until we look into the URLReader more. File traversal
-    // could be expensive; probably want to do as many early returns as possible
-    // before reaching this point
+    // via the API calls could be expensive; probably want to make sure that we
+    // do a few checks and early returns to ensure that we're only calling this
+    // method when necessary
     return res.files.some(f => f.url.includes(glob));
   }
 }
