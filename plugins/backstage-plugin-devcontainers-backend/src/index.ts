@@ -23,7 +23,7 @@ type ProcessorOptions = Readonly<{
   eraseTags: boolean;
 }>;
 
-type FromConfigOptions = Readonly<
+type ProcessorSetupOptions = Readonly<
   Partial<ProcessorOptions> & {
     logger: Logger;
   }
@@ -38,12 +38,16 @@ export class DevcontainersProcessor implements CatalogProcessor {
     this.options = options;
   }
 
-  static fromConfig(config: Config, configOptions: FromConfigOptions) {
+  static fromConfig(readerConfig: Config, options: ProcessorSetupOptions) {
     const processorOptions: ProcessorOptions = {
-      eraseTags: configOptions.eraseTags ?? false,
+      eraseTags: options.eraseTags ?? false,
     };
 
-    const reader = UrlReaders.default({ config, logger: configOptions.logger });
+    const reader = UrlReaders.default({
+      config: readerConfig,
+      logger: options.logger,
+    });
+
     return new DevcontainersProcessor(reader, processorOptions);
   }
 
