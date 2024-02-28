@@ -14,7 +14,11 @@ import { type CatalogProcessor } from '@backstage/plugin-catalog-node';
 import { type Entity } from '@backstage/catalog-model';
 import { type Config } from '@backstage/config';
 import { type Logger } from 'winston';
-import { type UrlReader, UrlReaders } from '@backstage/backend-common';
+import {
+  type UrlReader,
+  UrlReaders,
+  SearchResponse,
+} from '@backstage/backend-common';
 import { ANNOTATION_SOURCE_LOCATION } from '@backstage/catalog-model';
 
 const DEVCONTAINERS_TAG = 'devcontainers-plugin';
@@ -72,13 +76,7 @@ export class DevcontainersProcessor implements CatalogProcessor {
 
     const fullSearchPath = `${cleanUrl}.devcontainer/devcontainer.json`;
     const response = await this.urlReader.search(fullSearchPath);
-
-    // Placeholder stub until we look into the URLReader more. File traversal
-    // could be expensive; probably want to do as many early returns as possible
-    // before reaching this point
-    const tagDetected = response.files.some(f =>
-      f.url.includes('.devcontainer.json'),
-    );
+    const tagDetected = this.searchFiles(response, '.devcontainer.json');
 
     if (tagDetected) {
       return this.addTag(entity, DEVCONTAINERS_TAG);
@@ -118,6 +116,13 @@ export class DevcontainersProcessor implements CatalogProcessor {
         tags: entity.metadata.tags?.filter(tag => tag !== targetTag),
       },
     };
+  }
+
+  private searchFiles(res: SearchResponse, glob: string): boolean {
+    // Placeholder stub until we look into the URLReader more. File traversal
+    // could be expensive; probably want to do as many early returns as possible
+    // before reaching this point
+    return res.files.some(f => f.url.includes(glob));
   }
 }
 
