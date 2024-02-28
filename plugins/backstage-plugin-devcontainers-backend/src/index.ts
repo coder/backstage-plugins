@@ -4,18 +4,38 @@ import { UrlReaders, UrlReader } from '@backstage/backend-common';
 import { Config } from '@backstage/config';
 import { Logger } from 'winston';
 
+const DEVCONTAINERS_TAG = 'devcontainers';
+
+type ProcessorOptions = Readonly<{
+  eraseTags: boolean;
+}>;
+
+type FromConfigOptions = Readonly<
+  Partial<ProcessorOptions> & {
+    logger: Logger;
+  }
+>;
+
 export class DevcontainersProcessor implements CatalogProcessor {
-  static fromConfig(config: Config, options: { logger: Logger }) {
-    const reader = UrlReaders.default({ logger: options.logger, config });
-    return new DevcontainersProcessor(reader);
+  private readonly urlReader: UrlReader;
+  private readonly options: ProcessorOptions;
+
+  constructor(urlReader: UrlReader, options: ProcessorOptions) {
+    this.urlReader = urlReader;
+    this.options = options;
   }
 
-  constructor(private readonly urlReader: UrlReader) {
-    // Nothing to do.
+  static fromConfig(config: Config, configOptions: FromConfigOptions) {
+    const processorOptions: ProcessorOptions = {
+      eraseTags: configOptions.eraseTags ?? false,
+    };
+
+    const reader = UrlReaders.default({ config, logger: configOptions.logger });
+    return new DevcontainersProcessor(reader, processorOptions);
   }
 
   getProcessorName(): string {
-    return 'devcontainers';
+    return 'coder/devcontainers';
   }
 
   async postProcessEntity(entity: Entity): Promise<Entity> {
@@ -29,20 +49,39 @@ export class DevcontainersProcessor implements CatalogProcessor {
     console.log('>>>>>>>>>>>>>>>>>>', entity);
 
     // TODO: what about monorepos?
+    // TODO: is this the right URL?
     const url =
-      entity.metadata.annotations?.['backstage.io/source-location'] ?? ''; // TODO: is this the right URL?
+      entity.metadata.annotations?.['backstage.io/source-location'] ?? '';
+    const cleanUrl = url.replace(/^url:/, '');
 
-    // TODO: need to test globs, should find from root and recursive
-    // TODO: either test these three or maybe just devcontainer.json?
-    // .devcontainer/devcontainer.json
-    // .devcontainer.json
-    // .devcontainer/<folder>/devcontainer.json (where <folder> is a sub-folder, one level deep)
-    const isGithubComponent = url.includes('github.com');
+    /*
+      TODO: need to test globs, should find from root and recursive
+
+      TODO: either test these three or maybe just devcontainer.json?
+      .devcontainer/devcontainer.json
+      .devcontainer.json
+      .devcontainer/<folder>/devcontainer.json (where <folder> is a sub-folder, one level deep)
+    */
+    const isGithubComponent = cleanUrl.includes('github.com');
     if (!isGithubComponent) {
-      return entity;
+      const skipTagErase =
+        !this.options.eraseTags ||
+        !Array.isArray(entity.metadata.tags) ||
+        entity.metadata.tags.length === 0;
+
+      if (skipTagErase) {
+        return entity;
+      }
+
+      return {
+        ...entity,
+        metadata: {
+          ...entity.metadata,
+          tags: entity.metadata.tags?.filter(t => t !== DEVCONTAINERS_TAG),
+        },
+      };
     }
 
-    const cleanUrl = url.replace(/^url:/, '');
     const fullSearchPath = `${cleanUrl}.devcontainer/devcontainer.json`;
     const results = await this.urlReader.search(fullSearchPath);
     console.log('>>>>', results);
@@ -52,7 +91,7 @@ export class DevcontainersProcessor implements CatalogProcessor {
       ...entity,
       metadata: {
         ...entity.metadata,
-        tags: ['devcontainers', ...(entity.metadata.tags ?? [])],
+        tags: [...(entity.metadata.tags ?? []), 'devcontainers'],
       },
     };
   }
