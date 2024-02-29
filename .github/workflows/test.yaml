@@ -1,0 +1,63 @@
+name: Test
+
+# This workflow will lint and test a plugin whenever it or CI changes.
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+
+# Cancel in-progress runs for pull requests when developers push changes.
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: ${{ github.ref != 'refs/heads/main' }}
+
+jobs:
+  changes:
+    runs-on: ubuntu-latest
+    outputs:
+      plugins: ${{ steps.filter.outputs.changes }}
+    steps:
+      # Pull requests do not need to check out the code to detect changes
+      # because the action fetches changed files through the API.
+      - uses: actions/checkout@v4
+        if: github.event_name != 'pull_request'
+      - uses: dorny/paths-filter@v3
+        id: filter
+        with:
+          filters: |
+            coder:
+              - ".github/workflows/build.yaml"
+              - "plugins/backstage-plugin-coder/**"
+  plugin:
+    needs: changes
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        plugin: ${{ fromJSON(needs.changes.outputs.plugins) }}
+    name: ${{ matrix.plugin }}
+    defaults:
+      run:
+        working-directory: plugins/backstage-plugin-${{ matrix.plugin }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .node-version
+          cache: yarn
+      - run: yarn install --frozen-lockfile
+      - run: yarn lint
+      - run: yarn tsc
+      - run: yarn test
+      - run: yarn build
+      # Version it with the SHA and upload to the run as an artifact in case
+      # someone needs to download it for testing.
+      - run: yarn version --new-version "0.0.0-devel+$GITHUB_SHA"
+      - run: yarn pack
+      - uses: actions/upload-artifact@v4
+        with:
+          name: ${{ matrix.plugin }}
+          path: plugins/backstage-plugin-${{ matrix.plugin }}/*.tgz

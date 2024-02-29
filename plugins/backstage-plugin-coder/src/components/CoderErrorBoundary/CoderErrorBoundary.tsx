@@ -1,6 +1,5 @@
 import React, {
   type ErrorInfo,
-  type FC,
   type ReactNode,
   Component,
 } from 'react';
@@ -39,7 +38,7 @@ class ErrorBoundaryCore extends Component<
   }
 
   componentDidCatch(error: Error, errorInfo: ErrorInfo): void {
-    this.props.onError(error, errorInfo.componentStack);
+    this.props.onError(error, errorInfo.componentStack || "no details");
   }
 
   render() {
@@ -53,10 +52,10 @@ type CoderErrorBoundaryProps = {
   fallbackUi?: ReactNode;
 };
 
-export const CoderErrorBoundary: FC<CoderErrorBoundaryProps> = ({
+export const CoderErrorBoundary = ({
   children,
   fallbackUi,
-}) => {
+}: CoderErrorBoundaryProps) => {
   const errorApi = useApi(errorApiRef);
   const fallbackContent = fallbackUi ?? <FallbackUi />;
 
