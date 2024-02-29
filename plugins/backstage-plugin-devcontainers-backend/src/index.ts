@@ -21,9 +21,10 @@ import {
 } from '@backstage/backend-common';
 import { ANNOTATION_SOURCE_LOCATION } from '@backstage/catalog-model';
 
-const DEVCONTAINERS_TAG = 'devcontainers-plugin';
+const DEFAULT_TAG_NAME = 'devcontainers';
 
 type ProcessorOptions = Readonly<{
+  tagName: string;
   eraseTags: boolean;
 }>;
 
@@ -44,6 +45,7 @@ export class DevcontainersProcessor implements CatalogProcessor {
 
   static fromConfig(readerConfig: Config, options: ProcessorSetupOptions) {
     const processorOptions: ProcessorOptions = {
+      tagName: options.tagName ?? DEFAULT_TAG_NAME,
       eraseTags: options.eraseTags ?? false,
     };
 
@@ -71,7 +73,7 @@ export class DevcontainersProcessor implements CatalogProcessor {
 
     const isGithubComponent = cleanUrl.includes('github.com');
     if (!isGithubComponent) {
-      return this.eraseTag(entity, DEVCONTAINERS_TAG);
+      return this.eraseTag(entity, DEFAULT_TAG_NAME);
     }
 
     const fullSearchPath = `${cleanUrl}.devcontainer/devcontainer.json`;
@@ -79,10 +81,10 @@ export class DevcontainersProcessor implements CatalogProcessor {
 
     const tagDetected = this.searchFiles(response, '.devcontainer.json');
     if (tagDetected) {
-      return this.addTag(entity, DEVCONTAINERS_TAG);
+      return this.addTag(entity, DEFAULT_TAG_NAME);
     }
 
-    return this.eraseTag(entity, DEVCONTAINERS_TAG);
+    return this.eraseTag(entity, DEFAULT_TAG_NAME);
   }
 
   private addTag(entity: Entity, newTag: string): Entity {
