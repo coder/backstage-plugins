@@ -32,6 +32,8 @@ jobs:
             coder:
               - ".github/workflows/build.yaml"
               - "plugins/backstage-plugin-coder/**"
+            devcontainers-backend:
+              - ".github/workflows/build.yaml"
               - "plugins/backstage-plugin-devcontainers-backend/**"
   plugin:
     needs: changes
