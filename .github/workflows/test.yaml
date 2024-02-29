@@ -32,6 +32,7 @@ jobs:
             coder:
               - ".github/workflows/build.yaml"
               - "plugins/backstage-plugin-coder/**"
+              - "plugins/backstage-plugin-devcontainers-backend/**"
   plugin:
     needs: changes
     runs-on: ubuntu-latest
