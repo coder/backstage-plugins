@@ -14,11 +14,7 @@ import { type CatalogProcessor } from '@backstage/plugin-catalog-node';
 import { type Entity } from '@backstage/catalog-model';
 import { type Config } from '@backstage/config';
 import { type Logger } from 'winston';
-import {
-  type UrlReader,
-  UrlReaders,
-  SearchResponse,
-} from '@backstage/backend-common';
+import { type UrlReader, UrlReaders } from '@backstage/backend-common';
 import { ANNOTATION_SOURCE_LOCATION } from '@backstage/catalog-model';
 
 const DEFAULT_TAG_NAME = 'devcontainers';
@@ -77,9 +73,7 @@ export class DevcontainersProcessor implements CatalogProcessor {
     }
 
     const fullSearchPath = `${cleanUrl}.devcontainer/devcontainer.json`;
-    const response = await this.urlReader.search(fullSearchPath);
-
-    const tagDetected = this.searchFiles(response, '.devcontainer.json');
+    const tagDetected = await this.searchFiles(fullSearchPath);
     if (tagDetected) {
       return this.addTag(entity, DEFAULT_TAG_NAME);
     }
@@ -120,12 +114,14 @@ export class DevcontainersProcessor implements CatalogProcessor {
     };
   }
 
-  private searchFiles(res: SearchResponse, glob: string): boolean {
+  private async searchFiles(glob: string): Promise<boolean> {
+    const response = await this.urlReader.search(glob);
+
     // Placeholder stub until we look into the URLReader more. File traversal
     // via the API calls could be expensive; probably want to make sure that we
     // do a few checks and early returns to ensure that we're only calling this
     // method when necessary
-    return res.files.some(f => f.url.includes(glob));
+    return response.files.some(f => f.url.includes(glob));
   }
 }
 
