@@ -41,7 +41,7 @@ export class DevcontainersProcessor implements CatalogProcessor {
 
   static fromConfig(readerConfig: Config, options: ProcessorSetupOptions) {
     const processorOptions: ProcessorOptions = {
-      tagName: options.tagName ?? DEFAULT_TAG_NAME,
+      tagName: options.tagName || DEFAULT_TAG_NAME,
       eraseTags: options.eraseTags ?? false,
     };
 
