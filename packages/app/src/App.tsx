@@ -43,6 +43,7 @@ import {
   type CoderAppConfig,
   CoderProvider,
 } from '@coder/backstage-plugin-coder';
+import { BackstagePluginDevcontainersReactPage } from '@coder/plugin-backstage-plugin-devcontainers-react';
 
 const app = createApp({
   apis,
@@ -117,6 +118,7 @@ const routes = (
     </Route>
     <Route path="/settings" element={<UserSettingsPage />} />
     <Route path="/catalog-graph" element={<CatalogGraphPage />} />
+    <Route path="/backstage-plugin-devcontainers-react" element={<BackstagePluginDevcontainersReactPage />} />
   </FlatRoutes>
 );
 
