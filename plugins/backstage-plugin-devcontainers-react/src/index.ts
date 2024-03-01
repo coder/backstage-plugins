@@ -1,1 +1,1 @@
-export { backstagePluginDevcontainersReactPlugin, BackstagePluginDevcontainersReactPage } from './plugin';
+export * from './plugin';

@@ -1,19 +1,37 @@
-import { createPlugin, createRoutableExtension } from '@backstage/core-plugin-api';
-
+import {
+  createPlugin,
+  createComponentExtension,
+} from '@backstage/core-plugin-api';
 import { rootRouteRef } from './routes';
 
-export const backstagePluginDevcontainersReactPlugin = createPlugin({
+export const devcontainersPlugin = createPlugin({
   id: 'backstage-plugin-devcontainers-react',
   routes: {
     root: rootRouteRef,
   },
 });
 
-export const BackstagePluginDevcontainersReactPage = backstagePluginDevcontainersReactPlugin.provide(
-  createRoutableExtension({
-    name: 'BackstagePluginDevcontainersReactPage',
-    component: () =>
-      import('./components/ExampleComponent').then(m => m.ExampleComponent),
-    mountPoint: rootRouteRef,
+/**
+ * All public component exports exposed by the plugin.
+ */
+export const DevcontainersProvider = devcontainersPlugin.provide(
+  createComponentExtension({
+    name: 'DevcontainersProvider',
+    component: {
+      lazy: () =>
+        import('./components/DevcontainersProvider').then(
+          m => m.DevcontainersProvider,
+        ),
+    },
   }),
 );
+
+/**
+ * All custom hooks exposed by the plugin.
+ */
+export { useDevcontainers } from './hooks/useDevcontainers';
+
+/**
+ * All custom types
+ */
+export type { DevcontainersConfig } from './components/DevcontainersProvider';
