@@ -1,7 +1,7 @@
-import { backstagePluginDevcontainersReactPlugin } from './plugin';
+import { devcontainersPlugin } from './plugin';
 
 describe('backstage-plugin-devcontainers-react', () => {
   it('should export plugin', () => {
-    expect(backstagePluginDevcontainersReactPlugin).toBeDefined();
+    expect(devcontainersPlugin).toBeDefined();
   });
 });
