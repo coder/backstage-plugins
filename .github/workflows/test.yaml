@@ -35,6 +35,9 @@ jobs:
             devcontainers-backend:
               - ".github/workflows/build.yaml"
               - "plugins/backstage-plugin-devcontainers-backend/**"
+            devcontainers-react:
+              - ".github/workflows/build.yaml"
+              - "plugins/backstage-plugin-devcontainers-react/**"
   plugin:
     needs: changes
     runs-on: ubuntu-latest
