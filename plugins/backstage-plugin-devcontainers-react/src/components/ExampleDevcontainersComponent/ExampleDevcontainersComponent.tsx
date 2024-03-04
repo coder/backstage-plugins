@@ -11,6 +11,9 @@ const useStyles = makeStyles(() => ({
       textDecoration: 'none',
     },
   },
+  tagName: {
+    fontWeight: 700,
+  },
 }));
 
 export const ExampleDevcontainersComponent = () => {
@@ -19,7 +22,10 @@ export const ExampleDevcontainersComponent = () => {
 
   return (
     <InfoCard title="Devcontainers plugin">
-      <p>Tag: {state.tagName}</p>
+      <p>
+        Searched component entity for tag:{' '}
+        <span className={styles.tagName}>{state.tagName}</span>
+      </p>
 
       {state.hasUrl ? (
         <>
