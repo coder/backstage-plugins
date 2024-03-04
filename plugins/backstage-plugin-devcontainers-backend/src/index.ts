@@ -1,21 +1,10 @@
-/**
- * @todo Add nice backend logging for files (probably using Winston)
- * @todo Figure out if monorepos affect the parsing logic at all
- * @todo Verify that all URLs are correct and will always succeed
- * @todo Test out globs, particularly for root/recursive searches
- * @todo Determine how exactly we'll be detecting devcontainer.json files. Three
- *       likely options:
- *       - .devcontainer/devcontainer.json
- *       - .devcontainer.json
- *       - .devcontainer/<folder>/devcontainer.json
- *         (where <folder> is a sub-folder, one level deep)
- */
+import { LocationSpec } from '@backstage/plugin-catalog-common';
 import { type CatalogProcessor } from '@backstage/plugin-catalog-node';
 import { type Entity } from '@backstage/catalog-model';
 import { type Config } from '@backstage/config';
-import { type Logger } from 'winston';
+import { isError, NotFoundError } from '@backstage/errors';
 import { type UrlReader, UrlReaders } from '@backstage/backend-common';
-import { ANNOTATION_SOURCE_LOCATION } from '@backstage/catalog-model';
+import { type Logger } from 'winston';
 
 const DEFAULT_TAG_NAME = 'devcontainers';
 
@@ -34,7 +23,7 @@ export class DevcontainersProcessor implements CatalogProcessor {
   private readonly urlReader: UrlReader;
   private readonly options: ProcessorOptions;
 
-  constructor(urlReader: UrlReader, options: ProcessorOptions) {
+  constructor(urlReader: UrlReader, options: ProcessorOptions, private readonly logger: Logger) {
     this.urlReader = urlReader;
     this.options = options;
   }
@@ -50,7 +39,7 @@ export class DevcontainersProcessor implements CatalogProcessor {
       logger: options.logger,
     });
 
-    return new DevcontainersProcessor(reader, processorOptions);
+    return new DevcontainersProcessor(reader, processorOptions, options.logger);
   }
 
   getProcessorName(): string {
@@ -58,34 +47,42 @@ export class DevcontainersProcessor implements CatalogProcessor {
     return 'backstage-plugin-devcontainers-backend/devcontainers-processor';
   }
 
-  async preProcessEntity(entity: Entity): Promise<Entity> {
-    if (entity.kind !== 'Component') {
+  async preProcessEntity(entity: Entity, location: LocationSpec): Promise<Entity> {
+    // The location of a component should be the catalog-info.yaml file, but
+    // check just to be sure.
+    if (entity.kind !== 'Component' || !location.target.endsWith("/catalog-info.yaml")) {
       return entity;
     }
 
-    const cleanUrl = (
-      entity.metadata.annotations?.[ANNOTATION_SOURCE_LOCATION] ?? ''
-    ).replace(/^url:/, '');
-
-    const isGithubComponent = cleanUrl.includes('github.com');
-    if (!isGithubComponent) {
-      return this.eraseTag(entity, DEFAULT_TAG_NAME);
+    const entityLogger = this.logger.child({ name: entity.metadata.name })
+    try {
+      // The catalog-info.yaml is not necessarily at the root of the repository.
+      // For showing the tag, we only care that there is a devcontainer.json
+      // somewhere in the catalog-info.yaml directory or below.  However, if
+      // this is a subdirectory (for example a monorepo) or a branch other than
+      // the default, VS Code will fail to open it.  We may need to skip adding
+      // the tag for anything that is not the root of the default branch, if we
+      // can get this information, or figure out a workaround.
+      const rootUrl = location.target.replace(/\/catalog-info\.yaml$/, "")
+      const jsonUrl = await this.findDevcontainerJson(rootUrl, entityLogger)
+      entityLogger.info("Found devcontainer config", { url: jsonUrl })
+      return this.addTag(entity, DEFAULT_TAG_NAME, entityLogger);
+    } catch (error) {
+      if (!isError(error) || error.name !== "NotFoundError") {
+        entityLogger.warn("Failed to find devcontainer config", { error })
+      } else {
+        entityLogger.info("Did not find devcontainer config")
+      }
     }
-
-    const fullSearchPath = `${cleanUrl}.devcontainer/devcontainer.json`;
-    const tagDetected = await this.searchFiles(fullSearchPath);
-    if (tagDetected) {
-      return this.addTag(entity, DEFAULT_TAG_NAME);
-    }
-
-    return this.eraseTag(entity, DEFAULT_TAG_NAME);
+    return this.eraseTag(entity, DEFAULT_TAG_NAME, entityLogger);
   }
 
-  private addTag(entity: Entity, newTag: string): Entity {
+  private addTag(entity: Entity, newTag: string, logger: Logger): Entity {
     if (entity.metadata.tags?.includes(newTag)) {
       return entity;
     }
 
+    logger.info(`Adding "${newTag}" tag to component`)
     return {
       ...entity,
       metadata: {
@@ -95,16 +92,18 @@ export class DevcontainersProcessor implements CatalogProcessor {
     };
   }
 
-  private eraseTag(entity: Entity, targetTag: string): Entity {
+  private eraseTag(entity: Entity, targetTag: string, logger: Logger): Entity {
     const skipTagErasure =
       !this.options.eraseTags ||
       !Array.isArray(entity.metadata.tags) ||
-      entity.metadata.tags.length === 0;
+      entity.metadata.tags.length === 0 ||
+      !entity.metadata.tags.includes(targetTag);
 
     if (skipTagErasure) {
       return entity;
     }
 
+    logger.info(`Removing "${targetTag}" tag from component`)
     return {
       ...entity,
       metadata: {
@@ -114,14 +113,56 @@ export class DevcontainersProcessor implements CatalogProcessor {
     };
   }
 
-  private async searchFiles(glob: string): Promise<boolean> {
-    const response = await this.urlReader.search(glob);
+  /**
+   * Return the first devcontainer config file found at or below the provided
+   * URL.  Throw any errors encountered or a NotFoundError if unable to find any
+   * devcontainer config files, to match the style of UrlReader.readUrl which
+   * throws when unable to find a file.
+   *
+   * The spec expects the config file to be in one of three locations:
+   *   - .devcontainer/devcontainer.json
+   *   - .devcontainer.json
+   *   - .devcontainer/<dir>/devcontainer.json where <dir> is at most one
+   *     level deep.
+   */
+  private async findDevcontainerJson(rootUrl: string, logger: Logger): Promise<string> {
+    // This could possibly be simplified with a ** glob, but ** appears not to
+    // match on directories that begin with a dot.  Unless there is an option
+    // exposed to support dots, we will have to make individual queries.  But,
+    // not every provider appears to support `search` anyway so getting static
+    // files will result in wider support anyway.
+    logger.info("Searching for devcontainer config", { url: rootUrl })
+    const staticLocations = [
+      ".devcontainer/devcontainer.json",
+      ".devcontainer.json",
+    ];
+    for (const location of staticLocations) {
+      // TODO: We could possibly store the ETag of the devcontainer we last
+      // found and include that in the request, which should result in less
+      // bandwidth if the provider supports ETags.  I am seeing the request
+      // going off about every two minutes so it might be worth it.
+      try {
+        const fileUrl = `${rootUrl}/${location}`
+        await this.urlReader.readUrl(fileUrl);
+        return fileUrl
+      } catch (error) {
+        if (!isError(error) || error.name !== "NotFoundError") {
+          throw error
+        }
+      }
+    }
 
-    // Placeholder stub until we look into the URLReader more. File traversal
-    // via the API calls could be expensive; probably want to make sure that we
-    // do a few checks and early returns to ensure that we're only calling this
-    // method when necessary
-    return response.files.some(f => f.url.includes(glob));
+    // * does not seem to match on a dot either.  If we need to support
+    // something like .devcontainer/.example/devcontainer.json then we either
+    // need an option exposed to enable that or we will have to read the
+    // sub-tree here and traverse it ourselves.  Note that not every provider
+    // supports `search` or `readTree`.
+    const globUrl = `${rootUrl}/.devcontainer/*/devcontainer.json`
+    const res = await this.urlReader.search(globUrl);
+    if (res.files.length === 0) {
+      throw new NotFoundError(`${globUrl} did not match any files`)
+    }
+    return res.files[0].url
   }
 }
 
