@@ -43,7 +43,22 @@ import {
   type CoderAppConfig,
   CoderProvider,
 } from '@coder/backstage-plugin-coder';
-import { DevcontainersProvider } from '@coder/backstage-plugin-devcontainers-react/';
+
+const appConfig: CoderAppConfig = {
+  deployment: {
+    accessUrl: 'https://dev.coder.com',
+  },
+
+  workspaces: {
+    templateName: 'devcontainers',
+    mode: 'manual',
+    repoUrlParamKeys: ['custom_repo', 'repo_url'],
+    params: {
+      repo: 'custom',
+      region: 'eu-helsinki',
+    },
+  },
+};
 
 const app = createApp({
   apis,
@@ -121,33 +136,15 @@ const routes = (
   </FlatRoutes>
 );
 
-const appConfig: CoderAppConfig = {
-  deployment: {
-    accessUrl: 'https://dev.coder.com',
-  },
-
-  workspaces: {
-    templateName: 'devcontainers',
-    mode: 'manual',
-    repoUrlParamKeys: ['custom_repo', 'repo_url'],
-    params: {
-      repo: 'custom',
-      region: 'eu-helsinki',
-    },
-  },
-};
-
 export default app.createRoot(
   <>
     <AlertDisplay />
     <OAuthRequestDialog />
 
-    <CoderProvider appConfig={appConfig}>
-      <DevcontainersProvider config={{}}>
-        <AppRouter>
-          <Root>{routes}</Root>
-        </AppRouter>
-      </DevcontainersProvider>
-    </CoderProvider>
+    <AppRouter>
+      <Root>
+        <CoderProvider appConfig={appConfig}>{routes}</CoderProvider>
+      </Root>
+    </AppRouter>
   </>,
 );

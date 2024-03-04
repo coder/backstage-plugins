@@ -57,8 +57,12 @@ import {
 
 import { TechDocsAddons } from '@backstage/plugin-techdocs-react';
 import { ReportIssue } from '@backstage/plugin-techdocs-module-addons-contrib';
-
 import { CoderWorkspacesCard } from '@coder/backstage-plugin-coder';
+import {
+  DevcontainersConfig,
+  DevcontainersProvider,
+  useDevcontainers,
+} from '@coder/backstage-plugin-devcontainers-react';
 
 const techdocsContent = (
   <EntityTechdocsContent>
@@ -123,6 +127,21 @@ const entityWarningContent = (
   </>
 );
 
+const devcontainersConfig: DevcontainersConfig = {
+  tagName: 'devcontainers',
+};
+
+const SampleDevcontainersReader = () => {
+  const state = useDevcontainers();
+  return (
+    <p>
+      {state.hasUrl
+        ? `Your component supports devcontainers (tag ${state.tagName} found)`
+        : `Your component does NOT support devcontainers (tag ${state.tagName} not found)`}
+    </p>
+  );
+};
+
 const overviewContent = (
   <Grid container spacing={3} alignItems="stretch">
     {entityWarningContent}
@@ -131,6 +150,10 @@ const overviewContent = (
     </Grid>
     <Grid item md={6} xs={12}>
       <CoderWorkspacesCard readEntityData />
+
+      <DevcontainersProvider config={devcontainersConfig}>
+        <SampleDevcontainersReader />
+      </DevcontainersProvider>
     </Grid>
     <Grid item md={6} xs={12}>
       <EntityCatalogGraphCard variant="gridItem" height={400} />
