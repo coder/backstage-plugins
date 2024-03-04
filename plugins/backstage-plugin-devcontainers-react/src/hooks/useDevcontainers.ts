@@ -54,6 +54,16 @@ export function useDevcontainers(): UseDevcontainersResult {
   };
 }
 
+/**
+ * Current implementation for generating the URL will likely need to change as
+ * we flesh out the backend plugin.
+ *
+ * It might make more sense to add the direct VSCode link to the entity data
+ * from the backend plugin via an annotation field, and remove the need for data
+ * cleaning here in this function
+ */
 function serializeVsCodeUrl(repoUrl: string): string {
-  return `vscode://ms-vscode-remote.remote-containers/cloneInVolume?url=${repoUrl}`;
+  const cleaners: readonly RegExp[] = [/^url: */, /\/tree\/main\/?$/];
+  const cleanedUrl = cleaners.reduce((str, re) => str.replace(re, ''), repoUrl);
+  return `vscode://ms-vscode-remote.remote-containers/cloneInVolume?url=${cleanedUrl}`;
 }

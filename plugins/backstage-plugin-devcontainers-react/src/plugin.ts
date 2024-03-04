@@ -26,6 +26,18 @@ export const DevcontainersProvider = devcontainersPlugin.provide(
   }),
 );
 
+export const ExampleDevcontainersComponent = devcontainersPlugin.provide(
+  createComponentExtension({
+    name: 'ExampleDevcontainersComponent',
+    component: {
+      lazy: () =>
+        import('./components/ExampleDevcontainersComponent').then(
+          m => m.ExampleDevcontainersComponent,
+        ),
+    },
+  }),
+);
+
 /**
  * All custom hooks exposed by the plugin.
  */
