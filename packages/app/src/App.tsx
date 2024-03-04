@@ -138,13 +138,16 @@ const appConfig: CoderAppConfig = {
 };
 
 export default app.createRoot(
-  <CoderProvider appConfig={appConfig}>
-    <DevcontainersProvider config={{}}>
-      <AlertDisplay />
-      <OAuthRequestDialog />
-      <AppRouter>
-        <Root>{routes}</Root>
-      </AppRouter>
-    </DevcontainersProvider>
-  </CoderProvider>,
+  <>
+    <AlertDisplay />
+    <OAuthRequestDialog />
+
+    <CoderProvider appConfig={appConfig}>
+      <DevcontainersProvider config={{}}>
+        <AppRouter>
+          <Root>{routes}</Root>
+        </AppRouter>
+      </DevcontainersProvider>
+    </CoderProvider>
+  </>,
 );
