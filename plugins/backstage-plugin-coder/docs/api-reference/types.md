@@ -1,0 +1,169 @@
+# Plugin API reference – Important types
+
+## Types directory
+
+- [`CoderAppConfig`](#coderappconfig)
+- [`CoderEntityConfig`](#coderentityconfig)
+- [`Workspace`](#workspace)
+- [`WorkspaceResponse`](#workspaceresponse)
+
+## `CoderAppConfig`
+
+## `CoderEntityConfig`
+
+Represents the result of compiling Coder plugin configuration data. All data will be compiled from the following sources:
+
+1. The [`CoderAppConfig`](#coderappconfig) passed to [`CoderProvider`](./components.md#coderprovider)
+2. The entity-specific fields for a given repo's `catalog-info.yaml` file
+3. The entity's location metadata (corresponding to the repo)
+
+### Type definition
+
+```tsx
+type CoderEntityConfig = Readonly<{
+  mode: 'manual' | 'auto';
+  params: Record<string, string | undefined>;
+  repoUrl: string | undefined;
+  repoUrlParamKeys: [string, ...string[]][];
+  templateName: string;
+}>;
+```
+
+### Example
+
+Let's say that you have these inputs:
+
+```tsx
+const appConfig: CoderAppConfig = {
+  deployment: {
+    accessUrl: 'https://dev.coder.com',
+  },
+
+  workspaces: {
+    templateName: 'devcontainers',
+    mode: 'manual',
+    repoUrlParamKeys: ['custom_repo', 'repo_url'],
+    params: {
+      repo: 'custom',
+      region: 'eu-helsinki',
+    },
+  },
+};
+```
+
+```yaml
+# https://github.com/Parkreiner/python-project/blob/main/catalog-info.yaml
+apiVersion: backstage.io/v1alpha1
+kind: Component
+metadata:
+  name: python-project
+spec:
+  type: other
+  lifecycle: unknown
+  owner: pms
+  coder:
+    templateName: 'devcontainers'
+    mode: 'auto'
+    params:
+      repo: 'custom'
+      region: 'us-pittsburgh'
+```
+
+Your output will look like this:
+
+```tsx
+const config: CoderEntityConfig = {
+  mode: 'auto',
+  params: {
+    repo: 'custom',
+    region: 'us-pittsburgh',
+    custom_repo: 'https://github.com/Parkreiner/python-project/',
+    repo_url: 'https://github.com/Parkreiner/python-project/',
+  },
+  repoUrl: 'https://github.com/Parkreiner/python-project/',
+  repoUrlParamKeys: ['custom_repo', 'repo_url'],
+  templateName: 'devcontainers',
+};
+```
+
+### Notes
+
+- See the notes for [`CoderAppConfig`](#coderappconfig) for additional information on some of the fields.
+- The value of the `repoUrl` property is derived from [Backstage's `getEntitySourceLocation`](https://backstage.io/docs/reference/plugin-catalog-react.getentitysourcelocation/), which does not guarantee that a URL will always be defined.
+- This is the current order of operations used to reconcile param data between `CoderAppConfig`, `catalog-info.yaml`, and the entity location data:
+  1. Start with an empty `Record<string, string | undefined>` value
+  2. Populate the record with the data from `CoderAppConfig`
+  3. Go through all properties parsed from `catalog-info.yaml` and inject those. If the properties are already defined, overwrite them
+  4. Grab the repo URL from the entity's location fields.
+  5. For each key in `CoderAppConfig`'s `workspaces.repoUrlParamKeys` property, take that key, and inject it as a key-value pair, using the URL as the value. If the key already exists, always override it with the URL
+
+## `Workspace`
+
+Represents a single Coder workspace.
+
+### Type definition
+
+The below type definitions are likely to be split up at a later date. They are currently defined together for convenience.
+
+```tsx
+type WorkspaceAgentStatus =
+  | 'connected'
+  | 'connecting'
+  | 'disconnected'
+  | 'timeout';
+
+type WorkspaceAgent = {
+  id: string;
+  status: WorkspaceAgentStatus;
+};
+
+type WorkspaceResource = {
+  id: string;
+  agents: WorkspaceAgent[];
+};
+
+type WorkspaceStatus =
+  | 'canceled'
+  | 'canceling'
+  | 'deleted'
+  | 'deleting'
+  | 'failed'
+  | 'pending'
+  | 'running'
+  | 'starting'
+  | 'stopped'
+  | 'stopping';
+
+type Workspace = {
+  name: string;
+  id: string;
+  template_icon: string;
+  owner_name: string;
+  latest_build: {
+    id: string;
+    status: WorkspaceStatus;
+    resources: WorkspaceResource[];
+  };
+};
+```
+
+### Notes
+
+- Right now, the number of fields is limited. One planned feature is to expand the type definition to make all Coder workspace properties available
+
+## `WorkspaceResponse`
+
+Represents the JSON value that will be part of the response to any workspace API call.
+
+### Type definition
+
+```tsx
+type WorkspaceResponse = {
+  count: number;
+  workspaces: Workspace[];
+};
+```
+
+### Notes
+
+- `count` is the total number of workspaces in the response
