@@ -6,4 +6,4 @@ For users who need more information about how to extend and modify the Coder plu
 
 - [Components](./components.md)
 - [Custom React hooks](./hooks.md)
-- [General types](./types.md)
+- [Important types](./types.md)
