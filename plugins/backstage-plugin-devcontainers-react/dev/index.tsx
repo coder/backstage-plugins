@@ -3,6 +3,7 @@ import { createDevApp } from '@backstage/dev-utils';
 import {
   type DevcontainersConfig,
   DevcontainersProvider,
+  ExampleDevcontainersComponent,
   devcontainersPlugin,
 } from '../src/plugin';
 
@@ -11,7 +12,7 @@ const config: DevcontainersConfig = {};
 const SampleComponent = () => {
   return (
     <DevcontainersProvider config={config}>
-      <p>This is a component with access to the Devcontainers provider!</p>
+      <ExampleDevcontainersComponent />
     </DevcontainersProvider>
   );
 };
