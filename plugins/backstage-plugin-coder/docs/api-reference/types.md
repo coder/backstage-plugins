@@ -1,5 +1,21 @@
 # Plugin API reference – Important types
 
+## General notes
+
+- All type definitions for the Coder plugin are defined as type aliases and not interfaces, to prevent the risk of accidental interface merging. If you need to extend from one of our types, you can do it in one of two ways:
+
+  ```tsx
+  // Type intersection
+  type CustomType = CoderEntityConfig & {
+    customProperty: boolean;
+  };
+
+  // Interface extension - new interface must have a different name
+  interface CustomInterface extends CoderEntityConfig {
+    customProperty: string;
+  }
+  ```
+
 ## Types directory
 
 - [`CoderAppConfig`](#coderappconfig)
@@ -8,6 +24,40 @@
 - [`WorkspaceResponse`](#workspaceresponse)
 
 ## `CoderAppConfig`
+
+Defines a set of configuration options for integrating Backstage with Coder. Primarily has two main uses:
+
+1. Defining a centralized source of truth for certain Coder configuration options (such as which workspace parameters should be used for injecting repo URL values)
+2. Defining "fallback" workspace parameters when a repository entity either doesn't have a `catalog-info.yaml` file at all, or only specifies a handful of properties.
+
+### Type definition
+
+```tsx
+type CoderAppConfig = Readonly<{
+  workspaces: Readonly<{
+    templateName: string;
+    mode?: 'auto' | 'manual' | undefined;
+    params?: Record<string, string | undefined>;
+    repoUrlParamKeys: readonly [string, ...string[]];
+  }>;
+
+  deployment: Readonly<{
+    accessUrl: string;
+  }>;
+}>;
+```
+
+### Example usage
+
+See example for [`CoderProvider`](./components.md#coderprovider)
+
+### Notes
+
+- `accessUrl` is the URL pointing at your specific Coder deployment
+- `templateName` refers to the name of the Coder template that you wish to use as default for creating workspaces
+- If `mode` is not specified, the plugin will default to a value of `manual`
+- `repoUrlParamKeys` is defined as a non-empty array – there must be at least one element inside it.
+- For more info on how this type is used within the plugin, see [`CoderEntityConfig`](./types.md#coderentityconfig) and [`useCoderEntityConfig`](./hooks.md#usecoderentityconfig)
 
 ## `CoderEntityConfig`
 
@@ -29,7 +79,7 @@ type CoderEntityConfig = Readonly<{
 }>;
 ```
 
-### Example
+### Example usage
 
 Let's say that you have these inputs:
 
