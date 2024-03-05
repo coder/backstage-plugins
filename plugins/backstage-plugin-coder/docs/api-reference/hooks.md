@@ -121,7 +121,7 @@ const coderAppConfig: CoderAppConfig = {
 
 ### Notes
 
-- `UseQueryResult` is taken from [React Query v4](https://tanstack.com/query/v4/docs/framework/react/reference/useQuery)
+- `UseQueryResult` is taken from [TanStack Query v4](https://tanstack.com/query/v4/docs/framework/react/reference/useQuery)
   - We recommend [TK Dodo's Practical React Query blog series](https://tkdodo.eu/blog/practical-react-query) for how to make the most of its features. (Particularly the article on [React Query status checks](https://tkdodo.eu/blog/status-checks-in-react-query))
 - The underlying query will not be enabled if:
   1.  The user is not currently authenticated (We recommend wrapping your component inside [`CoderAuthWrapper`](./components.md#coderauthwrapper) to make these checks easier)
