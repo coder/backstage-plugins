@@ -87,6 +87,8 @@ the devcontainer.
    );
    ```
 
+   > Note: You can also wrap a single page or component with `CoderProvider` if you only need Coder in a specific part of your app. See our [API reference](#TODO) for more details.
+
 1. Add the `WorkspacesList` card to the entity page in your app:
 
    ```tsx
