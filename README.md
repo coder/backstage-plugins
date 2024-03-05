@@ -1,4 +1,11 @@
-# [Backstage](https://backstage.io)
+# coder/backstage-plugins
+
+We believe [Backstage.io](https://backstage.io) can be extended to help developers where they spend the majority of their time: their IDE. This repository contains a collection of plugins that onboard developers faster and reduce context-switching by giving them one-click into reproducible development environments:
+
+- [backstage-plugin-coder](./plugins/backstage-plugin-coder/README.md): A plugin for integrating Coder workspaces into Backstage.
+- [backstage-plugin-devcontainers](./plugins/backstage-plugin-devcontainers/README.md): A plugin for integrating DevContainers into Backstage (no Coder deployment necessary).
+
+Please use [GitHub issues](https://github.com/coder/backstage-plugins/issues) to report any issues or feature requests.
 
 ## Contributing
 
@@ -24,7 +31,7 @@ Backstage app.
 ## Releasing
 
 To draft a release for a plugin push a tag named `$name/v$version` without the
-`backstage-plugin-` prefix.  For example:
+`backstage-plugin-` prefix. For example:
 
 ```sh
 git tag -a coder/v0.0.0 -m "coder v0.0.0"
