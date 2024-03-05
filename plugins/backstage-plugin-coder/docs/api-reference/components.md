@@ -160,6 +160,10 @@ const appConfig: CoderAppConfig = {
 
 ## `CoderWorkspacesCard`
 
+A set of sub-components that together make up a form for searching for Coder workspaces that you own.
+
+\[Need to figure out how to document all the sub-components\]
+
 ### Type signature
 
 ### Sample usage
@@ -167,3 +171,8 @@ const appConfig: CoderAppConfig = {
 ### Throws
 
 ### Notes
+
+- All sub-components have been designed with accessibility in mind:
+  - All content is accessible via screen reader - all icon buttons have accessible text
+  - There are no color contrast violations in the components' default color schemes (with either the dark or light themes)
+  - When used together (like with `CoderWorkspacesCard`, the entire search area is exposed as an accessible search landmark)
