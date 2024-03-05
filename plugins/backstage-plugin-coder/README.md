@@ -18,7 +18,10 @@ Create and manage [Coder workspaces](https://coder.com/docs/v2/latest) from Back
 ## Setup
 
 This assumes you already have a [Coder](https://github.com/coder/coder) deployment running.
-Replace `https://coder.example.com` with your Coder deployment access URL.
+Replace `https://coder.example.com` with your Coder deployment access URL. This also assumes
+you have a template that has a parameter for a git repository URL (e.g. `git_repo_url`) that auto-clones
+the repository or uses [envbuilder](https://coder.com/docs/v2/latest/templates/devcontainers) to build
+the devcontainer.
 
 1. If you have a standalone app (you didn't clone this repo), then do
 
