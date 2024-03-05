@@ -16,13 +16,13 @@ This component is designed to simplify authentication checks for other component
 ### Type signature
 
 ```tsx
-type WrapperProps = Readonly<
+type Props = Readonly<
   PropsWithChildren<{
     type: 'card';
   }>
 >;
 
-declare function CoderAuthWrapper(props: WrapperProps): JSX.Element;
+declare function CoderAuthWrapper(props: Props): JSX.Element;
 ```
 
 ### Sample usage
@@ -57,14 +57,12 @@ Provides an error boundary for catching render errors thrown by Coder's custom h
 ### Type signature
 
 ```tsx
-type CoderErrorBoundaryProps = {
+type Props = {
   children?: ReactNode;
   fallbackUi?: ReactNode;
 };
 
-declare function CoderErrorBoundary(
-  props: CoderErrorBoundaryProps,
-): JSX.Element;
+declare function CoderErrorBoundary(props: Props): JSX.Element;
 ```
 
 ### Sample usage
@@ -95,13 +93,70 @@ function YourComponent() {
 
 ## `CoderProvider`
 
+Provides
+
 ### Type signature
+
+```tsx
+type Props = PropsWithChildren<{
+  children?: React.ReactNode;
+  appConfig: CoderAppConfig;
+  queryClient?: QueryClient;
+}>;
+
+declare function CoderProvider(props: Props): JSX.Element;
+```
+
+The type of `QueryClient` comes from [Tanstack Router v4](https://tanstack.com/query/v4/docs/reference/QueryClient).
 
 ### Sample usage
 
+```tsx
+function YourComponent() {
+  const query = useCoderWorkspaces('owner:brennan-lee-mulligan');
+  return (
+    <ul>
+      {query.data?.map(workspace => (
+        <li key={workspace.id}>{workspace.owner_name}</li>
+      ))}
+    </ul>
+  );
+}
+
+const appConfig: CoderAppConfig = {
+  deployment: {
+    accessUrl: 'https://dev.coder.com',
+  },
+
+  workspaces: {
+    templateName: 'devcontainers',
+    mode: 'manual',
+    repoUrlParamKeys: ['custom_repo', 'repo_url'],
+    params: {
+      repo: 'custom',
+      region: 'eu-helsinki',
+    },
+  },
+};
+
+<CoderAppConfig appConfig={appConfig}>
+  <YourComponent />
+</CoderAppConfig>;
+```
+
 ### Throws
 
+- Does not throw
+
 ### Notes
+
+- This component was deliberately designed to be agnostic of as many Backstage APIs as possible - it can be placed as high as the top of the app, or treated as a wrapper around a specific plugin component.
+  - That said, it is recommended that only have one instance of `CoderProvider` per Backstage deployment. Multiple `CoderProvider` component instances could interfere with each other and accidentally fragment caching state
+- If you are already using TanStack Query in your deployment, you can provide your own `QueryClient` value via the `queryClient` prop.
+  - If not specified, `CoderProvider` will use its own client
+  - Even if you aren't using TanStack Query anywhere else, you could consider adding your own client to configure it with more specific settings
+  - All Coder-specific queries use a query key prefixed with `coder-backstage-plugin` to prevent any accidental key collisions.
+- Regardless of whether you pass in a custom `queryClient` value, `CoderProvider` will spy on the active client to detect any queries that likely failed because of Coder auth tokens expiring
 
 ## `CoderWorkspacesCard`
 
