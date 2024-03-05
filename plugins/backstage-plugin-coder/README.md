@@ -23,7 +23,7 @@ you have a template that has a parameter for a git repository URL (e.g. `git_rep
 the repository or uses [envbuilder](https://coder.com/docs/v2/latest/templates/devcontainers) to build
 the devcontainer.
 
-1. If you have a standalone app (you didn't clone this repo), then do
+1. If you have a standalone Backstage app (you didn't clone this repo), then do
 
    ```bash
    yarn --cwd packages/app add @coder/backstage-plugin-coder
