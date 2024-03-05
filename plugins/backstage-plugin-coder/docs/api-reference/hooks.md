@@ -6,6 +6,7 @@ This is the main documentation page for the Coder plugin's React hooks.
 
 - [`useCoderEntityConfig`](#useCoderEntityConfig)
 - [`useCoderWorkspaces`](#useCoderWorkspaces)
+- [`useWorkspacesCardContext`](#useWorkspacesCardContext)
 
 ## `useCoderEntityConfig`
 
@@ -127,3 +128,63 @@ const coderAppConfig: CoderAppConfig = {
   1.  The user is not currently authenticated (We recommend wrapping your component inside [`CoderAuthWrapper`](./components.md#coderauthwrapper) to make these checks easier)
   2.  If `repoConfig` is passed in via `options`: when the value of `coderQuery` is an empty string
 - `CoderEntityConfig` is the return type of [`useCoderEntityConfig`](#usecoderentityconfig)
+
+## `useWorkspacesCardContext`
+
+A helper hook for making it easy to share state between a `CoderWorkspacesCardRoot` and the various sub-components for `CoderWorkspacesCard`, without requiring that they all be direct children.
+
+### Type signature
+
+```tsx
+type WorkspacesCardContext = Readonly<{
+  queryFilter: string;
+  onFilterChange: (newFilter: string) => void;
+  workspacesQuery: UseQueryResult<readonly Workspace[]>;
+  headerId: string;
+  entityConfig: CoderEntityConfig | undefined;
+}>;
+
+declare function useWorkspacesCardContext(): WorkspacesCardContext;
+```
+
+### Example usage
+
+```tsx
+function YourComponent1() {
+  return (
+    <CoderWorkspacesCardRoot>
+      <YourComponent2 />
+    </CoderWorkspacesCardRoot>
+  );
+}
+
+function YourComponent2() {
+  return (
+    <GiantNestedComponentWrapper>
+      <YourComponent3 />
+    </GiantNestedComponentWrapper>
+  );
+}
+
+function YourComponent3() {
+  const { queryFilter, onFilterChange } = useWorkspacesCardContext();
+
+  return (
+    <label>
+      Example Input
+      <input type="text" value={queryFilter} onChange={onFilterChange} />
+    </label>
+  );
+}
+
+<YourComponent1 />;
+```
+
+### Throws
+
+- If called outside of `CoderProvider` or `CoderWorkspacesCardRoot`
+
+### Notes
+
+- See [`CoderWorkspacesCard`](./components.md#coderworkspacescard) for more information.
+- `headerId` is for ensuring that the landmark region for `CoderWorkspacesCard` is linked to a header, so that the landmark is available to screen readers. It should be used exclusively for accessibility purposes.
