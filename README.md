@@ -1,6 +1,6 @@
 # coder/backstage-plugins
 
-We believe [Backstage.io](https://backstage.io) can be extended to help developers where they spend the majority of their time: their IDE. This repository contains a collection of plugins that onboard developers faster and reduce context-switching by giving them one-click into reproducible development environments:
+We believe [Backstage.io](https://backstage.io) can be extended to help developers where they spend the majority of their time: within their IDE. This repository contains a collection of plugins that onboard developers faster and reduce context-switching by giving them one-click access into reproducible development environments:
 
 - [backstage-plugin-coder](./plugins/backstage-plugin-coder/README.md): A plugin for integrating Coder workspaces into Backstage.
 - [backstage-plugin-devcontainers](./plugins/backstage-plugin-devcontainers/README.md): A plugin for integrating DevContainers into Backstage (no Coder deployment necessary).
