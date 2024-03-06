@@ -49,14 +49,22 @@ export class DevcontainersProcessor implements CatalogProcessor {
     return 'backstage-plugin-devcontainers-backend/devcontainers-processor';
   }
 
-  async preProcessEntity(entity: Entity, location: LocationSpec): Promise<Entity> {
+  async preProcessEntity(
+    entity: Entity,
+    location: LocationSpec,
+  ): Promise<Entity> {
     // The location of a component should be the catalog-info.yaml file, but
     // check just to be sure.
-    if (entity.kind !== 'Component' || !location.target.endsWith("/catalog-info.yaml")) {
+    if (
+      entity.kind !== 'Component' ||
+      !location.target.endsWith('/catalog-info.yaml')
+    ) {
       return entity;
     }
 
-    const entityLogger = this.options.logger.child({ name: entity.metadata.name })
+    const entityLogger = this.options.logger.child({
+      name: entity.metadata.name,
+    });
     try {
       // The catalog-info.yaml is not necessarily at the root of the repository.
       // For showing the tag, we only care that there is a devcontainer.json
@@ -65,15 +73,15 @@ export class DevcontainersProcessor implements CatalogProcessor {
       // the default, VS Code will fail to open it.  We may need to skip adding
       // the tag for anything that is not the root of the default branch, if we
       // can get this information, or figure out a workaround.
-      const rootUrl = location.target.replace(/\/catalog-info\.yaml$/, "")
-      const jsonUrl = await this.findDevcontainerJson(rootUrl, entityLogger)
-      entityLogger.info("Found devcontainer config", { url: jsonUrl })
+      const rootUrl = location.target.replace(/\/catalog-info\.yaml$/, '');
+      const jsonUrl = await this.findDevcontainerJson(rootUrl, entityLogger);
+      entityLogger.info('Found devcontainer config', { url: jsonUrl });
       return this.addTag(entity, DEFAULT_TAG_NAME, entityLogger);
     } catch (error) {
-      if (!isError(error) || error.name !== "NotFoundError") {
-        entityLogger.warn("Failed to find devcontainer config", { error })
+      if (!isError(error) || error.name !== 'NotFoundError') {
+        entityLogger.warn('Failed to find devcontainer config', { error });
       } else {
-        entityLogger.info("Did not find devcontainer config")
+        entityLogger.info('Did not find devcontainer config');
       }
     }
     return this.eraseTag(entity, DEFAULT_TAG_NAME, entityLogger);
@@ -84,7 +92,7 @@ export class DevcontainersProcessor implements CatalogProcessor {
       return entity;
     }
 
-    logger.info(`Adding "${newTag}" tag to component`)
+    logger.info(`Adding "${newTag}" tag to component`);
     return {
       ...entity,
       metadata: {
@@ -105,7 +113,7 @@ export class DevcontainersProcessor implements CatalogProcessor {
       return entity;
     }
 
-    logger.info(`Removing "${targetTag}" tag from component`)
+    logger.info(`Removing "${targetTag}" tag from component`);
     return {
       ...entity,
       metadata: {
@@ -127,16 +135,19 @@ export class DevcontainersProcessor implements CatalogProcessor {
    *   - .devcontainer/<dir>/devcontainer.json where <dir> is at most one
    *     level deep.
    */
-  private async findDevcontainerJson(rootUrl: string, logger: Logger): Promise<string> {
+  private async findDevcontainerJson(
+    rootUrl: string,
+    logger: Logger,
+  ): Promise<string> {
     // This could possibly be simplified with a ** glob, but ** appears not to
     // match on directories that begin with a dot.  Unless there is an option
     // exposed to support dots, we will have to make individual queries.  But,
     // not every provider appears to support `search` anyway so getting static
     // files will result in wider support anyway.
-    logger.info("Searching for devcontainer config", { url: rootUrl })
+    logger.info('Searching for devcontainer config', { url: rootUrl });
     const staticLocations = [
-      ".devcontainer/devcontainer.json",
-      ".devcontainer.json",
+      '.devcontainer/devcontainer.json',
+      '.devcontainer.json',
     ];
     for (const location of staticLocations) {
       // TODO: We could possibly store the ETag of the devcontainer we last
@@ -144,12 +155,12 @@ export class DevcontainersProcessor implements CatalogProcessor {
       // bandwidth if the provider supports ETags.  I am seeing the request
       // going off about every two minutes so it might be worth it.
       try {
-        const fileUrl = `${rootUrl}/${location}`
+        const fileUrl = `${rootUrl}/${location}`;
         await this.urlReader.readUrl(fileUrl);
-        return fileUrl
+        return fileUrl;
       } catch (error) {
-        if (!isError(error) || error.name !== "NotFoundError") {
-          throw error
+        if (!isError(error) || error.name !== 'NotFoundError') {
+          throw error;
         }
       }
     }
@@ -159,12 +170,12 @@ export class DevcontainersProcessor implements CatalogProcessor {
     // need an option exposed to enable that or we will have to read the
     // sub-tree here and traverse it ourselves.  Note that not every provider
     // supports `search` or `readTree`.
-    const globUrl = `${rootUrl}/.devcontainer/*/devcontainer.json`
+    const globUrl = `${rootUrl}/.devcontainer/*/devcontainer.json`;
     const res = await this.urlReader.search(globUrl);
     if (res.files.length === 0) {
-      throw new NotFoundError(`${globUrl} did not match any files`)
+      throw new NotFoundError(`${globUrl} did not match any files`);
     }
-    return res.files[0].url
+    return res.files[0].url;
   }
 }
 
