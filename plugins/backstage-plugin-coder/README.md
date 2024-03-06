@@ -1,6 +1,8 @@
-# Coder Backstage Plugin
+# @coder/backstage-plugin-coder
 
 Create and manage [Coder workspaces](https://coder.com/docs/v2/latest) from Backstage.
+
+<!-- TOOD: Add Loom -->
 
 ## Screenshots
 
@@ -13,7 +15,7 @@ Create and manage [Coder workspaces](https://coder.com/docs/v2/latest) from Back
 - Users link their Coder accounts with Backstage via tokens
 - Associate Coder workspaces with catalog items in Backstage
 - Workspace list component for viewing and managing workspaces
-- Full Coder API access for custom plugins & integrations
+<!-- - Full Coder API access for custom plugins & integrations -->
 
 ## Setup
 
@@ -87,9 +89,9 @@ the devcontainer.
    );
    ```
 
-   > Note: You can also wrap a single page or component with `CoderProvider` if you only need Coder in a specific part of your app. See our [API reference](#TODO) for more details.
+   <!-- > Note: You can also wrap a single page or component with `CoderProvider` if you only need Coder in a specific part of your app. See our [API reference](#TODO) for more details. -->
 
-1. Add the `WorkspacesList` card to the entity page in your app:
+1. Add the `CoderWorkspacesCard` card to the entity page in your app:
 
    ```tsx
    // In packages/app/src/components/catalog/EntityPage.tsx
@@ -102,9 +104,9 @@ the devcontainer.
    </Grid>;
    ```
 
-See [the plugin documentation](./docs) for full configuration options and API reference.
+<!-- Individual components of the card can also be imported. See [the plugin documentation](./docs) for full configuration options and API reference. -->
 
-### API Access
+<!-- ### API Access
 
 The plugin provides a `CoderApi` instance for accessing the Coder API. This can be used in custom plugins and integrations. Here is an example component that lists all templates:
 
@@ -117,7 +119,7 @@ import { useCoder } from '@coder/backstage-plugin-coder';
 // with a refresh button
 ```
 
-See to the [Coder REST API Reference](https://coder.com/docs/v2/latest/api) for more details
+See to the [Coder REST API Reference](https://coder.com/docs/v2/latest/api) for more details -->
 
 ## Roadmap
 
