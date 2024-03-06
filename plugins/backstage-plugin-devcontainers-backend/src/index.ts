@@ -11,6 +11,7 @@ const DEFAULT_TAG_NAME = 'devcontainers';
 type ProcessorOptions = Readonly<{
   tagName: string;
   eraseTags: boolean;
+  logger: Logger;
 }>;
 
 type ProcessorSetupOptions = Readonly<
@@ -23,7 +24,7 @@ export class DevcontainersProcessor implements CatalogProcessor {
   private readonly urlReader: UrlReader;
   private readonly options: ProcessorOptions;
 
-  constructor(urlReader: UrlReader, options: ProcessorOptions, private readonly logger: Logger) {
+  constructor(urlReader: UrlReader, options: ProcessorOptions) {
     this.urlReader = urlReader;
     this.options = options;
   }
@@ -32,6 +33,7 @@ export class DevcontainersProcessor implements CatalogProcessor {
     const processorOptions: ProcessorOptions = {
       tagName: options.tagName || DEFAULT_TAG_NAME,
       eraseTags: options.eraseTags ?? false,
+      logger: options.logger,
     };
 
     const reader = UrlReaders.default({
@@ -39,7 +41,7 @@ export class DevcontainersProcessor implements CatalogProcessor {
       logger: options.logger,
     });
 
-    return new DevcontainersProcessor(reader, processorOptions, options.logger);
+    return new DevcontainersProcessor(reader, processorOptions);
   }
 
   getProcessorName(): string {
@@ -54,7 +56,7 @@ export class DevcontainersProcessor implements CatalogProcessor {
       return entity;
     }
 
-    const entityLogger = this.logger.child({ name: entity.metadata.name })
+    const entityLogger = this.options.logger.child({ name: entity.metadata.name })
     try {
       // The catalog-info.yaml is not necessarily at the root of the repository.
       // For showing the tag, we only care that there is a devcontainer.json
