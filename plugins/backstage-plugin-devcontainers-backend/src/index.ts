@@ -1,5 +1,9 @@
 import { LocationSpec } from '@backstage/plugin-catalog-common';
-import { type CatalogProcessor } from '@backstage/plugin-catalog-node';
+import {
+  type CatalogProcessor,
+  CatalogProcessorEmit,
+  processingResult,
+} from '@backstage/plugin-catalog-node';
 import { type Entity } from '@backstage/catalog-model';
 import { type Config } from '@backstage/config';
 import { isError, NotFoundError } from '@backstage/errors';
@@ -52,6 +56,7 @@ export class DevcontainersProcessor implements CatalogProcessor {
   async preProcessEntity(
     entity: Entity,
     location: LocationSpec,
+    emit: CatalogProcessorEmit,
   ): Promise<Entity> {
     // The location of a component should be the catalog-info.yaml file, but
     // check just to be sure.
@@ -62,24 +67,32 @@ export class DevcontainersProcessor implements CatalogProcessor {
       return entity;
     }
 
+    // The catalog-info.yaml is not necessarily at the root of the repository.
+    // For showing the tag, we only care that there is a devcontainer.json
+    // somewhere in the catalog-info.yaml directory or below.  However, if this
+    // is a subdirectory (for example a monorepo) or a branch other than the
+    // default, VS Code will fail to open it.  We may need to skip adding the
+    // tag for anything that is not the root of the default branch, if we can
+    // get this information, or figure out a workaround.
+    const rootUrl = location.target.replace(/\/catalog-info\.yaml$/, '');
+
     const entityLogger = this.options.logger.child({
       name: entity.metadata.name,
+      rootUrl,
     });
     try {
-      // The catalog-info.yaml is not necessarily at the root of the repository.
-      // For showing the tag, we only care that there is a devcontainer.json
-      // somewhere in the catalog-info.yaml directory or below.  However, if
-      // this is a subdirectory (for example a monorepo) or a branch other than
-      // the default, VS Code will fail to open it.  We may need to skip adding
-      // the tag for anything that is not the root of the default branch, if we
-      // can get this information, or figure out a workaround.
-      const rootUrl = location.target.replace(/\/catalog-info\.yaml$/, '');
       const jsonUrl = await this.findDevcontainerJson(rootUrl, entityLogger);
       entityLogger.info('Found devcontainer config', { url: jsonUrl });
       return this.addTag(entity, DEFAULT_TAG_NAME, entityLogger);
     } catch (error) {
       if (!isError(error) || error.name !== 'NotFoundError') {
-        entityLogger.warn('Failed to find devcontainer config', { error });
+        emit(
+          processingResult.generalError(
+            location,
+            `Unable to read ${rootUrl}: ${error}`,
+          ),
+        );
+        entityLogger.warn('Unable to read', { error });
       } else {
         entityLogger.info('Did not find devcontainer config');
       }
@@ -171,7 +184,7 @@ export class DevcontainersProcessor implements CatalogProcessor {
     // supports `search` or `readTree`.
     const globUrl = `${rootUrl}/.devcontainer/*/devcontainer.json`;
     const res = await this.urlReader.search(globUrl);
-    const url = res.files[0]?.url
+    const url = res.files[0]?.url;
     if (url === undefined) {
       throw new NotFoundError(`${globUrl} did not match any files`);
     }
