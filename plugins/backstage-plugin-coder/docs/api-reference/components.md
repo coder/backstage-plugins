@@ -8,6 +8,14 @@ This is the main documentation page for the Coder plugin's React components.
 - [`CoderErrorBoundary`](#codererrorboundary)
 - [`CoderProvider`](#coderprovider)
 - [`CoderWorkspacesCard`](#coderworkspacescard)
+  - [`CoderWorkspacesCard.CreateWorkspacesLink`](#coderworkspacescard.createworkspaceslink)
+  - [`CoderWorkspacesCard.ExtraActionsButton`](#coderworkspacescard.extraactionsbutton)
+  - [`CoderWorkspacesCard.HeaderRow`](#coderworkspacescard.headerrow)
+  - [`CoderWorkspacesCard.Root`](#coderworkspacescard.root)
+  - [`CoderWorkspacesCard.SearchBox`](#coderworkspacescard.searchbox)
+  - [`CoderWorkspacesCard.WorkspacesList`](#coderworkspacescard.workspaceslist)
+  - [`CoderWorkspacesCard.WorkspacesListIcon`](#coderworkspacescard.workspaceslisticon)
+  - [`CoderWorkspacesCard.WorkspacesListItem`](#coderworkspacescard.workspaceslistitem)
 
 ## `CoderAuthWrapper`
 
@@ -160,19 +168,173 @@ const appConfig: CoderAppConfig = {
 
 ## `CoderWorkspacesCard`
 
-A set of sub-components that together make up a form for searching for Coder workspaces that you own.
+Allows you to search for and display Coder workspaces that the currently-authenticated user has access to. The component handles all data-fetching, caching
 
-\[Need to figure out how to document all the sub-components\]
+Has two "modes" – one where the component has access to all Coder workspaces for the user, and one where the component is aware of entity data and filters workspaces to those that match the currently-open repo page. See sample usage for examples.
+
+All "pieces" of the component are also available as modular sub-components that can be imported and composed together individually.
 
 ### Type signature
 
+```tsx
+type Props = {
+  queryFilter?: string;
+  defaultQueryFilter?: string;
+  onFilterChange?: (newFilter: string) => void;
+  readEntityData?: boolean;
+
+  // Plus all props from the native HTMLDivElement type, except
+  // "role", "aria-labelledby", and "children"
+};
+
+declare function CoderWorkspacesCard(props: Props): JSX.Element;
+```
+
 ### Sample usage
+
+In "general mode" – the component displays ALL user workspaces:
+
+```tsx
+const appConfig: CoderAppConfig = {
+  /* Content goes here */
+};
+
+// If readEntityData is false or not specified, the component
+// can effectively be placed anywhere, as long as it's wrapped
+// in a provider
+<CoderProvider appConfig={appConfig}>
+  <CoderWorkspacesCard />
+</CoderProvider>;
+```
+
+In "aware mode" – the component only displays workspaces that
+match the repo data for the currently-open entity page:
+
+```tsx
+const appConfig: CoderAppConfig = {
+  /* Content goes here */
+};
+
+// While readEntityData is true, it must be placed somewhere
+// that exposes entity data via React Context
+<EntityLayout>
+  <SomeAmountOfChildComponents>
+    <CoderProvider appConfig={appConfig}>
+      <CoderWorkspacesCard readEntityData />
+    </CoderProvider>
+  </SomeAmountOfChildComponents>
+</EntityLayout>;
+```
+
+Using the component as a controlled component:
+
+```tsx
+function YourComponent() {
+  const [searchText, setSearchText] = useState('owner:me');
+
+  return (
+    <CoderWorkspacesCard
+      queryFilter={searchText}
+      onFilterChange={newSearchText => setSearchText(newSearchText)}
+    />
+  );
+}
+
+<CoderProvider appConfig={appConfig}>
+  <YourComponent />
+</CoderProvider>;
+```
+
+### Throws
+
+- Will throw a render error if called outside `CoderProvider`.
+- Will throw a render error if the value of `readEntityData` changes across re-renders – it must remain a static value for the entire lifecycle of the component.
+- If `readEntityData` is `true`: will throw if the component is called outside of an `EntityLayout` (or any other component that exposes entity data via React Context)
+
+### Notes
+
+- All `CoderWorkspacesCard` (and its sub-components) have been designed with accessibility in mind:
+  - All content is accessible via screen reader - all icon buttons have accessible text
+  - There are no color contrast violations in the components' default color schemes (with either the dark or light themes)
+  - When wired together properly (`CoderWorkspacesCard` does this automatically), the entire search component is exposed as an accessible search landmark for screen readers
+- `queryFilter` and `onFilterChange` allow you to change the component from [being uncontrolled to controlled](https://react.dev/reference/react-dom/components/input#controlling-an-input-with-a-state-variable). If `queryFilter` is not specified, the component will manage all its search state internally.
+
+## `CoderWorkspacesCard.CreateWorkspacesLink`
+
+### Type definition
+
+### Example usage
 
 ### Throws
 
 ### Notes
 
-- All sub-components have been designed with accessibility in mind:
-  - All content is accessible via screen reader - all icon buttons have accessible text
-  - There are no color contrast violations in the components' default color schemes (with either the dark or light themes)
-  - When used together (like with `CoderWorkspacesCard`, the entire search area is exposed as an accessible search landmark)
+## `CoderWorkspacesCard.ExtraActionsButton`
+
+### Type definition
+
+### Example usage
+
+### Throws
+
+### Notes
+
+## `CoderWorkspacesCard.HeaderRow`
+
+### Type definition
+
+### Example usage
+
+### Throws
+
+### Notes
+
+## `CoderWorkspacesCard.Root`
+
+### Type definition
+
+### Example usage
+
+### Throws
+
+### Notes
+
+## `CoderWorkspacesCard.SearchBox`
+
+### Type definition
+
+### Example usage
+
+### Throws
+
+### Notes
+
+## `CoderWorkspacesCard.WorkspacesList`
+
+### Type definition
+
+### Example usage
+
+### Throws
+
+### Notes
+
+## `CoderWorkspacesCard.WorkspacesListIcon`
+
+### Type definition
+
+### Example usage
+
+### Throws
+
+### Notes
+
+## `CoderWorkspacesCard.WorkspacesListItem`
+
+### Type definition
+
+### Example usage
+
+### Throws
+
+### Notes
