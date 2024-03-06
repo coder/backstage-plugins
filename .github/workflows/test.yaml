@@ -30,10 +30,10 @@ jobs:
         with:
           filters: |
             coder:
-              - ".github/workflows/build.yaml"
+              - ".github/workflows/test.yaml"
               - "plugins/backstage-plugin-coder/**"
             devcontainers-backend:
-              - ".github/workflows/build.yaml"
+              - ".github/workflows/test.yaml"
               - "plugins/backstage-plugin-devcontainers-backend/**"
   plugin:
     needs: changes
