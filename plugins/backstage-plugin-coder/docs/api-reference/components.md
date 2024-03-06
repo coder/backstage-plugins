@@ -294,11 +294,56 @@ All Tooltip-based props come from the type definitions for the MUI `Tooltip` com
 
 ## `CoderWorkspacesCard.ExtraActionsButton`
 
+A contextual menu of additional tertiary actions that can be performed for workspaces. Current actions:
+
+- Refresh workspaces list
+- Eject token
+
 ### Type definition
+
+```tsx
+type ExtraActionsButtonProps = Omit<
+  ButtonHTMLAttributes<HTMLButtonElement>,
+  'id' | 'aria-controls'
+> & {
+  onClose?: MenuProps['onClose'];
+  toolTipProps?: Omit<TooltipProps, 'children' | 'title'>;
+  tooltipText?: string;
+  tooltipRef?: ForwardedRef<unknown>;
+
+  menuProps?: Omit<
+    MenuProps,
+    | 'id'
+    | 'open'
+    | 'anchorEl'
+    | 'MenuListProps'
+    | 'children'
+    | 'onClose'
+    | 'getContentAnchorEl'
+  > & {
+    MenuListProps: Omit<MenuListProps, 'aria-labelledby' | 'aria-describedby'>;
+  };
+
+  // Also supports all props from the native HTMLButtonElement
+  // component, except "id" and "aria-controls"
+};
+
+declare function ExtraActionsButton(
+  props: Props,
+  ref?: ForwardedRef<HTMLButtonElement>,
+): JSX.Element;
+```
+
+All Tooltip- and Menu-based props come from the type definitions for the MUI `Tooltip` and `Menu` components.
 
 ### Throws
 
+- Will throw a render error if called outside of either a `CoderProvider` or `CoderWorkspacesCard.Root`
+
 ### Notes
+
+- When the menu opens, the first item of the list will auto-focus
+- While the menu is open, you can navigate through items with the Up and Down arrow keys on the keyboard. These instructions are available for screen readers to announce
 
 ## `CoderWorkspacesCard.HeaderRow`
 
