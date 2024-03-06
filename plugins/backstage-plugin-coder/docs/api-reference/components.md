@@ -258,22 +258,43 @@ function YourComponent() {
   - There are no color contrast violations in the components' default color schemes (with either the dark or light themes)
   - When wired together properly (`CoderWorkspacesCard` does this automatically), the entire search component is exposed as an accessible search landmark for screen readers
 - `queryFilter` and `onFilterChange` allow you to change the component from [being uncontrolled to controlled](https://react.dev/reference/react-dom/components/input#controlling-an-input-with-a-state-variable). If `queryFilter` is not specified, the component will manage all its search state internally.
+- See notes for the individual sub-components for additional information.
 
 ## `CoderWorkspacesCard.CreateWorkspacesLink`
 
+A link-button for creating new workspaces. Clicking this link will take you to "create workspace page" in your Coder deployment, with as many fields filled out as possible.
+
 ### Type definition
 
-### Example usage
+```tsx
+type Props = {
+  tooltipText?: string;
+  tooltipProps?: Omit<TooltipProps, 'children' | 'title'>;
+  tooltipRef?: ForwardedRef<unknown>;
+
+  // Also supports all props from the native HTMLAnchorElement
+  // component type
+};
+
+declare function CreateWorkspacesLink(
+  props: Props,
+  ref?: ForwardedRef<HTMLAnchorElement>,
+): JSX.Element;
+```
+
+All Tooltip-based props come from the type definitions for the MUI `Tooltip` component.
 
 ### Throws
 
+- Will throw a render error if called outside of either a `CoderProvider` or `CoderWorkspacesCard.Root`
+
 ### Notes
+
+- If `readEntityData` is `true` in `CoderWorkspacesCard.Root`: this component will include YAML properties parsed from the current page's entity data.
 
 ## `CoderWorkspacesCard.ExtraActionsButton`
 
 ### Type definition
-
-### Example usage
 
 ### Throws
 
@@ -283,8 +304,6 @@ function YourComponent() {
 
 ### Type definition
 
-### Example usage
-
 ### Throws
 
 ### Notes
@@ -292,8 +311,6 @@ function YourComponent() {
 ## `CoderWorkspacesCard.Root`
 
 ### Type definition
-
-### Example usage
 
 ### Throws
 
@@ -303,8 +320,6 @@ function YourComponent() {
 
 ### Type definition
 
-### Example usage
-
 ### Throws
 
 ### Notes
@@ -312,8 +327,6 @@ function YourComponent() {
 ## `CoderWorkspacesCard.WorkspacesList`
 
 ### Type definition
-
-### Example usage
 
 ### Throws
 
@@ -323,8 +336,6 @@ function YourComponent() {
 
 ### Type definition
 
-### Example usage
-
 ### Throws
 
 ### Notes
@@ -332,8 +343,6 @@ function YourComponent() {
 ## `CoderWorkspacesCard.WorkspacesListItem`
 
 ### Type definition
-
-### Example usage
 
 ### Throws
 
