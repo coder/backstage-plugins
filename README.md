@@ -24,7 +24,7 @@ Backstage app.
 ## Releasing
 
 To draft a release for a plugin push a tag named `$name/v$version` without the
-`backstage-plugin-` prefix.  For example:
+`backstage-plugin-` prefix. For example:
 
 ```sh
 git tag -a coder/v0.0.0 -m "coder v0.0.0"
