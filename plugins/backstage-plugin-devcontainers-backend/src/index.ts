@@ -106,8 +106,7 @@ export class DevcontainersProcessor implements CatalogProcessor {
     const skipTagErasure =
       !this.options.eraseTags ||
       !Array.isArray(entity.metadata.tags) ||
-      entity.metadata.tags.length === 0 ||
-      !entity.metadata.tags.includes(targetTag);
+      !entity.metadata.tags?.includes(targetTag);
 
     if (skipTagErasure) {
       return entity;
