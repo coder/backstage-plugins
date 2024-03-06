@@ -22,7 +22,7 @@ jobs:
       - uses: robinraju/release-downloader@v1.9
         with:
           tag: ${{ github.event.inputs.tag || github.ref_name }}
-          fileName: "*.tgz"
+          fileName: '*.tgz'
       # Although we are publishing the tarball, yarn will not actually look at
       # the package.json in the tarball so we have to extract it first.
       - run: tar -xf *.tgz
