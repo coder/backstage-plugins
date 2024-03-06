@@ -385,11 +385,32 @@ declare function HeaderGroup(
 
 ## `CoderWorkspacesCard.Root`
 
+Wrapper that acts as a context provider for all other sub-components in `CoderWorkspacesCard` – does not define any components that will render to HTML.
+
 ### Type definition
+
+```tsx
+type WorkspacesCardContext = {
+  queryFilter: string;
+  onFilterChange: (newFilter: string) => void;
+  workspacesQuery: UseQueryResult<readonly Workspace[]>;
+  headerId: string;
+  entityConfig: CoderEntityConfig | undefined;
+};
+
+declare function Root(props: Props): JSX.Element;
+```
+
+All props mirror those returned by [`useWorkspacesCardContext`](./hooks.md#useworkspacescardcontext)
 
 ### Throws
 
+- Will throw a render error if called outside of a `CoderProvider`
+
 ### Notes
+
+- If `entityConfig` is defined, the Root will auto-filter all workspaces down to those that match the repo for the currently-opened entity page
+- The key for `entityConfig` is not optional – even if it isn't defined, it must be explicitly passed an `undefined` value
 
 ## `CoderWorkspacesCard.SearchBox`
 
