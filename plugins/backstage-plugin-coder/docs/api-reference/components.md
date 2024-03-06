@@ -347,11 +347,41 @@ All Tooltip- and Menu-based props come from the type definitions for the MUI `To
 
 ## `CoderWorkspacesCard.HeaderRow`
 
+Provides a wrapper around various heading information, as well as a section for additional buttons/actions to go. Provides critical landmark information for screen readers.
+
 ### Type definition
+
+```tsx
+type HeaderProps = {
+  headerText?: string;
+  headerLevel?: 'h1' | 'h2' | 'h3' | 'h4' | 'h5' | 'h6';
+  actions?: ReactNode;
+  fullBleedLayout?: boolean;
+  activeRepoFilteringText?: string | ReactNode;
+
+  headerClassName?: string;
+  hgroupClassName?: string;
+  subheaderClassName?: string;
+
+  // Also supports all props from the native HTMLDivElement
+  // component except "children"
+};
+
+declare function HeaderGroup(
+  props: Props,
+  ref?: ForwardedRef<HTMLDivElement>,
+): JSX.Element;
+```
 
 ### Throws
 
+- Will throw a render error if called outside of either a `CoderProvider` or `CoderWorkspacesCard.Root`
+
 ### Notes
+
+- If `headerLevel` is not specified, the component will default to `h2`
+- If `fullBleedLayout` is `true`, the component will exert negative horizontal margins to fill out its parent
+- If `activeRepoFilteringText` will only display if the value of `readEntityData` in `CoderWorkspacesCard.Root` is `true`
 
 ## `CoderWorkspacesCard.Root`
 
