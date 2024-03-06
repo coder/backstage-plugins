@@ -54,16 +54,49 @@ jobs:
       - run: yarn install --frozen-lockfile
       # The Prettier command is in the root package.json.
       - run: yarn prettier --check plugins/backstage-plugin-${{ matrix.plugin }}
+        id: fmt
         working-directory: .
       - run: yarn lint
+        id: lint
+        # It could be annoying to not see the test results because of formatting
+        # errors, so keep running even on failures (we will catch failures at
+        # the end of the job).  continue-on-error would be ideal but that marks
+        # the step as successful which is not what we want.
+        if: success() || failure()
       - run: yarn tsc
+        id: tsc
+        if: success() || failure()
       - run: yarn test
+        id: test
+        if: success() || failure()
       - run: yarn build
+        id: build
       # Version it with the SHA and upload to the run as an artifact in case
       # someone needs to download it for testing.
       - run: yarn version --new-version "0.0.0-devel+$GITHUB_SHA"
+        id: version
       - run: yarn pack
+        id: pack
       - uses: actions/upload-artifact@v4
+        id: upload
         with:
           name: ${{ matrix.plugin }}
           path: plugins/backstage-plugin-${{ matrix.plugin }}/*.tgz
+      # Since we continued on failures above, fail now if there were errors.  We
+      # allow skipped jobs to pass, but not failed or cancelled jobs.
+      - name: Check required
+        if: success() || failure()
+        run: |
+          echo "- fmt: ${{ steps.fmt.outcome }}"
+          echo "- lint: ${{ steps.lint.outcome }}"
+          echo "- tsc: ${{ steps.tsc.outcome }}"
+          echo "- test: ${{ steps.test.outcome }}"
+          echo "- build: ${{ steps.build.outcome }}"
+          echo "- version: ${{ steps.version.outcome }}"
+          echo "- pack: ${{ steps.pack.outcome }}"
+          echo "- upload: ${{ steps.upload.outcome }}"
+          if [[ "${{ contains(steps.*.outcome, 'failure') }}" == "true" || "${{ contains(steps.*.outcome, 'cancelled') }}" == "true" ]]; then
+            echo "One or more required checks have failed or have been cancelled"
+            exit 1
+          fi
+          echo "Required checks have passed"
