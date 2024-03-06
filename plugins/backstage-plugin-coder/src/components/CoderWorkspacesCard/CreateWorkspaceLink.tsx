@@ -58,7 +58,11 @@ export const CreateWorkspaceLink = forwardRef(
     const styles = useStyles();
     const appConfig = useCoderAppConfig();
     const { entityConfig } = useWorkspacesCardContext();
-    const activeConfig = entityConfig ?? appConfig.workspaces;
+
+    const activeConfig = {
+      ...appConfig.workspaces,
+      ...(entityConfig ?? {}),
+    };
 
     return (
       <Tooltip ref={tooltipRef} title={tooltipText} {...tooltipProps}>
