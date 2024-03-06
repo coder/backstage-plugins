@@ -171,10 +171,11 @@ export class DevcontainersProcessor implements CatalogProcessor {
     // supports `search` or `readTree`.
     const globUrl = `${rootUrl}/.devcontainer/*/devcontainer.json`;
     const res = await this.urlReader.search(globUrl);
-    if (res.files.length === 0) {
+    const url = res.files[0]?.url
+    if (url === undefined) {
       throw new NotFoundError(`${globUrl} did not match any files`);
     }
-    return res.files[0].url;
+    return url;
   }
 }
 
