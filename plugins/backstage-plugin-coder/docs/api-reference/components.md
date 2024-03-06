@@ -414,11 +414,33 @@ All props mirror those returned by [`useWorkspacesCardContext`](./hooks.md#usewo
 
 ## `CoderWorkspacesCard.SearchBox`
 
+Provides the core search functionality for Coder workspaces.
+
 ### Type definition
+
+```tsx
+type Props = {
+  searchInputRef?: ForwardedRef<HTMLInputElement>;
+  clearButtonRef?: ForwardedRef<HTMLButtonElement>;
+
+  labelWrapperClassName?: string;
+  clearButtonClassName?: string;
+  searchInputClassName?: string;
+
+  // Also supports all props from the native HTMLFieldSetElement
+  // component, except "children" and "aria-labelledby"
+};
+
+declare function SearchBox(props: Props): JSX.Element;
+```
 
 ### Throws
 
+- Will throw a render error if called outside of either a `CoderProvider` or `CoderWorkspacesCard.Root`
+
 ### Notes
+
+- The logic for processing user input into a new workspaces query is automatically debounced to wait 400ms.
 
 ## `CoderWorkspacesCard.WorkspacesList`
 
