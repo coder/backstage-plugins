@@ -63,13 +63,11 @@ jobs:
         # the end of the job).  continue-on-error would be ideal but that marks
         # the step as successful which is not what we want.
         if: success() || failure()
-      - run: yarn tsc
-        id: tsc
-        if: success() || failure()
       - run: yarn test
         id: test
         if: success() || failure()
-      - run: yarn build
+      # Must run tsc first to generate the .d.ts files.
+      - run: yarn tsc && yarn build
         id: build
       # Version it with the SHA and upload to the run as an artifact in case
       # someone needs to download it for testing.
@@ -89,7 +87,6 @@ jobs:
         run: |
           echo "- fmt: ${{ steps.fmt.outcome }}"
           echo "- lint: ${{ steps.lint.outcome }}"
-          echo "- tsc: ${{ steps.tsc.outcome }}"
           echo "- test: ${{ steps.test.outcome }}"
           echo "- build: ${{ steps.build.outcome }}"
           echo "- version: ${{ steps.version.outcome }}"
