@@ -101,7 +101,10 @@ function YourComponent() {
 
 ## `CoderProvider`
 
-Provides
+Provides top-level Coder-specific data to the rest of the frontend Coder plugin components. Data such as:
+
+- The Coder access URL
+- Fallback workspace parameters
 
 ### Type signature
 
