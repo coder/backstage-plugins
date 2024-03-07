@@ -8,14 +8,14 @@ This is the main documentation page for the Coder plugin's React components.
 - [`CoderErrorBoundary`](#codererrorboundary)
 - [`CoderProvider`](#coderprovider)
 - [`CoderWorkspacesCard`](#coderworkspacescard)
-  - [`CoderWorkspacesCard.CreateWorkspacesLink`](#coderworkspacescard.createworkspaceslink)
-  - [`CoderWorkspacesCard.ExtraActionsButton`](#coderworkspacescard.extraactionsbutton)
-  - [`CoderWorkspacesCard.HeaderRow`](#coderworkspacescard.headerrow)
-  - [`CoderWorkspacesCard.Root`](#coderworkspacescard.root)
-  - [`CoderWorkspacesCard.SearchBox`](#coderworkspacescard.searchbox)
-  - [`CoderWorkspacesCard.WorkspacesList`](#coderworkspacescard.workspaceslist)
-  - [`CoderWorkspacesCard.WorkspacesListIcon`](#coderworkspacescard.workspaceslisticon)
-  - [`CoderWorkspacesCard.WorkspacesListItem`](#coderworkspacescard.workspaceslistitem)
+  - [`CoderWorkspacesCard.CreateWorkspacesLink`](#coderworkspacescardcreateworkspaceslink)
+  - [`CoderWorkspacesCard.ExtraActionsButton`](#coderworkspacescardextraactionsbutton)
+  - [`CoderWorkspacesCard.HeaderRow`](#coderworkspacescardheaderrow)
+  - [`CoderWorkspacesCard.Root`](#coderworkspacescardroot)
+  - [`CoderWorkspacesCard.SearchBox`](#coderworkspacescardsearchbox)
+  - [`CoderWorkspacesCard.WorkspacesList`](#coderworkspacescardworkspaceslist)
+  - [`CoderWorkspacesCard.WorkspacesListIcon`](#coderworkspacescardworkspaceslisticon)
+  - [`CoderWorkspacesCard.WorkspacesListItem`](#coderworkspacescardworkspaceslistitem)
 
 ## `CoderAuthWrapper`
 
@@ -444,24 +444,95 @@ declare function SearchBox(props: Props): JSX.Element;
 
 ## `CoderWorkspacesCard.WorkspacesList`
 
+Main container for displaying all workspaces returned from a query.
+
 ### Type definition
+
+```tsx
+type RenderListItemInput = Readonly<{
+  workspace: Workspace;
+  index: number;
+  workspaces: readonly Workspace[];
+}>;
+
+type Props = {
+  emptyState?: ReactNode;
+  ordered?: boolean;
+  listClassName?: string;
+  fullBleedLayout?: boolean;
+  renderListItem?: (input: RenderListItemInput) => ReactNode;
+
+  // Also supports all props from the native HTMLDivElement
+  // component, except for "children"
+};
+```
 
 ### Throws
 
+- Will throw a render error if called outside of either a `CoderProvider` or `CoderWorkspacesCard.Root`
+
 ### Notes
+
+- If `ordered` is `true`, the component will render as an `<ol>`. Otherwise, the output will be a `<ul>`. `ordered` defaults to `true`.
+- If `fullBleedLayout` is `true`, the component will exert negative horizontal margins to fill out its parent
+- If `renderListItem` is not specified, this component will default to rendering each list item with [`CoderWorkspacesCard.ListItem`](./components.md#coderworkspacescardworkspaceslistitem)
 
 ## `CoderWorkspacesCard.WorkspacesListIcon`
 
+The image to use to represent each workspace.
+
 ### Type definition
+
+```tsx
+type WorkspaceListIconProps = {
+  src: string;
+  workspaceName: string;
+  imageClassName?: string;
+  imageRef?: ForwardedRef<HTMLImageElement>;
+
+  // Also accepts all props from the native HTMLDivElement component,
+  // except "children" and "aria-hidden"
+};
+
+declare function WorkspaceListIcon(prop: Props): JSX.Element;
+```
 
 ### Throws
 
+- Does not throw (even if outside `CoderWorkspacesList.Root`)
+
 ### Notes
+
+- If there is no `src` available to pass to this component, use an empty string.
+- When there is no `src` value, the component will display a fallback graphic
 
 ## `CoderWorkspacesCard.WorkspacesListItem`
 
+The default render component to use when the `renderListItem` prop for [`CoderWorkspacesCard.WorkspacesList`] is not defined.
+
 ### Type definition
+
+```tsx
+type Props = {
+  workspace: Workspace;
+
+  buttonClassName?: string;
+  linkClassName?: string;
+  listFlexRowClassName?: string;
+  onlineStatusContainerClassName?: string;
+  onlineStatusLightClassName?: string;
+
+  // Also supports all props from the native HTMLLIElement
+  // component, except for "children"
+};
+
+declare function WorkspaceListItem(props: Props): JSX.Element;
+```
 
 ### Throws
 
+- Will throw a render error if called outside of either a `CoderProvider` (can be called outside of a `CoderWorkspacesCard.Root`)
+
 ### Notes
+
+- Supports full link-like functionality (right-clicking and middle-clicking to open in a new tab, etc.)
