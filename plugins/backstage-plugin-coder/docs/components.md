@@ -91,7 +91,6 @@ function YourComponent() {
 ### Throws
 
 - Does not throw
-  - (Need to verify this - our own code for this component doesn't throw any errors, but it does rely on Backstage's `useApi` hook. Unfortunately, TypeScript type signatures can't communicate whether they throw errors, and the documentation has no info. Will need to go through the source code)
 
 ### Notes
 
