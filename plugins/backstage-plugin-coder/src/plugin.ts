@@ -1,14 +1,22 @@
 import {
   createPlugin,
   createComponentExtension,
+  createApiFactory,
+  discoveryApiRef,
 } from '@backstage/core-plugin-api';
 import { rootRouteRef } from './routes';
+import { CoderClient, coderClientRef } from './api/coderClient';
+
+const coderApiFactory = createApiFactory({
+  api: coderClientRef,
+  deps: { discoveryApi: discoveryApiRef },
+  factory: ({ discoveryApi }) => new CoderClient(discoveryApi),
+});
 
 export const coderPlugin = createPlugin({
   id: 'coder',
-  routes: {
-    root: rootRouteRef,
-  },
+  routes: { root: rootRouteRef },
+  apis: [coderApiFactory],
 });
 
 /**
