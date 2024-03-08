@@ -6,7 +6,7 @@ name: Release
 on:
   push:
     tags:
-      - "*/v*"
+      - '*/v*'
 
 permissions:
   contents: write # For creating releases.
@@ -42,9 +42,9 @@ jobs:
           cache: yarn
       - run: yarn install --frozen-lockfile
       - run: yarn lint
-      - run: yarn tsc
       - run: yarn test
-      - run: yarn build
+      # Must run tsc first to generate the .d.ts files.
+      - run: yarn tsc && yarn build
       # Version it with the version in the tag and upload it to a draft release.
       - run: yarn version --new-version ${{ needs.split-tag.outputs.version }}
       - run: yarn pack
