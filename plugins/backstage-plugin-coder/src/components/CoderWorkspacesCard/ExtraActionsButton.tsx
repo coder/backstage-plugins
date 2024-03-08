@@ -1,7 +1,6 @@
 import React, {
   type ButtonHTMLAttributes,
   type ForwardedRef,
-  forwardRef,
   useEffect,
   useRef,
   useState,
@@ -73,6 +72,7 @@ type ExtraActionsMenuProps = Readonly<
 type ExtraActionsButtonProps = Readonly<
   Omit<ButtonHTMLAttributes<HTMLButtonElement>, 'id' | 'aria-controls'> & {
     onClose?: MenuProps['onClose'];
+    buttonRef?: ForwardedRef<HTMLButtonElement>;
     menuProps?: ExtraActionsMenuProps;
     toolTipProps?: Omit<TooltipProps, 'children' | 'title'>;
     tooltipText?: string;
@@ -80,22 +80,18 @@ type ExtraActionsButtonProps = Readonly<
   }
 >;
 
-export const ExtraActionsButton = forwardRef<
-  HTMLButtonElement,
-  ExtraActionsButtonProps
->((props, ref) => {
-  const {
-    menuProps,
-    toolTipProps,
-    tooltipRef,
-    children,
-    className,
-    onClick: outerOnClick,
-    onClose: outerOnClose,
-    tooltipText = 'See additional workspace actions',
-    ...delegatedButtonProps
-  } = props;
-
+export const ExtraActionsButton = ({
+  menuProps,
+  buttonRef,
+  toolTipProps,
+  tooltipRef,
+  children,
+  className,
+  onClick: outerOnClick,
+  onClose: outerOnClose,
+  tooltipText = 'See additional workspace actions',
+  ...delegatedButtonProps
+}: ExtraActionsButtonProps) => {
   const {
     className: menuListClassName,
     ref: menuListRef,
@@ -119,7 +115,7 @@ export const ExtraActionsButton = forwardRef<
     <>
       <Tooltip ref={tooltipRef} title={tooltipText} {...toolTipProps}>
         <button
-          ref={ref}
+          ref={buttonRef}
           id={buttonId}
           aria-controls={isOpen ? menuId : undefined}
           className={`${styles.root} ${className ?? ''}`}
@@ -191,7 +187,7 @@ export const ExtraActionsButton = forwardRef<
       </Menu>
     </>
   );
-});
+};
 
 function useRefreshWorkspaces() {
   const { workspacesQuery } = useWorkspacesCardContext();
