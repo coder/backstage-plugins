@@ -6,9 +6,14 @@
     "plugins/*/dev",
     "plugins/*/migrations"
   ],
+
   "exclude": ["node_modules"],
   "compilerOptions": {
     "outDir": "dist-types",
-    "rootDir": "."
+    "rootDir": ".",
+
+    // Have to disable in order to prevent flag conflicts from base config file
+    // when linting types; noEmit and emitDeclarationOnly are incompatible
+    "emitDeclarationOnly": false
   }
 }

@@ -16,7 +16,7 @@ export const coderPlugin = createPlugin({
  */
 export const CoderProvider = coderPlugin.provide(
   createComponentExtension({
-    name: 'CoderAuthWrapper',
+    name: 'CoderProvider',
     component: {
       lazy: () =>
         import('./components/CoderProvider').then(m => m.CoderProvider),

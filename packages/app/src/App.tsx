@@ -38,12 +38,6 @@ import { catalogEntityCreatePermission } from '@backstage/plugin-catalog-common/
 import { githubAuthApiRef } from '@backstage/core-plugin-api';
 import { SignInPage } from '@backstage/core-components';
 
-// Main plugins
-import {
-  type CoderAppConfig,
-  CoderProvider,
-} from '@coder/backstage-plugin-coder';
-
 const app = createApp({
   apis,
   components: {
@@ -120,28 +114,12 @@ const routes = (
   </FlatRoutes>
 );
 
-const appConfig: CoderAppConfig = {
-  deployment: {
-    accessUrl: 'https://dev.coder.com',
-  },
-
-  workspaces: {
-    templateName: 'devcontainers',
-    mode: 'manual',
-    repoUrlParamKeys: ['custom_repo', 'repo_url'],
-    params: {
-      repo: 'custom',
-      region: 'eu-helsinki',
-    },
-  },
-};
-
 export default app.createRoot(
-  <CoderProvider appConfig={appConfig}>
+  <>
     <AlertDisplay />
     <OAuthRequestDialog />
     <AppRouter>
       <Root>{routes}</Root>
     </AppRouter>
-  </CoderProvider>,
+  </>,
 );

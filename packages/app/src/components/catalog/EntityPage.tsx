@@ -57,8 +57,16 @@ import {
 
 import { TechDocsAddons } from '@backstage/plugin-techdocs-react';
 import { ReportIssue } from '@backstage/plugin-techdocs-module-addons-contrib';
-
-import { CoderWorkspacesCard } from '@coder/backstage-plugin-coder';
+import {
+  type CoderAppConfig,
+  CoderProvider,
+  CoderWorkspacesCard,
+} from '@coder/backstage-plugin-coder';
+import {
+  type DevcontainersConfig,
+  DevcontainersProvider,
+  ExampleDevcontainersComponent,
+} from '@coder/backstage-plugin-devcontainers-react';
 
 const techdocsContent = (
   <EntityTechdocsContent>
@@ -123,15 +131,45 @@ const entityWarningContent = (
   </>
 );
 
+const coderAppConfig: CoderAppConfig = {
+  deployment: {
+    accessUrl: 'https://dev.coder.com',
+  },
+
+  workspaces: {
+    templateName: 'devcontainers',
+    mode: 'manual',
+    repoUrlParamKeys: ['custom_repo', 'repo_url'],
+    params: {
+      repo: 'custom',
+      region: 'eu-helsinki',
+    },
+  },
+};
+
+const devcontainersConfig: DevcontainersConfig = {
+  tagName: 'devcontainers',
+};
+
 const overviewContent = (
   <Grid container spacing={3} alignItems="stretch">
     {entityWarningContent}
     <Grid item md={6}>
       <EntityAboutCard variant="gridItem" />
     </Grid>
+
     <Grid item md={6} xs={12}>
-      <CoderWorkspacesCard readEntityData />
+      <CoderProvider appConfig={coderAppConfig}>
+        <CoderWorkspacesCard readEntityData />
+      </CoderProvider>
     </Grid>
+
+    <Grid item md={6} xs={12}>
+      <DevcontainersProvider config={devcontainersConfig}>
+        <ExampleDevcontainersComponent />
+      </DevcontainersProvider>
+    </Grid>
+
     <Grid item md={6} xs={12}>
       <EntityCatalogGraphCard variant="gridItem" height={400} />
     </Grid>

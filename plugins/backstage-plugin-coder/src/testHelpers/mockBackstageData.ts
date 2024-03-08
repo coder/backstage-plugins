@@ -1,6 +1,7 @@
 /* eslint-disable @backstage/no-undeclared-imports -- For test helpers only */
 import { ConfigReader } from '@backstage/core-app-api';
 import { MockConfigApi, MockErrorApi } from '@backstage/test-utils';
+import type { ScmIntegrationRegistry } from '@backstage/integration';
 /* eslint-enable @backstage/no-undeclared-imports */
 
 import { useEntity } from '@backstage/plugin-catalog-react';
@@ -193,6 +194,6 @@ export function getMockErrorApi() {
  * This is one of the few API-ref-based values that Backstage does not expose a
  * mock version of.
  */
-export function getMockSourceControl() {
+export function getMockSourceControl(): ScmIntegrationRegistry {
   return ScmIntegrationsApi.fromConfig(new ConfigReader({}));
 }
