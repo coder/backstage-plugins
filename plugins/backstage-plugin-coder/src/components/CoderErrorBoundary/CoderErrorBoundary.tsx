@@ -1,8 +1,4 @@
-import React, {
-  type ErrorInfo,
-  type ReactNode,
-  Component,
-} from 'react';
+import React, { type ErrorInfo, type ReactNode, Component } from 'react';
 
 import { ValiError } from 'valibot';
 import { errorApiRef, useApi } from '@backstage/core-plugin-api';
@@ -38,7 +34,7 @@ class ErrorBoundaryCore extends Component<
   }
 
   componentDidCatch(error: Error, errorInfo: ErrorInfo): void {
-    this.props.onError(error, errorInfo.componentStack || "no details");
+    this.props.onError(error, errorInfo.componentStack || 'no details');
   }
 
   render() {

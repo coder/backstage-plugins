@@ -1,0 +1,32 @@
+name: Workflows
+
+# This workflow will check workflows when they change.
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - .github/workflows/*.yaml
+  pull_request:
+    branches:
+      - main
+    paths:
+      - .github/workflows/*.yaml
+
+# Cancel in-progress runs for pull requests when developers push changes.
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: ${{ github.ref != 'refs/heads/main' }}
+
+jobs:
+  workflows:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .node-version
+          cache: yarn
+      - run: yarn install --frozen-lockfile
+      - run: yarn prettier --check .github

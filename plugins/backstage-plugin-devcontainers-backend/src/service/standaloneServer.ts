@@ -12,7 +12,9 @@ export interface ServerOptions {
 export async function startStandaloneServer(
   options: ServerOptions,
 ): Promise<Server> {
-  const logger = options.logger.child({ service: 'backstage-plugin-devcontainers-backend' });
+  const logger = options.logger.child({
+    service: 'backstage-plugin-devcontainers-backend',
+  });
   logger.debug('Starting application server...');
   const router = await createRouter({
     logger,
