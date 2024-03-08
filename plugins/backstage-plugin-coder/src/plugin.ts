@@ -62,6 +62,93 @@ export const CoderWorkspacesCard = coderPlugin.provide(
   }),
 );
 
+export const CoderWorkspacesCardCreateWorkspacesLink = coderPlugin.provide(
+  createComponentExtension({
+    name: 'CoderWorkspacesCard.CreateWorkspacesLink',
+    component: {
+      lazy: () =>
+        import('./components/CoderWorkspacesCard').then(
+          m => m.CreateWorkspaceLink,
+        ),
+    },
+  }),
+);
+
+export const CoderWorkspacesCardExtraActionsButton = coderPlugin.provide(
+  createComponentExtension({
+    name: 'CoderWorkspacesCard.ExtraActionsButton',
+    component: {
+      lazy: () =>
+        import('./components/CoderWorkspacesCard').then(
+          m => m.ExtraActionsButton,
+        ),
+    },
+  }),
+);
+
+export const CoderWorkspacesCardHeaderRow = coderPlugin.provide(
+  createComponentExtension({
+    name: 'CoderWorkspacesCard.HeaderRow',
+    component: {
+      lazy: () =>
+        import('./components/CoderWorkspacesCard').then(m => m.HeaderRow),
+    },
+  }),
+);
+
+export const CoderWorkspacesCardRoot = coderPlugin.provide(
+  createComponentExtension({
+    name: 'CoderWorkspacesCard.Root',
+    component: {
+      lazy: () => import('./components/CoderWorkspacesCard').then(m => m.Root),
+    },
+  }),
+);
+
+export const CoderWorkspacesCardSearchBox = coderPlugin.provide(
+  createComponentExtension({
+    name: 'CoderWorkspacesCard.SearchBox',
+    component: {
+      lazy: () =>
+        import('./components/CoderWorkspacesCard').then(m => m.SearchBox),
+    },
+  }),
+);
+
+export const CoderWorkspacesCardWorkspacesList = coderPlugin.provide(
+  createComponentExtension({
+    name: 'CoderWorkspacesCard.WorkspacesList',
+    component: {
+      lazy: () =>
+        import('./components/CoderWorkspacesCard').then(m => m.WorkspacesList),
+    },
+  }),
+);
+
+export const CoderWorkspacesCardWorkspacesListIcon = coderPlugin.provide(
+  createComponentExtension({
+    name: 'CoderWorkspacesCard.WorkspacesListIcon',
+    component: {
+      lazy: () =>
+        import('./components/CoderWorkspacesCard').then(
+          m => m.WorkspacesListIcon,
+        ),
+    },
+  }),
+);
+
+export const CoderWorkspacesCardWorkspacesListItem = coderPlugin.provide(
+  createComponentExtension({
+    name: 'CoderWorkspacesCard.WorkspacesListItem',
+    component: {
+      lazy: () =>
+        import('./components/CoderWorkspacesCard').then(
+          m => m.WorkspacesListItem,
+        ),
+    },
+  }),
+);
+
 /**
  * All custom hooks exposed by the plugin.
  */
