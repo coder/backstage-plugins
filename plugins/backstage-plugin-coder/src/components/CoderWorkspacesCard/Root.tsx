@@ -1,7 +1,6 @@
 import React, {
   type HTMLAttributes,
   createContext,
-  forwardRef,
   useContext,
   useState,
 } from 'react';
@@ -61,67 +60,58 @@ export type WorkspacesCardProps = Readonly<
   }
 >;
 
-export const Root = forwardRef<HTMLDivElement, WorkspacesCardProps>(
-  (props, ref) => {
-    const {
-      children,
-      className,
-      queryFilter: outerFilter,
-      onFilterChange: onOuterFilterChange,
-      defaultQueryFilter = 'owner:me',
-      readEntityData = false,
-      ...delegatedProps
-    } = props;
+export const Root = ({
+  children,
+  className,
+  queryFilter: outerFilter,
+  onFilterChange: onOuterFilterChange,
+  defaultQueryFilter = 'owner:me',
+  readEntityData = false,
+  ...delegatedProps
+}: WorkspacesCardProps) => {
+  const hookId = useId();
+  const [innerFilter, setInnerFilter] = useState(defaultQueryFilter);
+  const activeFilter = outerFilter ?? innerFilter;
 
-    const hookId = useId();
-    const [innerFilter, setInnerFilter] = useState(defaultQueryFilter);
-    const activeFilter = outerFilter ?? innerFilter;
+  const dynamicConfig = useDynamicEntityConfig(readEntityData);
+  const workspacesQuery = useCoderWorkspaces(activeFilter, {
+    repoConfig: dynamicConfig,
+  });
 
-    const dynamicConfig = useDynamicEntityConfig(readEntityData);
-    const workspacesQuery = useCoderWorkspaces(activeFilter, {
-      repoConfig: dynamicConfig,
-    });
+  const headerId = `${hookId}-header`;
 
-    const headerId = `${hookId}-header`;
-
-    return (
-      <CoderAuthWrapper type="card">
-        <CardContext.Provider
-          value={{
-            headerId,
-            workspacesQuery,
-            queryFilter: activeFilter,
-            entityConfig: dynamicConfig,
-            onFilterChange: newFilter => {
-              setInnerFilter(newFilter);
-              onOuterFilterChange?.(newFilter);
-            },
-          }}
-        >
-          {/*
-           * 2024-01-31: This output is a <div>, but that should be changed to a
-           * <search> once it's supported by more browsers. Setting up
-           * accessibility markup and landmark behavior manually in the meantime
-           */}
-          <Card
-            ref={ref}
-            role="search"
-            aria-labelledby={headerId}
-            {...delegatedProps}
-          >
-            {/* Want to expose the overall container as a form for good
-                semantics and screen reader support, but since there isn't an
-                explicit submission process (queries happen automatically),
-                using a base div with a role override to side-step edge cases
-                around keyboard input and button children seems like the easiest
-                approach */}
-            <div role="form">{children}</div>
-          </Card>
-        </CardContext.Provider>
-      </CoderAuthWrapper>
-    );
-  },
-);
+  return (
+    <CoderAuthWrapper type="card">
+      <CardContext.Provider
+        value={{
+          headerId,
+          workspacesQuery,
+          queryFilter: activeFilter,
+          entityConfig: dynamicConfig,
+          onFilterChange: newFilter => {
+            setInnerFilter(newFilter);
+            onOuterFilterChange?.(newFilter);
+          },
+        }}
+      >
+        {/*
+         * 2024-01-31: This output is a <div>, but that should be changed to a
+         * <search> once it's supported by more browsers. Setting up
+         * accessibility markup and landmark behavior manually in the meantime
+         */}
+        <Card role="search" aria-labelledby={headerId} {...delegatedProps}>
+          {/* Want to expose the overall container as a form for good
+              semantics and screen reader support, but since there isn't an
+              explicit submission process (queries happen automatically),
+              using a base div with a role override to side-step edge cases
+              around keyboard input and button children seems like the easiest
+              approach */}
+          <div role="form">{children}</div>
+        </Card>
+      </CardContext.Provider>
+    </CoderAuthWrapper>
+  );
+};
 
 export function useWorkspacesCardContext(): WorkspacesCardContext {
   const contextValue = useContext(CardContext);
