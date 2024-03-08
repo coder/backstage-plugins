@@ -51,14 +51,7 @@ export const DevPage = () => {
           </ContentHeader>
 
           <Grid container spacing={3} direction="column">
-            <Grid
-              item
-              style={{
-                width: '600px',
-                marginLeft: 'auto',
-                marginRight: 'auto',
-              }}
-            >
+            <Grid item style={{ width: '100%', maxWidth: '600px' }}>
               <CoderWorkspacesCard />
             </Grid>
           </Grid>
