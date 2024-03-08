@@ -13,10 +13,14 @@ export const coderPlugin = createPlugin({
 
 /**
  * All public component exports exposed by the plugin.
+ *
+ * Make sure that all name properties for each exported component are unique. If
+ * there are conflicts, you could run into Backstage compilation issues with no
+ * good error messages to help you track down the source.
  */
 export const CoderProvider = coderPlugin.provide(
   createComponentExtension({
-    name: 'CoderAuthWrapper',
+    name: 'CoderProvider',
     component: {
       lazy: () =>
         import('./components/CoderProvider').then(m => m.CoderProvider),
@@ -36,7 +40,7 @@ export const CoderAuthWrapper = coderPlugin.provide(
 
 export const CoderErrorBoundary = coderPlugin.provide(
   createComponentExtension({
-    name: 'CoderAuthWrapper',
+    name: 'CoderErrorBoundary',
     component: {
       lazy: () =>
         import('./components/CoderErrorBoundary').then(
@@ -48,7 +52,7 @@ export const CoderErrorBoundary = coderPlugin.provide(
 
 export const CoderWorkspacesCard = coderPlugin.provide(
   createComponentExtension({
-    name: 'CoderAuthWrapper',
+    name: 'CoderWorkspacesCard',
     component: {
       lazy: () =>
         import('./components/CoderWorkspacesCard').then(
