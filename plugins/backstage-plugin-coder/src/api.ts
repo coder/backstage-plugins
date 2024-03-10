@@ -1,6 +1,6 @@
 import { parse } from 'valibot';
 import { type UseQueryOptions } from '@tanstack/react-query';
-
+import { BackstageHttpError } from './api/BackstageHttpError';
 import { CoderEntityConfig } from './hooks/useCoderEntityConfig';
 import {
   type Workspace,
@@ -23,30 +23,6 @@ function getCoderApiRequestInit(authToken: string): RequestInit {
     headers: { [CODER_AUTH_HEADER_KEY]: authToken },
     signal: AbortSignal.timeout(REQUEST_TIMEOUT_MS),
   };
-}
-
-// Makes it easier to expose HTTP responses in the event of errors and also
-// gives TypeScript a faster way to type-narrow on those errors
-export class BackstageHttpError extends Error {
-  #response: Response;
-
-  constructor(errorMessage: string, response: Response) {
-    super(errorMessage);
-    this.name = 'HttpError';
-    this.#response = response;
-  }
-
-  get status() {
-    return this.#response.status;
-  }
-
-  get ok() {
-    return this.#response.ok;
-  }
-
-  get contentType() {
-    return this.#response.headers.get('content_type');
-  }
 }
 
 type FetchInputs = Readonly<{

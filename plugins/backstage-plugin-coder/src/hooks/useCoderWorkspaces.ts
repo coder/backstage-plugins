@@ -12,7 +12,7 @@ type UseCoderWorkspacesOptions = Readonly<
 >;
 
 export function useCoderWorkspaces(
-  coderQuery: string,
+  workspacesQuery: string,
   options?: UseCoderWorkspacesOptions,
 ) {
   const auth = useCoderAuth();
@@ -20,8 +20,8 @@ export function useCoderWorkspaces(
   const { repoConfig } = options ?? {};
 
   const queryOptions = repoConfig
-    ? workspacesByRepo({ coderQuery, auth, client, repoConfig })
-    : workspaces({ coderQuery, auth, client });
+    ? workspacesByRepo({ workspacesQuery, auth, client, repoConfig })
+    : workspaces({ workspacesQuery, auth, client });
 
   return useQuery(queryOptions);
 }
