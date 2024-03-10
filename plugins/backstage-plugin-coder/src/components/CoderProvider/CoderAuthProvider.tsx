@@ -235,7 +235,7 @@ function generateAuthState({
     };
   }
 
-  if (authValidityQuery.error instanceof BackstageHttpError) {
+  if (BackstageHttpError.isInstance(authValidityQuery.error)) {
     const deploymentLikelyUnavailable =
       authValidityQuery.error.status === 504 ||
       (authValidityQuery.error.status === 200 &&
