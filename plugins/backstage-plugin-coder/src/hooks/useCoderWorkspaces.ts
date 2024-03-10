@@ -1,9 +1,9 @@
 import { useQuery } from '@tanstack/react-query';
 
-import { workspaces, workspacesByRepo } from '../api';
+import { workspaces, workspacesByRepo } from '../api/queryOptions';
 import { useCoderAuth } from '../components/CoderProvider/CoderAuthProvider';
-import { useBackstageEndpoints } from './useBackstageEndpoints';
 import { CoderEntityConfig } from './useCoderEntityConfig';
+import { useCoderClient } from '../api/coderClient';
 
 type UseCoderWorkspacesOptions = Readonly<
   Partial<{
@@ -16,12 +16,12 @@ export function useCoderWorkspaces(
   options?: UseCoderWorkspacesOptions,
 ) {
   const auth = useCoderAuth();
-  const { baseUrl } = useBackstageEndpoints();
+  const client = useCoderClient();
   const { repoConfig } = options ?? {};
 
   const queryOptions = repoConfig
-    ? workspacesByRepo({ coderQuery, auth, baseUrl, repoConfig })
-    : workspaces({ coderQuery, auth, baseUrl });
+    ? workspacesByRepo({ coderQuery, auth, client, repoConfig })
+    : workspaces({ coderQuery, auth, client });
 
   return useQuery(queryOptions);
 }
