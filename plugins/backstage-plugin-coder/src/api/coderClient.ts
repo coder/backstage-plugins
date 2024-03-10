@@ -43,7 +43,7 @@ export const defaultCoderClientOptions = {
   queryKeyPrefix: 'backstage-plugin-coder',
   authTokenHeaderKey: 'Coder-Session-Token',
   apiPath: '/coder/api/v2',
-  assetsPath: '/',
+  assetsPath: '',
 } as const satisfies CoderClientOptions;
 
 export class CoderClient {

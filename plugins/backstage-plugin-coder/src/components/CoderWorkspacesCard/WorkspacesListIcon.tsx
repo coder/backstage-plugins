@@ -4,8 +4,8 @@ import React, {
   forwardRef,
   useState,
 } from 'react';
-import { useBackstageEndpoints } from '../../hooks/useBackstageEndpoints';
 import { Theme, makeStyles } from '@material-ui/core';
+import { useCoderClient } from '../../api/coderClient';
 
 type WorkspaceListIconProps = Readonly<
   Omit<HTMLAttributes<HTMLDivElement>, 'children' | 'aria-hidden'> & {
@@ -66,10 +66,10 @@ export const WorkspacesListIcon = forwardRef<
   } = props;
 
   const [hasError, setHasError] = useState(false);
-  const { assetsProxyUrl } = useBackstageEndpoints();
+  const coderClient = useCoderClient();
 
   const styles = useStyles({
-    isEmoji: src.startsWith(`${assetsProxyUrl}/emoji`),
+    isEmoji: src.startsWith(`${coderClient.options.assetsPath}/emoji`),
   });
 
   return (
