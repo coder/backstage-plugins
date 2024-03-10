@@ -16,8 +16,7 @@ import {
   type YamlConfig,
 } from '../hooks/useCoderEntityConfig';
 import { ScmIntegrationsApi } from '@backstage/integration-react';
-
-import { API_ROUTE_PREFIX, ASSETS_ROUTE_PREFIX } from '../api';
+import { defaultCoderClientOptions } from '../api/coderClient';
 
 /**
  * This is the key that Backstage checks from the entity data to determine the
@@ -47,9 +46,9 @@ export const mockBackstageUrlRoot = 'http://localhost:7007';
  * The actual endpoint to hit when trying to mock out a server request during
  * testing.
  */
-export const mockBackstageProxyEndpoint = `${mockBackstageUrlRoot}${API_ROUTE_PREFIX}`;
+export const mockBackstageProxyEndpoint = `${mockBackstageUrlRoot}${defaultCoderClientOptions.apiPath}`;
 
-export const mockBackstageAssetsEndpoint = `${mockBackstageUrlRoot}${ASSETS_ROUTE_PREFIX}`;
+export const mockBackstageAssetsEndpoint = `${mockBackstageUrlRoot}${defaultCoderClientOptions.assetsPath}`;
 
 export const mockCoderAuthToken = 'ZG0HRy2gGN-mXljc1s5FqtE8WUJ4sUc5X';
 
