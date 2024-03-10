@@ -61,12 +61,11 @@ export class CoderClient {
     return `${proxyUrlBase}${this.initOptions.apiPath}`;
   }
 
-  private getRequestInit(auth: CoderAuth): RequestInit {
-    assertValidCoderAuth(auth);
+  private getRequestInit(authToken: string): RequestInit {
     const { authTokenHeaderKey, requestTimeoutMs } = this.initOptions;
 
     return {
-      headers: { [authTokenHeaderKey]: auth.token },
+      headers: { [authTokenHeaderKey]: authToken },
       signal: AbortSignal.timeout(requestTimeoutMs),
     };
   }
@@ -81,10 +80,12 @@ export class CoderClient {
     workspaceBuildId: string,
     auth: CoderAuth,
   ): Promise<readonly WorkspaceBuildParameter[]> {
+    assertValidCoderAuth(auth);
     const apiEndpoint = await this.getApiEndpoint();
+
     const res = await fetch(
       `${apiEndpoint}/workspacebuilds/${workspaceBuildId}/parameters`,
-      this.getRequestInit(auth),
+      this.getRequestInit(auth.token),
     );
 
     if (!res.ok) {
@@ -105,14 +106,14 @@ export class CoderClient {
     return parse(workspaceBuildParametersSchema, json);
   }
 
-  async isAuthValid(auth: CoderAuth): Promise<boolean> {
+  async isAuthValid(authToken: string): Promise<boolean> {
     const apiEndpoint = await this.getApiEndpoint();
 
     // In this case, the request doesn't actually matter. Just need to make any
     // kind of dummy request to validate the auth
     const response = await fetch(
       `${apiEndpoint}/users/me`,
-      this.getRequestInit(auth),
+      this.getRequestInit(authToken),
     );
 
     if (response.status >= 400 && response.status !== 401) {
@@ -126,12 +127,13 @@ export class CoderClient {
     coderQuery: string,
     auth: CoderAuth,
   ): Promise<readonly Workspace[]> {
+    assertValidCoderAuth(auth);
     const apiEndpoint = await this.getApiEndpoint();
     const urlParams = new URLSearchParams({ q: coderQuery, limit: '0' });
 
     const response = await fetch(
       `${apiEndpoint}/workspaces?${urlParams.toString()}`,
-      this.getRequestInit(auth),
+      this.getRequestInit(auth.token),
     );
 
     if (!response.ok) {

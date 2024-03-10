@@ -12,12 +12,8 @@ import {
   useQueryClient,
 } from '@tanstack/react-query';
 import { BackstageHttpError } from '../../api/BackstageHttpError';
-import {
-  CODER_QUERY_KEY_PREFIX,
-  authQueryKey,
-  authValidation,
-} from '../../api';
-import { useBackstageEndpoints } from '../../hooks/useBackstageEndpoints';
+import { authValidation, authQueryKey } from '../../api/queryOptions';
+import { useCoderClient } from '../../api/coderClient';
 
 const TOKEN_STORAGE_KEY = 'coder-backstage-plugin/token';
 
@@ -97,7 +93,7 @@ export function useCoderAuth(): CoderAuth {
 type CoderAuthProviderProps = Readonly<PropsWithChildren<unknown>>;
 
 export const CoderAuthProvider = ({ children }: CoderAuthProviderProps) => {
-  const { baseUrl } = useBackstageEndpoints();
+  const coderClient = useCoderClient();
   const [isInsideGracePeriod, setIsInsideGracePeriod] = useState(true);
 
   // Need to split hairs, because the query object can be disabled. Only want to
@@ -107,7 +103,7 @@ export const CoderAuthProvider = ({ children }: CoderAuthProviderProps) => {
   const [readonlyInitialAuthToken] = useState(authToken);
 
   const authValidityQuery = useQuery({
-    ...authValidation({ baseUrl, authToken }),
+    ...authValidation({ client: coderClient, authToken }),
     refetchOnWindowFocus: query => query.state.data !== false,
   });
 
@@ -163,12 +159,12 @@ export const CoderAuthProvider = ({ children }: CoderAuthProviderProps) => {
       }
 
       isRefetchingTokenQuery = true;
-      await queryClient.refetchQueries({ queryKey: authQueryKey });
+      await queryClient.refetchQueries({ queryKey: authQueryKey(coderClient) });
       isRefetchingTokenQuery = false;
     });
 
     return unsubscribe;
-  }, [queryClient]);
+  }, [queryClient, coderClient]);
 
   return (
     <AuthContext.Provider
@@ -183,8 +179,10 @@ export const CoderAuthProvider = ({ children }: CoderAuthProviderProps) => {
         },
         ejectToken: () => {
           window.localStorage.removeItem(TOKEN_STORAGE_KEY);
-          queryClient.removeQueries({ queryKey: [CODER_QUERY_KEY_PREFIX] });
           setAuthToken('');
+          queryClient.removeQueries({
+            queryKey: [coderClient.options.queryKeyPrefix],
+          });
         },
       }}
     >

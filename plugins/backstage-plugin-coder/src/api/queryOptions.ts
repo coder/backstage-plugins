@@ -8,16 +8,11 @@ import type { Workspace } from '../typesConstants';
 import type { CoderAuth } from '../components/CoderProvider';
 import type { CoderEntityConfig } from '../hooks/useCoderEntityConfig';
 
-type BaseQueryInputs = Readonly<{
+type WorkspacesInputs = Readonly<{
   client: CoderClient;
   auth: CoderAuth;
+  workspacesQuery: string;
 }>;
-
-type WorkspacesInputs = Readonly<
-  BaseQueryInputs & {
-    workspacesQuery: string;
-  }
->;
 
 export function workspaces({
   auth,
@@ -38,12 +33,12 @@ export function workspaces({
   };
 }
 
-type WorkspacesByRepoInputs = Readonly<
-  BaseQueryInputs & {
-    workspacesQuery: string;
-    repoConfig: CoderEntityConfig;
-  }
->;
+type WorkspacesByRepoInputs = Readonly<{
+  client: CoderClient;
+  auth: CoderAuth;
+  workspacesQuery: string;
+  repoConfig: CoderEntityConfig;
+}>;
 
 export function workspacesByRepo({
   workspacesQuery,
@@ -67,14 +62,23 @@ export function workspacesByRepo({
   };
 }
 
+export function authQueryKey(client: CoderClient) {
+  return [client.options.queryKeyPrefix, 'auth'] as const;
+}
+
+type AuthValidityInputs = Readonly<{
+  client: CoderClient;
+  authToken: string;
+}>;
+
 export function authValidation({
   client,
-  auth,
-}: BaseQueryInputs): UseQueryOptions<boolean> {
-  const enabled = auth.token !== '';
+  authToken,
+}: AuthValidityInputs): UseQueryOptions<boolean> {
+  const enabled = authToken !== '';
   return {
-    queryKey: [client.options.queryKeyPrefix, 'auth', auth],
-    queryFn: () => client.isAuthValid(auth),
+    queryKey: [...authQueryKey(client), authToken],
+    queryFn: () => client.isAuthValid(authToken),
     enabled,
     keepPreviousData: enabled,
   };

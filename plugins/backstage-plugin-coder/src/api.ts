@@ -1,5 +1,4 @@
 import { parse } from 'valibot';
-import { type UseQueryOptions } from '@tanstack/react-query';
 import { BackstageHttpError } from './api/BackstageHttpError';
 import { CoderEntityConfig } from './hooks/useCoderEntityConfig';
 import {
@@ -8,8 +7,6 @@ import {
   workspacesResponseSchema,
 } from './typesConstants';
 import { CoderAuth, assertValidCoderAuth } from './components/CoderProvider';
-
-export const CODER_QUERY_KEY_PREFIX = 'coder-backstage-plugin';
 
 const PROXY_ROUTE_PREFIX = '/api/proxy/coder';
 export const API_ROUTE_PREFIX = `${PROXY_ROUTE_PREFIX}/api/v2`;
@@ -161,40 +158,4 @@ export async function getWorkspacesByRepo(
   }
 
   return matchedWorkspaces;
-}
-
-type AuthValidationInputs = Readonly<{
-  baseUrl: string;
-  authToken: string;
-}>;
-
-async function isAuthValid(inputs: AuthValidationInputs): Promise<boolean> {
-  const { baseUrl, authToken } = inputs;
-
-  // In this case, the request doesn't actually matter. Just need to make any
-  // kind of dummy request to validate the auth
-  const response = await fetch(
-    `${baseUrl}${API_ROUTE_PREFIX}/users/me`,
-    getCoderApiRequestInit(authToken),
-  );
-
-  if (response.status >= 400 && response.status !== 401) {
-    throw new BackstageHttpError('Failed to complete request', response);
-  }
-
-  return response.status !== 401;
-}
-
-export const authQueryKey = [CODER_QUERY_KEY_PREFIX, 'auth'] as const;
-
-export function authValidation(
-  inputs: AuthValidationInputs,
-): UseQueryOptions<boolean> {
-  const enabled = inputs.authToken !== '';
-  return {
-    queryKey: [...authQueryKey, inputs.authToken],
-    queryFn: () => isAuthValid(inputs),
-    enabled,
-    keepPreviousData: enabled,
-  };
 }
