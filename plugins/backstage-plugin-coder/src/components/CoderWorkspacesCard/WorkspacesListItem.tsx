@@ -9,7 +9,7 @@ import { type Theme, makeStyles } from '@material-ui/core';
 import { useId } from '../../hooks/hookPolyfills';
 
 import { useCoderAppConfig } from '../CoderProvider';
-import { isWorkspaceOnline } from '../../api';
+import { isWorkspaceOnline } from '../../api/utils';
 
 import type { Workspace } from '../../typesConstants';
 import { WorkspacesListIcon } from './WorkspacesListIcon';

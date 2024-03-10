@@ -7,7 +7,7 @@ import { makeStyles } from '@material-ui/core';
 
 import { useCoderAppConfig } from '../CoderProvider';
 import { useWorkspacesCardContext } from './Root';
-import { serializeWorkspaceUrl } from '../../api';
+import { serializeWorkspaceUrl } from '../../api/utils';
 
 import { VisuallyHidden } from '../VisuallyHidden';
 import AddIcon from '@material-ui/icons/AddCircleOutline';
