@@ -14,16 +14,26 @@ import {
   createApiRef,
   useApi,
 } from '@backstage/core-plugin-api';
-import { BackstageHttpError } from './BackstageHttpError';
-import { Workspace, workspacesResponseSchema } from '../typesConstants';
 import { parse } from 'valibot';
-import { CoderAuth, assertValidCoderAuth } from '../components/CoderProvider';
+import { BackstageHttpError } from './BackstageHttpError';
+import {
+  type Workspace,
+  type WorkspaceBuildParameter,
+  workspaceBuildParametersSchema,
+  workspacesResponseSchema,
+} from '../typesConstants';
+import {
+  type CoderAuth,
+  assertValidCoderAuth,
+} from '../components/CoderProvider';
+import type { CoderEntityConfig } from '../hooks/useCoderEntityConfig';
 
 type CoderClientOptions = Readonly<{
   fetch: typeof fetch;
   requestTimeoutMs: number;
   authTokenHeaderKey: string;
   apiPath: string;
+  queryKeyPrefix: string;
 }>;
 
 const defaultOptions = {
@@ -31,28 +41,29 @@ const defaultOptions = {
   requestTimeoutMs: 20_000,
   authTokenHeaderKey: 'Coder-Session-Token',
   apiPath: '/coder/api/v2',
+  queryKeyPrefix: 'coder-backstage-plugin',
 } as const satisfies CoderClientOptions;
 
 export class CoderClient {
   private readonly discoveryApi: DiscoveryApi;
-  private readonly options: CoderClientOptions;
+  private readonly initOptions: CoderClientOptions;
 
   constructor(
     discoveryApi: DiscoveryApi,
     options?: Partial<CoderClientOptions>,
   ) {
     this.discoveryApi = discoveryApi;
-    this.options = { ...defaultOptions, ...(options ?? {}) };
+    this.initOptions = { ...defaultOptions, ...(options ?? {}) };
   }
 
-  private async getApiUrl(): Promise<string> {
-    const proxyUrlBase = this.discoveryApi.getBaseUrl('proxy');
-    return `${proxyUrlBase}${this.options.apiPath}`;
+  private async getApiEndpoint(): Promise<string> {
+    const proxyUrlBase = await this.discoveryApi.getBaseUrl('proxy');
+    return `${proxyUrlBase}${this.initOptions.apiPath}`;
   }
 
   private getRequestInit(auth: CoderAuth): RequestInit {
     assertValidCoderAuth(auth);
-    const { authTokenHeaderKey, requestTimeoutMs } = this.options;
+    const { authTokenHeaderKey, requestTimeoutMs } = this.initOptions;
 
     return {
       headers: { [authTokenHeaderKey]: auth.token },
@@ -60,11 +71,62 @@ export class CoderClient {
     };
   }
 
+  get options(): CoderClientOptions {
+    return this.initOptions;
+  }
+
+  // Currently private because it's strictly an implementation detail for
+  // CoderClient.getWorkspacesByRepo
+  private async getWorkspaceBuildParameters(
+    workspaceBuildId: string,
+    auth: CoderAuth,
+  ): Promise<readonly WorkspaceBuildParameter[]> {
+    const apiEndpoint = await this.getApiEndpoint();
+    const res = await fetch(
+      `${apiEndpoint}/workspacebuilds/${workspaceBuildId}/parameters`,
+      this.getRequestInit(auth),
+    );
+
+    if (!res.ok) {
+      throw new BackstageHttpError(
+        `Failed to retreive build params for workspace ID ${workspaceBuildId}`,
+        res,
+      );
+    }
+
+    if (!res.headers.get('content-type')?.includes('application/json')) {
+      throw new BackstageHttpError(
+        '200 request has no data - potential proxy issue',
+        res,
+      );
+    }
+
+    const json = await res.json();
+    return parse(workspaceBuildParametersSchema, json);
+  }
+
+  async isAuthValid(auth: CoderAuth): Promise<boolean> {
+    const apiEndpoint = await this.getApiEndpoint();
+
+    // In this case, the request doesn't actually matter. Just need to make any
+    // kind of dummy request to validate the auth
+    const response = await fetch(
+      `${apiEndpoint}/users/me`,
+      this.getRequestInit(auth),
+    );
+
+    if (response.status >= 400 && response.status !== 401) {
+      throw new BackstageHttpError('Failed to complete request', response);
+    }
+
+    return response.status !== 401;
+  }
+
   async getWorkspaces(
     coderQuery: string,
     auth: CoderAuth,
   ): Promise<readonly Workspace[]> {
-    const apiEndpoint = await this.getApiUrl();
+    const apiEndpoint = await this.getApiEndpoint();
     const urlParams = new URLSearchParams({ q: coderQuery, limit: '0' });
 
     const response = await fetch(
@@ -102,6 +164,40 @@ export class CoderClient {
     });
 
     return withRemappedImgUrls;
+  }
+
+  async getWorkspacesByRepo(
+    coderQuery: string,
+    auth: CoderAuth,
+    repoConfig: CoderEntityConfig,
+  ): Promise<readonly Workspace[]> {
+    const allWorkspaces = await this.getWorkspaces(coderQuery, auth);
+    const paramResults = await Promise.allSettled(
+      allWorkspaces.map(ws => this.getWorkspaceBuildParameters(ws.id, auth)),
+    );
+
+    const filtered: Workspace[] = [];
+    for (const [index, res] of paramResults.entries()) {
+      if (res.status === 'rejected') {
+        continue;
+      }
+
+      for (const param of res.value) {
+        const include =
+          repoConfig.repoUrlParamKeys.includes(param.name) &&
+          param.value === repoConfig.repoUrl;
+
+        if (include) {
+          // Doing type assertion just in case noUncheckedIndexedAccess compiler
+          // setting ever gets turned on; this shouldn't ever break, but it's
+          // technically not type-safe
+          filtered.push(allWorkspaces[index] as Workspace);
+          break;
+        }
+      }
+    }
+
+    return filtered;
   }
 }
 
