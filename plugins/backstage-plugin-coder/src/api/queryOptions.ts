@@ -8,13 +8,13 @@ import type { Workspace } from '../typesConstants';
 import type { CoderAuth } from '../components/CoderProvider';
 import type { CoderEntityConfig } from '../hooks/useCoderEntityConfig';
 
-type BaseUseQueryOptionsInputs = Readonly<{
+type BaseQueryInputs = Readonly<{
   client: CoderClient;
   auth: CoderAuth;
 }>;
 
 type WorkspacesInputs = Readonly<
-  BaseUseQueryOptionsInputs & {
+  BaseQueryInputs & {
     workspacesQuery: string;
   }
 >;
@@ -39,7 +39,7 @@ export function workspaces({
 }
 
 type WorkspacesByRepoInputs = Readonly<
-  BaseUseQueryOptionsInputs & {
+  BaseQueryInputs & {
     workspacesQuery: string;
     repoConfig: CoderEntityConfig;
   }
@@ -70,7 +70,7 @@ export function workspacesByRepo({
 export function authValidation({
   client,
   auth,
-}: BaseUseQueryOptionsInputs): UseQueryOptions<boolean> {
+}: BaseQueryInputs): UseQueryOptions<boolean> {
   const enabled = auth.token !== '';
   return {
     queryKey: [client.options.queryKeyPrefix, 'auth', auth],
