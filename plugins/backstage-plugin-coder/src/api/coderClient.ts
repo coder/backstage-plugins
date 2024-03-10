@@ -31,17 +31,19 @@ import type { CoderEntityConfig } from '../hooks/useCoderEntityConfig';
 type CoderClientOptions = Readonly<{
   fetch: typeof fetch;
   requestTimeoutMs: number;
+  queryKeyPrefix: string;
   authTokenHeaderKey: string;
   apiPath: string;
-  queryKeyPrefix: string;
+  assetsPath: string;
 }>;
 
-const defaultOptions = {
+export const defaultCoderClientOptions = {
   fetch: window.fetch,
   requestTimeoutMs: 20_000,
+  queryKeyPrefix: 'backstage-plugin-coder',
   authTokenHeaderKey: 'Coder-Session-Token',
   apiPath: '/coder/api/v2',
-  queryKeyPrefix: 'coder-backstage-plugin',
+  assetsPath: '/',
 } as const satisfies CoderClientOptions;
 
 export class CoderClient {
@@ -53,7 +55,7 @@ export class CoderClient {
     options?: Partial<CoderClientOptions>,
   ) {
     this.discoveryApi = discoveryApi;
-    this.initOptions = { ...defaultOptions, ...(options ?? {}) };
+    this.initOptions = { ...defaultCoderClientOptions, ...(options ?? {}) };
   }
 
   private async getApiEndpoint(): Promise<string> {

@@ -18,7 +18,7 @@ import {
   type Workspace,
   WorkspacesResponse,
 } from '../typesConstants';
-import { CODER_AUTH_HEADER_KEY } from '../api';
+import { defaultCoderClientOptions } from '../api/coderClient';
 
 const repoBuildParamId = 'mock-repo';
 
@@ -76,7 +76,7 @@ const handlers: readonly RestHandler[] = [
 
   // This is the dummy request used to verify a user's auth status
   rest.get(`${root}/users/me`, (req, res, ctx) => {
-    const token = req.headers.get(CODER_AUTH_HEADER_KEY);
+    const token = req.headers.get(defaultCoderClientOptions.authTokenHeaderKey);
     if (token === mockCoderAuthToken) {
       return res(ctx.status(200));
     }
