@@ -8,64 +8,69 @@ import type { Workspace } from '../typesConstants';
 import type { CoderAuth } from '../components/CoderProvider';
 import type { CoderEntityConfig } from '../hooks/useCoderEntityConfig';
 
-type WorkspacesInputs = Readonly<{
-  coderQuery: string;
-  auth: CoderAuth;
+type BaseUseQueryOptionsInputs = Readonly<{
   client: CoderClient;
+  auth: CoderAuth;
 }>;
+
+type WorkspacesInputs = Readonly<
+  BaseUseQueryOptionsInputs & {
+    workspacesQuery: string;
+  }
+>;
 
 export function workspaces({
   auth,
   client,
-  coderQuery,
+  workspacesQuery,
 }: WorkspacesInputs): UseQueryOptions<readonly Workspace[]> {
   const enabled = auth.status === 'authenticated';
-  return {
-    queryKey: [client.options.queryKeyPrefix, auth, 'workspaces', coderQuery],
-    queryFn: () => client.getWorkspaces(coderQuery, auth),
-    enabled,
-    keepPreviousData: enabled && coderQuery !== '',
-  };
-}
-
-type WorkspacesByRepoInputs = Readonly<{
-  coderQuery: string;
-  auth: CoderAuth;
-  client: CoderClient;
-  repoConfig: CoderEntityConfig;
-}>;
-
-export function workspacesByRepo({
-  coderQuery,
-  auth,
-  client,
-  repoConfig,
-}: WorkspacesByRepoInputs): UseQueryOptions<readonly Workspace[]> {
-  const enabled = auth.status === 'authenticated' && coderQuery !== '';
   return {
     queryKey: [
       client.options.queryKeyPrefix,
       auth,
       'workspaces',
-      coderQuery,
+      workspacesQuery,
+    ],
+    queryFn: () => client.getWorkspaces(workspacesQuery, auth),
+    enabled,
+    keepPreviousData: enabled && workspacesQuery !== '',
+  };
+}
+
+type WorkspacesByRepoInputs = Readonly<
+  BaseUseQueryOptionsInputs & {
+    workspacesQuery: string;
+    repoConfig: CoderEntityConfig;
+  }
+>;
+
+export function workspacesByRepo({
+  workspacesQuery,
+  auth,
+  client,
+  repoConfig,
+}: WorkspacesByRepoInputs): UseQueryOptions<readonly Workspace[]> {
+  const enabled = auth.status === 'authenticated' && workspacesQuery !== '';
+  return {
+    queryKey: [
+      client.options.queryKeyPrefix,
+      auth,
+      'workspaces',
+      workspacesQuery,
       repoConfig,
     ],
-    queryFn: () => client.getWorkspacesByRepo(coderQuery, auth, repoConfig),
+    queryFn: () =>
+      client.getWorkspacesByRepo(workspacesQuery, auth, repoConfig),
     enabled,
     keepPreviousData: enabled,
   };
 }
 
-type AuthValidationInputs = Readonly<{
-  coderQuery: string;
-  auth: CoderAuth;
-  client: CoderClient;
-}>;
-
 export function authValidation({
   client,
   auth,
-}: AuthValidationInputs): UseQueryOptions<boolean> {
+}: BaseUseQueryOptionsInputs): UseQueryOptions<boolean> {
   const enabled = auth.token !== '';
   return {
     queryKey: [client.options.queryKeyPrefix, 'auth', auth],
