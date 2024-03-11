@@ -1,6 +1,6 @@
 # @coder/backstage-plugin-devcontainers-backend
 
-Automatically detect [development containers (devcontainer) files](https://containers.dev/) in repositories such as GitHub, GitLab, or BitBucket, and tag them in the background!
+Automatically detect [development containers (devcontainer) files](https://containers.dev/) in repositories such as GitHub, GitLab, or BitBucket, and have Backstage tag them in the background!
 
 ## Screenshots
 
@@ -15,7 +15,7 @@ _Note: While this plugin can be used standalone, it has been designed to be a ba
 - Automatically tag repos from GitHub/GitLab/BitBucket that contain some form of `devcontainers` support.
   - Repos are tagged as part of Backstage's [processing loop](https://backstage.io/docs/features/software-catalog/life-of-an-entity/#processing)
 
-### When combined with backend plugin
+### When combined with the frontend plugin
 
 - Provides an end-to-end solution for automatically managing tags for your Backstage installation, while letting you read them from custom hooks and components
 

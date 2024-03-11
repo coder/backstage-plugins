@@ -16,7 +16,7 @@ _Note: While this plugin can be used standalone, it has been designed to be a fr
 
 - Custom hooks for reading devcontainers metadata tags for repo entities, and providing ready-made links to opening the repo in VS Code
 
-### When combined with backend plugin
+### When combined with the backend plugin
 
 - Provides an end-to-end solution for automatically managing tags for your Backstage installation, while letting you read them from custom hooks and components
 
@@ -124,7 +124,7 @@ Have an idea for what kinds of components you would like to see? Feel free to op
 
 ## Limitations
 
-While this does not directly apply to the React plugin, there are limits around the backend plugin's support of `devcontainer.json` files. Please see the backend plugin's README for more information.
+While this does not directly apply to the React plugin, there are limits around the backend plugin's support of `devcontainer.json` files. Please see the [backend plugin's README](../backstage-plugin-devcontainers-backend/README.md#limitations) for more information.
 
 ## API documentation
 

@@ -1,6 +1,6 @@
 # Plugin API reference – React components
 
-This is the main documentation page for the Coder plugin's React components.
+This is the main documentation page for the Devcontainer plugin's React components.
 
 ## Component list
 
