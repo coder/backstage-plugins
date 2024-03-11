@@ -122,7 +122,7 @@ _Note: While this plugin has been developed and published by Coder, no Coder ins
 
 Have an idea for what kinds of components you would like to see? Feel free to open an issue and make a feature request!
 
-## Current limitations
+## Limitations
 
 While this does not directly apply to the React plugin, there are limits around the backend plugin's support of `devcontainer.json` files. Please see the backend plugin's README for more information.
 
