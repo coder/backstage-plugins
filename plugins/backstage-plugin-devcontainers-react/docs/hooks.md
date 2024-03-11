@@ -2,6 +2,10 @@
 
 This is the main documentation page for the frontend Devcontainer plugin's React hooks.
 
+## Hooks directory
+
+- [`useDevcontainers`](#usedevcontainers)
+
 ## `useDevcontainers`
 
 This hook gives you access to a set of properties that describe whether the currently-viewed entity has devcontainers data.
