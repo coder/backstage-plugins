@@ -18,8 +18,6 @@ export type UseDevcontainersResult = Readonly<{
 declare function useDevcontainers(): UseDevcontainersResult;
 ```
 
-**Note**: The types of `hasUrl` and `vsCodeUrl` are defined as [discriminated unions](https://www.typescriptlang.org/docs/handbook/unions-and-intersections.html#discriminating-unions). As long as the type of `hasUrl` is `true`, `vsCodeUrl` is guaranteed to be of type `string`
-
 ### Example usage
 
 ```tsx
@@ -51,4 +49,4 @@ const YourComponent = () => {
 
 ### Notes
 
-N/A
+- The types of `hasUrl` and `vsCodeUrl` are defined as part of a [discriminated union](https://www.typescriptlang.org/docs/handbook/unions-and-intersections.html#discriminating-unions). As long as you can prove to the compiler that `hasUrl` is `true` (via a type guard or conditional rendering), `vsCodeUrl` is guaranteed to be of type `string`
