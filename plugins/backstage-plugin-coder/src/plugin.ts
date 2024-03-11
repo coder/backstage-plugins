@@ -69,6 +69,7 @@ export const CoderWorkspacesCard = coderPlugin.provide(
 /**
  * All custom hooks exposed by the plugin.
  */
+export { useCoderClient } from './api/coderClient';
 export { useCoderEntityConfig } from './hooks/useCoderEntityConfig';
 export { useCoderWorkspaces } from './hooks/useCoderWorkspaces';
 
