@@ -2,9 +2,11 @@
 
 Automatically launch fully-contained dev environments with [development containers (devcontainers)](https://containers.dev/), right from Backstage!
 
-## Videos
+## Screenshots
 
-![Live demo of plugin](./videos/basic-demo.mov)
+![View of the default table component displaying custom tag data](./screenshots/table-view.png)
+![View of the sample plugin component](./screenshots/plugin-view.png)
+![VS Code after being opened by plugin](./screenshots/vscode.png)
 
 ## Features
 
