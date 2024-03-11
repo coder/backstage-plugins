@@ -27,6 +27,8 @@ jobs:
       # the package.json in the tarball so we have to extract it first.
       - run: tar -xf *.tgz
       - run: mv package/package.json package.json
-      - run: yarn publish *.tgz
+      # Normally publish tries to run a script that packages the plugin but we
+      # already have it packaged, so ignore scripts.
+      - run: yarn publish --ignore-scripts *.tgz
         env:
           YARN_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
