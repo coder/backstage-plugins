@@ -108,7 +108,7 @@ export class CoderClient implements CoderApi {
 
     if (!res.ok) {
       throw new BackstageHttpError(
-        `Failed to retreive build params for workspace ID ${workspaceBuildId}`,
+        `Failed to retrieve build params for workspace ID ${workspaceBuildId}`,
         res,
       );
     }
