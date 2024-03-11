@@ -124,7 +124,11 @@ export class CoderClient implements CoderApi {
     return parse(workspaceBuildParametersSchema, json);
   }
 
-  async isAuthValid(authToken: string): Promise<boolean> {
+  /**
+   * All public methods should be defined as arrow functions to ensure that they
+   * can be passed around easily without losing their "this" context
+   */
+  isAuthValid = async (authToken: string): Promise<boolean> => {
     const apiEndpoint = await this.getApiEndpoint();
 
     // In this case, the request doesn't actually matter. Just need to make any
@@ -139,12 +143,12 @@ export class CoderClient implements CoderApi {
     }
 
     return response.status !== 401;
-  }
+  };
 
-  async getWorkspaces(
+  getWorkspaces = async (
     coderQuery: string,
     auth: CoderAuth,
-  ): Promise<readonly Workspace[]> {
+  ): Promise<readonly Workspace[]> => {
     assertValidCoderAuth(auth);
     const apiEndpoint = await this.getApiEndpoint();
     const urlParams = new URLSearchParams({ q: coderQuery, limit: '0' });
@@ -184,13 +188,13 @@ export class CoderClient implements CoderApi {
     });
 
     return withRemappedImgUrls;
-  }
+  };
 
-  async getWorkspacesByRepo(
+  getWorkspacesByRepo = async (
     coderQuery: string,
     auth: CoderAuth,
     repoConfig: CoderEntityConfig,
-  ): Promise<readonly Workspace[]> {
+  ): Promise<readonly Workspace[]> => {
     const allWorkspaces = await this.getWorkspaces(coderQuery, auth);
     const paramResults = await Promise.allSettled(
       allWorkspaces.map(ws => this.getWorkspaceBuildParameters(ws.id, auth)),
@@ -218,7 +222,7 @@ export class CoderClient implements CoderApi {
     }
 
     return filtered;
-  }
+  };
 }
 
 export const coderClientRef = createApiRef<CoderClient>({
