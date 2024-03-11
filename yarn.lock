@@ -4217,23 +4217,6 @@
     style-mod "^4.1.0"
     w3c-keyname "^2.2.4"
 
-"@coder/backstage-plugin-coder@^0.0.1":
-  version "0.0.1"
-  resolved "https://registry.yarnpkg.com/@coder/backstage-plugin-coder/-/backstage-plugin-coder-0.0.1.tgz#2c2fca13c2959c93ccb14ab94772b87e0eec52f2"
-  integrity sha512-iTAUg4J9AIdSRr47i83TRRaO6bIU7OF1dfRw098JbacJXn6ip0P4VxerD1oFcNoVi2uDrFnvF2YPffvzNwqyDw==
-  dependencies:
-    "@backstage/core-components" "^0.13.10"
-    "@backstage/core-plugin-api" "^1.8.2"
-    "@backstage/integration-react" "^1.1.24"
-    "@backstage/plugin-catalog-react" "^1.10.0"
-    "@backstage/theme" "^0.5.0"
-    "@material-ui/core" "^4.12.2"
-    "@material-ui/icons" "^4.9.1"
-    "@material-ui/lab" "4.0.0-alpha.61"
-    "@tanstack/react-query" "4.36.1"
-    react-use "^17.2.4"
-    valibot "^0.28.1"
-
 "@colors/colors@1.6.0", "@colors/colors@^1.6.0":
   version "1.6.0"
   resolved "https://registry.yarnpkg.com/@colors/colors/-/colors-1.6.0.tgz#ec6cd237440700bc23ca23087f513c75508958b0"
@@ -9056,15 +9039,6 @@
   version "18.2.62"
   resolved "https://registry.yarnpkg.com/@types/react/-/react-18.2.62.tgz#2527a7a54749b1a99c87a4aa8b83e26846face38"
   integrity sha512-l3f57BbaEKP0xcFzf+5qRG8/PXykZiuVM6eEoPtqBPCp6dxO3HhDkLIgIyXPhPKNAeXn3KO2pEaNgzaEo/asaw==
-  dependencies:
-    "@types/prop-types" "*"
-    "@types/scheduler" "*"
-    csstype "^3.0.2"
-
-"@types/react@^16.13.1 || ^17.0.0", "@types/react@^17":
-  version "17.0.76"
-  resolved "https://registry.yarnpkg.com/@types/react/-/react-17.0.76.tgz#bfdf762046699e265655cd8f67a51beab6cd1e80"
-  integrity sha512-w9Aq+qeszGYoQM0hgFcdsAODGJdogadBDiitPm+zjBFJ0mLymvn2qSXsDaLJUndFRqqXk1FQfa9avHUBk1JhJQ==
   dependencies:
     "@types/prop-types" "*"
     "@types/scheduler" "*"

@@ -1,8 +1,4 @@
-import React, {
-  type AnchorHTMLAttributes,
-  type ForwardedRef,
-  forwardRef,
-} from 'react';
+import React, { type AnchorHTMLAttributes, type ForwardedRef } from 'react';
 import { makeStyles } from '@material-ui/core';
 
 import { useCoderAppConfig } from '../CoderProvider';
@@ -43,43 +39,42 @@ type CreateButtonLinkProps = Readonly<
   }
 >;
 
-export const CreateWorkspaceLink = forwardRef(
-  (props: CreateButtonLinkProps, ref?: ForwardedRef<HTMLAnchorElement>) => {
-    const {
-      children,
-      className,
-      tooltipRef,
-      target = '_blank',
-      tooltipText = 'Add a new workspace',
-      tooltipProps = {},
-      ...delegatedProps
-    } = props;
+export const CreateWorkspaceLink = ({
+  children,
+  className,
+  tooltipRef,
+  target = '_blank',
+  tooltipText = 'Add a new workspace',
+  tooltipProps = {},
+  ...delegatedProps
+}: CreateButtonLinkProps) => {
+  const styles = useStyles();
+  const appConfig = useCoderAppConfig();
+  const { entityConfig } = useWorkspacesCardContext();
 
-    const styles = useStyles();
-    const appConfig = useCoderAppConfig();
-    const { entityConfig } = useWorkspacesCardContext();
-    const activeConfig = entityConfig ?? appConfig.workspaces;
+  const activeConfig = {
+    ...appConfig.workspaces,
+    ...(entityConfig ?? {}),
+  };
 
-    return (
-      <Tooltip ref={tooltipRef} title={tooltipText} {...tooltipProps}>
-        <a
-          ref={ref}
-          target={target}
-          className={`${styles.root} ${className ?? ''}`}
-          href={serializeWorkspaceUrl(
-            activeConfig,
-            appConfig.deployment.accessUrl,
-          )}
-          {...delegatedProps}
-        >
-          {children ?? <AddIcon />}
+  return (
+    <Tooltip ref={tooltipRef} title={tooltipText} {...tooltipProps}>
+      <a
+        target={target}
+        className={`${styles.root} ${className ?? ''}`}
+        href={serializeWorkspaceUrl(
+          activeConfig,
+          appConfig.deployment.accessUrl,
+        )}
+        {...delegatedProps}
+      >
+        {children ?? <AddIcon />}
 
-          <VisuallyHidden>
-            {tooltipText}
-            {target === '_blank' && <> (Link opens in new tab)</>}
-          </VisuallyHidden>
-        </a>
-      </Tooltip>
-    );
-  },
-);
+        <VisuallyHidden>
+          {tooltipText}
+          {target === '_blank' && <> (Link opens in new tab)</>}
+        </VisuallyHidden>
+      </a>
+    </Tooltip>
+  );
+};

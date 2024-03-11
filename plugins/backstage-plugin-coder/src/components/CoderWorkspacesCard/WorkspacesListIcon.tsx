@@ -1,9 +1,4 @@
-import React, {
-  ForwardedRef,
-  HTMLAttributes,
-  forwardRef,
-  useState,
-} from 'react';
+import React, { ForwardedRef, HTMLAttributes, useState } from 'react';
 import { useBackstageEndpoints } from '../../hooks/useBackstageEndpoints';
 import { Theme, makeStyles } from '@material-ui/core';
 
@@ -52,19 +47,14 @@ const useStyles = makeStyles<Theme, MakeStylesInput, StyleKey>(theme => ({
   },
 }));
 
-export const WorkspacesListIcon = forwardRef<
-  HTMLDivElement,
-  WorkspaceListIconProps
->((props, ref) => {
-  const {
-    src,
-    workspaceName,
-    className,
-    imageClassName,
-    imageRef,
-    ...delegatedProps
-  } = props;
-
+export const WorkspacesListIcon = ({
+  src,
+  workspaceName,
+  className,
+  imageClassName,
+  imageRef,
+  ...delegatedProps
+}: WorkspaceListIconProps) => {
   const [hasError, setHasError] = useState(false);
   const { assetsProxyUrl } = useBackstageEndpoints();
 
@@ -74,7 +64,6 @@ export const WorkspacesListIcon = forwardRef<
 
   return (
     <div
-      ref={ref}
       aria-hidden
       className={`${styles.root} ${className ?? ''}`}
       {...delegatedProps}
@@ -93,7 +82,7 @@ export const WorkspacesListIcon = forwardRef<
       )}
     </div>
   );
-});
+};
 
 const firstLetterRe = /([a-zA-Z])/;
 function getFirstLetter(text: string): string {
