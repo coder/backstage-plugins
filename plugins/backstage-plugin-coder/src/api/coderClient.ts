@@ -37,6 +37,22 @@ type CoderClientOptions = Readonly<{
   assetsPath: string;
 }>;
 
+export interface CoderApi {
+  readonly options: CoderClientOptions;
+  isAuthValid(authToken: string): Promise<boolean>;
+
+  getWorkspaces(
+    coderQuery: string,
+    auth: CoderAuth,
+  ): Promise<readonly Workspace[]>;
+
+  getWorkspacesByRepo(
+    coderQuery: string,
+    auth: CoderAuth,
+    repoConfig: CoderEntityConfig,
+  ): Promise<readonly Workspace[]>;
+}
+
 export const defaultCoderClientOptions = {
   fetch: window.fetch,
   requestTimeoutMs: 20_000,
@@ -46,7 +62,7 @@ export const defaultCoderClientOptions = {
   assetsPath: '',
 } as const satisfies CoderClientOptions;
 
-export class CoderClient {
+export class CoderClient implements CoderApi {
   private readonly discoveryApi: DiscoveryApi;
   private readonly initOptions: CoderClientOptions;
 
