@@ -79,3 +79,4 @@ export default async function createPlugin(
 ### Notes
 
 - This class is designed to be instantiated either through the `fromConfig` method or from the raw constructor. `fromConfig` will set up the class instance with a set of "sensible" default values.
+  - If the value of `tagName` is not specified for `fromConfig`, the class will default to the value `devcontainers`

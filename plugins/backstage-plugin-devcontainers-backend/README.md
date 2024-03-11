@@ -32,13 +32,98 @@ _Note: While this plugin has been developed and published by Coder, no Coder ins
 
 ### Installation
 
-1. Blah blah blah
+1. From your Backstage deployment's `backend` directory, run the following command:
+   ```shell
+   yarn --cwd packages/backend add @coder/backstage-plugin-devcontainers-backend
+   ```
+2. Navigate to the `backend` directory's `catalog.ts` file
+3. Import your Source Control Manager provider of choice (Backstage has built in support for GitHub, GitLab, and BitBucket)
 
-Have an idea for what kinds of components you would like to see? Feel free to open an issue and make a feature request!
+   ```ts
+   export default async function createPlugin(
+     env: PluginEnvironment,
+   ): Promise<Router> {
+     const builder = await CatalogBuilder.create(env);
+     builder.addEntityProvider(
+       GithubOrgEntityProvider.fromConfig(env.config, {
+         id: 'production',
+         orgUrl: 'https://github.com/coder',
+         logger: env.logger,
+         schedule: env.scheduler.createScheduledTaskRunner({
+           frequency: { minutes: 60 },
+           timeout: { minutes: 15 },
+         }),
+       }),
+     );
+
+     // Rest of implementation
+   }
+   ```
+
+4. Import the `DevcontainersProcessor` class, and register it with your plugin creator:
+
+   ```ts
+   export default async function createPlugin(
+     env: PluginEnvironment,
+   ): Promise<Router> {
+     const builder = await CatalogBuilder.create(env);
+     builder.addEntityProvider(/* GitHub setup */);
+
+     builder.addProcessor(
+       DevcontainersProcessor.fromConfig(env.config, {
+         tagName: 'example', // Defaults to devcontainers
+         logger: env.logger,
+         eraseTags: false,
+       }),
+     );
+
+     // Add any extra processors and handle setup here
+   }
+   ```
+
+5. As your provider of choice re-validates data and emits more entity information, `DevcontainersProcessor` will automatically intercept the data and append or remove tags, based on whether the current repository has a devcontainers file!
+
+Full example:
+
+```tsx
+// catalog.ts
+import { DevcontainersProcessor } from '@coder/backstage-plugin-devcontainers-backend';
+
+export default async function createPlugin(
+  env: PluginEnvironment,
+): Promise<Router> {
+  const builder = await CatalogBuilder.create(env);
+  builder.addEntityProvider(
+    GithubOrgEntityProvider.fromConfig(env.config, {
+      id: 'production',
+      orgUrl: 'https://github.com/coder',
+      logger: env.logger,
+      schedule: env.scheduler.createScheduledTaskRunner({
+        frequency: { minutes: 60 },
+        timeout: { minutes: 15 },
+      }),
+    }),
+  );
+
+  builder.addProcessor(new ScaffolderEntitiesProcessor());
+  builder.addProcessor(
+    DevcontainersProcessor.fromConfig(env.config, {
+      logger: env.logger,
+      eraseTags: false,
+    }),
+  );
+
+  const { processingEngine, router } = await builder.build();
+  await processingEngine.start();
+  return router;
+}
+```
 
 ## Limitations
 
-While this does not directly apply to the React plugin, there are limits around the backend plugin's support of `devcontainer.json` files. Please see the backend plugin's README for more information.
+At the time of the plugin launch, the backend `devcontainers` plugin has some limitations around how it is able to detect a `devcontainer.json` file. That is, it is only able to detect files that exist at the root of a repository, or one level below. If a file is located further down than that (such as in a large monorepo), the processor will be unable to detect the file.
+
+We are currently investigating how to add support for deeper nesting. Does this sound like a feature that you could benefit from? Please open an issue – we would love to know more about your use case!
 
 ## API documentation
 
