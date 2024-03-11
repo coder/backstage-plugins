@@ -29,4 +29,4 @@ jobs:
       - run: mv package/package.json package.json
       - run: yarn publish *.tgz
         env:
-          NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
+          YARN_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
