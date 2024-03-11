@@ -7,7 +7,7 @@ export class BackstageHttpError extends Error {
 
   constructor(errorMessage: string, response: Response) {
     super(errorMessage);
-    this.name = 'HttpError';
+    this.name = 'BackstageHttpError';
     this.#response = response;
   }
 
