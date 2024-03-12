@@ -121,13 +121,19 @@ export default async function createPlugin(
 
 ## Limitations
 
+### Search limitations
+
 This plugin lets the user decide how to bring in repository data. As such, the plugin is limited by (1) what data your Backstage repo provider is able to detect, and (2) what API calls your source control manager supports.
 
 Basic devcontainers support has been tested for GitHub, GitLab, and Bitbucket, using their default Backstage data providers. All three are able to detect a devcontainer config file, as long as the file is located in a supported location, as defined by [the official devcontainers specification](https://containers.dev/implementors/spec/#devcontainerjson).
 
 Other providers can be used, but are not guaranteed to work out of the box. In addition, not all source control managers provide an API for searching for deeply-nested files. In some cases, only the first two devcontainer config locations will be detectable.
 
-We are happy to expand support for other source control managers. If you have a specific use case you'd like our help with, feel free to open a new issue!
+We are happy to expand support for other source control managers, though. If you have a specific use case you'd like our help with, feel free to open a new issue!
+
+### VS Code limitations
+
+At present, the official [Visual Studio Remote Development extensions](https://github.com/microsoft/vscode-remote-release) do not support branches other than `/tree/main`. As such, trying to open a VS Code link that is configured with a non-`main` branch may error out. Please see Microsoft's [open issue for expanding support](https://github.com/microsoft/vscode-remote-release/issues/4296).
 
 ## API documentation
 
