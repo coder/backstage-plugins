@@ -18,7 +18,7 @@ _Note: While this plugin can be used standalone, it has been designed to be a fr
 
 ### When combined with the backend plugin
 
-- Provides an end-to-end solution for automatically managing tags for your Backstage installation, while letting you read them from custom hooks and components
+- Provides an end-to-end solution for automatically adding/removing devcontainers metadata in your Backstage installation, while letting you read them from custom hooks and components
 
 ## Setup
 
