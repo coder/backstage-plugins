@@ -14,7 +14,7 @@ _Note: While this plugin can be used standalone, it has been designed to be a fr
 
 ### Standalone features
 
-- Custom hooks for reading devcontainer metadata tags for repo entities, and providing ready-made links to opening the repo in VS Code
+- Custom hooks for reading your special devcontainer metadata tag inside your repo entities, and providing ready-made links to opening that repo in VS Code
 
 ### When combined with the backend plugin
 
