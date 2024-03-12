@@ -121,9 +121,11 @@ export default async function createPlugin(
 
 ## Limitations
 
-At the time of the plugin launch, the backend `devcontainers` plugin has some limitations around how it is able to detect a `devcontainer.json` file. That is, it is only able to detect files that exist at the root of a repository, or one level below. If a file is located further down than that (such as in a large monorepo), the processor will be unable to detect the file.
+This plugin lets the user decide how to bring in repository data. As such, the plugin is limited by (1) what data your Backstage repo provider is able to detect, and (2) what API calls your source control manager supports.
 
-We are currently investigating how to add support for deeper nesting. Does this sound like a feature that you could benefit from? Please open an issue – we would love to know more about your use case!
+For example, basic devcontainers support has been tested for GitHub, GitLab, and Bitbucket, using their default Backstage data providers. That is, all three are able to detect a `devcontainer.json` file at the project root. However, devcontainer files that are more deeply nested in a repo (such as in a monorepo setup) may or may not be detectable. The GitHub API has support for deep searching, but the GitLab and Bitbucket APIs have different policies around how deeply you can search.
+
+We are currently investigating how to add support for deeper nesting for more providers. Does this sound like a feature that you could benefit from? Please open an issue – we would love to know more about your use case!
 
 ## API documentation
 
