@@ -81,7 +81,7 @@ _Note: While this plugin has been developed and published by Coder, no Coder ins
    }
    ```
 
-5. As your provider of choice re-validates data and emits more entity information, `DevcontainersProcessor` will automatically intercept the data and append or remove tags, based on whether the current repository has a devcontainers file!
+5. As your provider of choice re-validates data and emits more entity information, `DevcontainersProcessor` will automatically intercept the data and append or remove tags, based on whether the current repository has a devcontainers file! (See our API docs for more info on our [appending/removal process](./docs/classes.md#notes))
 
 Full example:
 
