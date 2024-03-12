@@ -14,7 +14,7 @@ _Note: While this plugin can be used standalone, it has been designed to be a fr
 
 ### Standalone features
 
-- Custom hooks for reading devcontainers metadata tags for repo entities, and providing ready-made links to opening the repo in VS Code
+- Custom hooks for reading devcontainer metadata tags for repo entities, and providing ready-made links to opening the repo in VS Code
 
 ### When combined with the backend plugin
 
@@ -27,7 +27,7 @@ _Note: While this plugin can be used standalone, it has been designed to be a fr
 Ensure that you have the following ready to go:
 
 - A Backstage deployment that you can modify
-- A GitHub/GitLab/BitBucket repository that has had a `devcontainers.json` file added to it. [VS Code has a quick-start guide for adding devcontainers to a repo](https://code.visualstudio.com/docs/devcontainers/create-dev-container).
+- A GitHub/GitLab/Bitbucket repository that contains a `devcontainers.json` file. [VS Code has a quick-start guide for adding devcontainers to a repo](https://code.visualstudio.com/docs/devcontainers/create-dev-container)
 
 _Note: While this plugin has been developed and published by Coder, no Coder installations are required._
 
@@ -64,7 +64,7 @@ _Note: While this plugin has been developed and published by Coder, no Coder ins
        <Grid item md={6} xs={12}>
          <DevcontainersProvider config={devcontainersConfig}>
            {/* Content that uses Devcontainers goes here */}
-         </DzevcontainersProvider>
+         </DevcontainersProvider>
        </Grid>
 
        <Grid item md={6} xs={12}>
@@ -106,7 +106,7 @@ _Note: While this plugin has been developed and published by Coder, no Coder ins
        {state.hasUrl ? (
          <>
            <p>Your entity supports devcontainers!</p>
-           <a href={state.vsCodeUrl}>Click here to launch VSCode</a>
+           <a href={state.vsCodeUrl}>Click here to launch VS Code</a>
          </>
        ) : (
          <p>No devcontainers plugin tag detected</p>

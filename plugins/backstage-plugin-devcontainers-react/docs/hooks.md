@@ -32,7 +32,7 @@ const YourComponent = () => {
     {state.hasUrl ? (
       <>
         <p>Your entity supports devcontainers!</p>
-        <a href={state.vsCodeUrl}>Click here to launch VSCode</a>
+        <a href={state.vsCodeUrl}>Click here to launch VS Code</a>
       </>
     ) : (
       <p>No devcontainers plugin tag detected</p>
@@ -54,5 +54,5 @@ const YourComponent = () => {
 ### Notes
 
 - This hook works by detecting whether the tag that you specify for [`DevcontainersConfig`](./types.md#devcontainersconfig) (explicitly or implicitly) can be found in the current entity.
-  - The frontend plugin assumes that the tag will automatically be added to relevant entities via something like the backend plugin, but as [discussed here](../../backstage-plugin-devcontainers-backend/README.md#limitations), there are limitations around this functionality. As such, it is not guaranteed (at least for right now) that the result of `useDevcontainers` will be 100% accurate.
+  - The frontend plugin assumes that the tag will automatically be added to relevant entities via something like the backend plugin, but as [discussed here](../../backstage-plugin-devcontainers-backend/README.md#limitations), there are limitations around this functionality.
 - The types of `hasUrl` and `vsCodeUrl` are defined as part of a [discriminated union](https://www.typescriptlang.org/docs/handbook/unions-and-intersections.html#discriminating-unions). As long as you can prove to the compiler that `hasUrl` is `true` (via a type guard or conditional rendering), `vsCodeUrl` is guaranteed to be of type `string`

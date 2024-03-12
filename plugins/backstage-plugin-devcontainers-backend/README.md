@@ -12,7 +12,7 @@ _Note: While this plugin can be used standalone, it has been designed to be a ba
 
 ### Standalone features
 
-- Automatically tag repos from GitHub/GitLab/BitBucket that contain some form of `devcontainers` support.
+- Automatically tag repos from GitHub/GitLab/Bitbucket that contain a `devcontainer.json` file
   - Repos are tagged as part of Backstage's [processing loop](https://backstage.io/docs/features/software-catalog/life-of-an-entity/#processing)
 
 ### When combined with the frontend plugin
@@ -26,7 +26,7 @@ _Note: While this plugin can be used standalone, it has been designed to be a ba
 Ensure that you have the following ready to go:
 
 - A Backstage deployment that you can modify
-- A GitHub/GitLab/BitBucket repository that has had a `devcontainers.json` file added to it. [VS Code has a quick-start guide for adding devcontainers to a repo](https://code.visualstudio.com/docs/devcontainers/create-dev-container).
+- A GitHub/GitLab/Bitbucket repository that contains a `devcontainers.json` metadata file. [VS Code has a quick-start guide for adding devcontainers to a repo](https://code.visualstudio.com/docs/devcontainers/create-dev-container).
 
 _Note: While this plugin has been developed and published by Coder, no Coder installations are required._
 
@@ -37,7 +37,7 @@ _Note: While this plugin has been developed and published by Coder, no Coder ins
    yarn --cwd packages/backend add @coder/backstage-plugin-devcontainers-backend
    ```
 2. Navigate to the `backend` directory's `catalog.ts` file
-3. Import your Source Control Manager provider of choice (Backstage has built in support for GitHub, GitLab, and BitBucket)
+3. Import your source control manager provider of choice (Backstage has built-in support for GitHub, GitLab, and Bitbucket)
 
    ```ts
    export default async function createPlugin(
