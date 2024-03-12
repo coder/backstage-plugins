@@ -25,7 +25,6 @@ export default async function createPlugin(
   builder.addProcessor(
     DevcontainersProcessor.fromConfig(env.config, {
       logger: env.logger,
-      eraseTags: false,
     }),
   );
 
