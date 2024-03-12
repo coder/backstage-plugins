@@ -100,6 +100,7 @@ export class DevcontainersProcessor implements CatalogProcessor {
     // contain the devcontainers tag that we added in the previous round, so we
     // will not need to remove it.  This also means we avoid mistakenly removing
     // any colliding tag added by the user or another plugin.
+    // https://backstage.io/docs/features/software-catalog/life-of-an-entity/#stitching
     return entity;
   }
 
