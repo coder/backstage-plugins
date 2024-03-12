@@ -148,7 +148,3 @@ This plugin is in active development. The following features are planned:
 ## Contributing
 
 This plugin is part of the Backstage community. We welcome contributions!
-
-Welcome to the backstage-plugin-devcontainers backend plugin!
-
-_This plugin was created through the Backstage CLI_
