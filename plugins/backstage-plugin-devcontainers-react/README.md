@@ -22,6 +22,8 @@ _Note: While this plugin can be used standalone, it has been designed to be a fr
 
 ## Setup
 
+This section will walk you through adding the plugin to your Backstage deployment.
+
 ### Before you begin
 
 Ensure that you have the following ready to go:
