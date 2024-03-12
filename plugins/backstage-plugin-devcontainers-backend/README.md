@@ -123,9 +123,11 @@ export default async function createPlugin(
 
 This plugin lets the user decide how to bring in repository data. As such, the plugin is limited by (1) what data your Backstage repo provider is able to detect, and (2) what API calls your source control manager supports.
 
-For example, basic devcontainers support has been tested for GitHub, GitLab, and Bitbucket, using their default Backstage data providers. That is, all three are able to detect a `devcontainer.json` file at the project root. However, devcontainer files that are more deeply nested in a repo (such as in a monorepo setup) may or may not be detectable. The GitHub API has support for deep searching, but the GitLab and Bitbucket APIs have different policies around how deeply you can search.
+Basic devcontainers support has been tested for GitHub, GitLab, and Bitbucket, using their default Backstage data providers. All three are able to detect a devcontainer config file, as long as the file is located in a supported location, as defined by [the official devcontainers specification](https://containers.dev/implementors/spec/#devcontainerjson).
 
-We are currently investigating how to add support for deeper nesting for more providers. Does this sound like a feature that you could benefit from? Please open an issue – we would love to know more about your use case!
+Other providers can be used, but are not guaranteed to work out of the box. In addition, not all source control managers provide an API for searching for deeply-nested files. In some cases, only the first two devcontainer config locations will be detectable.
+
+We are happy to expand support for other source control managers. If you have a specific use case you'd like our help with, feel free to open a new issue!
 
 ## API documentation
 
