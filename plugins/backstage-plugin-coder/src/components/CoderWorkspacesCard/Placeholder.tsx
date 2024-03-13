@@ -50,11 +50,18 @@ const usePlaceholderStyles = makeStyles(theme => ({
   },
 }));
 
-type PlaceholderProps = Readonly<PropsWithChildren<unknown>>;
+type PlaceholderProps = Readonly<
+  PropsWithChildren<{
+    displayCta?: boolean;
+  }>
+>;
 
 // Placeholder is being treated as an internal implementation detail, and is
 // not expected to need much flexibility at the API level
-export const Placeholder = ({ children }: PlaceholderProps) => {
+export const Placeholder = ({
+  children,
+  displayCta = false,
+}: PlaceholderProps) => {
   const styles = usePlaceholderStyles();
   const { workspaceCreationLink } = useWorkspacesCardContext();
 
@@ -63,16 +70,18 @@ export const Placeholder = ({ children }: PlaceholderProps) => {
       <CoderLogo />
       <p className={styles.text}>{children}</p>
 
-      <div className={styles.linkSpacer}>
-        <a
-          href={workspaceCreationLink}
-          target="_blank"
-          className={styles.callToActionLink}
-        >
-          Create a workspace now!
-          <VisuallyHidden> (Link opens in new tab)</VisuallyHidden>
-        </a>
-      </div>
+      {displayCta && (
+        <div className={styles.linkSpacer}>
+          <a
+            href={workspaceCreationLink}
+            target="_blank"
+            className={styles.callToActionLink}
+          >
+            Create a workspace now!
+            <VisuallyHidden> (Link opens in new tab)</VisuallyHidden>
+          </a>
+        </div>
+      )}
     </div>
   );
 };

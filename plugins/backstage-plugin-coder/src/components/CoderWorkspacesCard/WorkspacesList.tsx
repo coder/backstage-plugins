@@ -99,7 +99,7 @@ export const WorkspacesList = ({
           {emptyState !== undefined ? (
             emptyState
           ) : (
-            <Placeholder>
+            <Placeholder displayCta>
               {repoUrl ? (
                 <div style={{ textAlign: 'center' }}>
                   No workspaces found for repo
