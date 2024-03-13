@@ -72,7 +72,7 @@ const useWorkspacesListStyles = makeStyles<
   StyleKey
 >(theme => ({
   root: ({ fullBleedLayout }) => ({
-    maxHeight: '300px',
+    maxHeight: '260px',
     overflowX: 'hidden',
     overflowY: 'auto',
     flexShrink: 1,
@@ -146,6 +146,76 @@ export const WorkspacesList = ({
 
       {workspacesQuery.data && workspacesQuery.data.length > 0 && (
         <ListItemContainer className={`${styles.list} ${listClassName ?? ''}`}>
+          {workspacesQuery.data?.map((workspace, index) => (
+            <Fragment key={workspace.id}>
+              {renderListItem !== undefined ? (
+                renderListItem({
+                  workspace,
+                  index,
+                  workspaces: workspacesQuery.data,
+                })
+              ) : (
+                <WorkspacesListItem workspace={workspace} />
+              )}
+            </Fragment>
+          ))}
+
+          {workspacesQuery.data?.map((workspace, index) => (
+            <Fragment key={workspace.id}>
+              {renderListItem !== undefined ? (
+                renderListItem({
+                  workspace,
+                  index,
+                  workspaces: workspacesQuery.data,
+                })
+              ) : (
+                <WorkspacesListItem workspace={workspace} />
+              )}
+            </Fragment>
+          ))}
+
+          {workspacesQuery.data?.map((workspace, index) => (
+            <Fragment key={workspace.id}>
+              {renderListItem !== undefined ? (
+                renderListItem({
+                  workspace,
+                  index,
+                  workspaces: workspacesQuery.data,
+                })
+              ) : (
+                <WorkspacesListItem workspace={workspace} />
+              )}
+            </Fragment>
+          ))}
+
+          {workspacesQuery.data?.map((workspace, index) => (
+            <Fragment key={workspace.id}>
+              {renderListItem !== undefined ? (
+                renderListItem({
+                  workspace,
+                  index,
+                  workspaces: workspacesQuery.data,
+                })
+              ) : (
+                <WorkspacesListItem workspace={workspace} />
+              )}
+            </Fragment>
+          ))}
+
+          {workspacesQuery.data?.map((workspace, index) => (
+            <Fragment key={workspace.id}>
+              {renderListItem !== undefined ? (
+                renderListItem({
+                  workspace,
+                  index,
+                  workspaces: workspacesQuery.data,
+                })
+              ) : (
+                <WorkspacesListItem workspace={workspace} />
+              )}
+            </Fragment>
+          ))}
+
           {workspacesQuery.data?.map((workspace, index) => (
             <Fragment key={workspace.id}>
               {renderListItem !== undefined ? (
