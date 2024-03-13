@@ -61,7 +61,7 @@ export const Placeholder = ({
   displayCta = false,
 }: PlaceholderProps) => {
   const styles = usePlaceholderStyles();
-  const { workspaceCreationLink } = useWorkspacesCardContext();
+  const { workspacesConfig } = useWorkspacesCardContext();
 
   return (
     <div className={styles.root}>
@@ -71,7 +71,7 @@ export const Placeholder = ({
       {displayCta && (
         <div className={styles.linkSpacer}>
           <a
-            href={workspaceCreationLink}
+            href={workspacesConfig.creationUrl}
             target="_blank"
             className={styles.callToActionLink}
           >

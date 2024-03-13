@@ -59,6 +59,7 @@ export type CoderEntityConfig =
   // Was originally defined in terms of fancy mapped types; ended up being a bad
   // idea, because it increased coupling in a bad way
   Readonly<{
+    creationUrl: string;
     templateName: string;
     repoUrlParamKeys: readonly string[];
     mode: 'manual' | 'auto';
@@ -73,14 +74,13 @@ export function compileCoderConfig(
   rawYamlConfig: unknown,
   repoUrl: string | undefined,
 ): CoderEntityConfig {
-  const workspaceSettings = appConfig.workspaces;
+  const { workspaces, deployment } = appConfig;
   const compiledParams: Record<string, string | undefined> = {};
   const yamlConfig = parse(yamlConfigSchema, rawYamlConfig);
 
-  const paramsPrecedence = [workspaceSettings.params, yamlConfig?.params ?? {}];
-
   // Can't replace this with destructuring, because that is all-or-nothing;
   // there's no easy way to granularly check each property without a loop
+  const paramsPrecedence = [workspaces.params, yamlConfig?.params ?? {}];
   for (const params of paramsPrecedence) {
     for (const key in params) {
       if (params.hasOwnProperty(key) && typeof params[key] === 'string') {
@@ -89,22 +89,44 @@ export function compileCoderConfig(
     }
   }
 
+  // repoUrl usually ends with /tree/main/, which breaks Coder's logic for
+  // pulling down repos
   let cleanedUrl = repoUrl;
   if (repoUrl !== undefined) {
-    // repoUrl usually ends with /tree/main/, which breaks Coder's logic for
-    // pulling down repos
     cleanedUrl = repoUrl.replace(/\/tree\/[\w._-]+\/?$/, '');
-    for (const key of workspaceSettings.repoUrlParamKeys) {
+    for (const key of workspaces.repoUrlParamKeys) {
       compiledParams[key] = cleanedUrl;
     }
   }
 
+  const mode = yamlConfig?.mode ?? workspaces.mode ?? 'manual';
+  const urlParams = new URLSearchParams({ mode });
+
+  for (const key in compiledParams) {
+    // Annoying check that Backstage requires (even though the object
+    // referenced is still in the same function scope)
+    if (!compiledParams.hasOwnProperty(key)) {
+      continue;
+    }
+
+    const value = compiledParams[key];
+    if (value !== undefined) {
+      urlParams.append(`param.${key}`, value);
+    }
+  }
+
+  const safeTemplate = encodeURIComponent(workspaces.templateName);
+  const creationUrl = `${
+    deployment.accessUrl
+  }/templates/${safeTemplate}/workspace?${urlParams.toString()}`;
+
   return {
+    creationUrl,
     repoUrl: cleanedUrl,
-    repoUrlParamKeys: workspaceSettings.repoUrlParamKeys,
+    repoUrlParamKeys: workspaces.repoUrlParamKeys,
     params: compiledParams,
-    templateName: yamlConfig?.templateName ?? workspaceSettings.templateName,
-    mode: yamlConfig?.mode ?? workspaceSettings.mode ?? 'manual',
+    templateName: yamlConfig?.templateName ?? workspaces.templateName,
+    mode: yamlConfig?.mode ?? workspaces.mode ?? 'manual',
   };
 }
 

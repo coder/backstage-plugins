@@ -16,14 +16,12 @@ import type { Workspace } from '../../typesConstants';
 import { useCoderWorkspaces } from '../../hooks/useCoderWorkspaces';
 import { Card } from '../Card';
 import { CoderAuthWrapper } from '../CoderAuthWrapper';
-import { useCoderAppConfig } from '../CoderProvider';
 
 type WorkspacesCardContext = Readonly<{
   queryFilter: string;
   onFilterChange: (newFilter: string) => void;
   workspacesQuery: UseQueryResult<readonly Workspace[]>;
   workspacesConfig: CoderEntityConfig;
-  workspaceCreationLink: string;
   headerId: string;
 }>;
 
@@ -51,7 +49,6 @@ export const Root = ({
   const [innerFilter, setInnerFilter] = useState(defaultQueryFilter);
   const activeFilter = outerFilter ?? innerFilter;
 
-  const appConfig = useCoderAppConfig();
   const wsConfig = useCoderEntityConfig({ readEntityData });
   const workspacesQuery = useCoderWorkspaces(activeFilter, {
     repoConfig: wsConfig,
@@ -71,10 +68,6 @@ export const Root = ({
             setInnerFilter(newFilter);
             onOuterFilterChange?.(newFilter);
           },
-          workspaceCreationLink: serializeWorkspaceUrl(
-            wsConfig,
-            appConfig.deployment.accessUrl,
-          ),
         }}
       >
         {/*
@@ -106,28 +99,4 @@ export function useWorkspacesCardContext(): WorkspacesCardContext {
   }
 
   return contextValue;
-}
-
-function serializeWorkspaceUrl(
-  config: CoderEntityConfig,
-  coderAccessUrl: string,
-): string {
-  const unformattedParams = config.params;
-  const formattedParams = new URLSearchParams({ mode: config.mode });
-
-  if (unformattedParams !== undefined && unformattedParams.hasOwnProperty) {
-    for (const key in unformattedParams) {
-      if (!unformattedParams.hasOwnProperty(key)) {
-        continue;
-      }
-
-      const value = unformattedParams[key];
-      if (value !== undefined) {
-        formattedParams.append(`param.${key}`, value);
-      }
-    }
-  }
-
-  const safeTemplate = encodeURIComponent(config.templateName);
-  return `${coderAccessUrl}/templates/${safeTemplate}/workspace?${formattedParams.toString()}`;
 }
