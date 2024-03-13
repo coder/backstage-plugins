@@ -105,7 +105,9 @@ describe(`${compileCoderConfig.name}`, () => {
 
 describe(`${useCoderWorkspacesConfig.name}`, () => {
   it('Reads relevant data from CoderProvider, entity, and source control API', async () => {
-    const { result } = await renderHookAsCoderEntity(useCoderWorkspacesConfig);
+    const { result } = await renderHookAsCoderEntity(() =>
+      useCoderWorkspacesConfig({ readEntityData: true }),
+    );
 
     expect(result.current).toEqual(
       expect.objectContaining<Partial<CoderWorkspacesConfig>>({
