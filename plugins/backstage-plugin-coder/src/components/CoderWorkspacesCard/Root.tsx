@@ -137,7 +137,7 @@ export const Root = ({
               around keyboard input and button children seems like the easiest
               approach */}
           <div role="form">{children}</div>
-          {dynamicConfig && !dynamicConfig.repoUrl && (
+          {workspacesQuery.data && dynamicConfig && !dynamicConfig.repoUrl && (
             <div>
               <button
                 onClick={toggleExpansion}
