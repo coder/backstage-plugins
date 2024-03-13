@@ -143,7 +143,7 @@ export function useCoderWorkspacesConfig({
   return useMemo(
     () => compileCoderConfig(appConfig, rawYaml, repoUrl),
     // Backstage seems to have stabilized the value of rawYamlConfig, so even
-    // when it's a object, useMemo shouldn't re-run unnecessarily
+    // when it's an object, useMemo shouldn't re-run unnecessarily
     [appConfig, rawYaml, repoUrl],
   );
 }
