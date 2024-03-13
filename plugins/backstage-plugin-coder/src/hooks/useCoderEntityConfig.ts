@@ -1,4 +1,4 @@
-import { useMemo } from 'react';
+import { useMemo, useState } from 'react';
 
 import {
   type Output,
@@ -113,22 +113,51 @@ type UseCoderEntityConfigOptions = Readonly<{
 }>;
 
 export function useCoderEntityConfig({
-  readEntityData = true,
+  readEntityData = false,
 }: UseCoderEntityConfigOptions): CoderEntityConfig {
-  const { entity } = useEntity();
   const appConfig = useCoderAppConfig();
-  const sourceControlApi = useApi(scmIntegrationsApiRef);
+  const { rawYaml, repoUrl } = useDynamicEntity(readEntityData);
 
-  const rawYamlConfig = entity.spec?.coder;
-  const repoData = getEntitySourceLocation(entity, sourceControlApi);
-
-  return useMemo(() => {
-    return compileCoderConfig(
-      appConfig,
-      rawYamlConfig,
-      repoData?.locationTargetUrl,
-    );
+  return useMemo(
+    () => compileCoderConfig(appConfig, rawYaml, repoUrl),
     // Backstage seems to have stabilized the value of rawYamlConfig, so even
     // when it's a object, useMemo shouldn't re-run unnecessarily
-  }, [appConfig, rawYamlConfig, repoData?.locationTargetUrl]);
+    [appConfig, rawYaml, repoUrl],
+  );
+}
+
+type UseDynamicEntityResult = Readonly<{
+  rawYaml: unknown;
+  repoUrl: string | undefined;
+}>;
+
+function useDynamicEntity(readEntityData: boolean): UseDynamicEntityResult {
+  // Manually checking value change across renders so that if the value changes,
+  // we can throw a better error message
+  const [initialReadSetting] = useState(readEntityData);
+  if (readEntityData !== initialReadSetting) {
+    throw new Error(
+      'The value of "readEntityData" is not allowed to change across re-renders',
+    );
+  }
+
+  let rawYaml: unknown = undefined;
+  let repoUrl: string | undefined = undefined;
+
+  /* eslint-disable react-hooks/rules-of-hooks --
+     Doing conditional hook calls here, but the throw assertion above ensures
+     the hook values will be locked in for the lifecycle of the component. The
+     hook call order will never change, which is what the rule is trying to
+     protect you from */
+  if (readEntityData) {
+    const { entity } = useEntity();
+    const sourceControlApi = useApi(scmIntegrationsApiRef);
+    const repoData = getEntitySourceLocation(entity, sourceControlApi);
+
+    rawYaml = entity.spec?.coder;
+    repoUrl = repoData?.locationTargetUrl;
+  }
+  /* eslint-enable react-hooks/rules-of-hooks */
+
+  return { rawYaml, repoUrl } as const;
 }
