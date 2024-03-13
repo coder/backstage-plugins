@@ -56,8 +56,6 @@ type PlaceholderProps = Readonly<
   }>
 >;
 
-// Placeholder is being treated as an internal implementation detail, and is
-// not expected to need much flexibility at the API level
 export const Placeholder = ({
   children,
   displayCta = false,
