@@ -30,6 +30,7 @@ Ensure that you have the following ready to go:
 
 - A Backstage deployment that you can modify
 - A GitHub/GitLab/Bitbucket repository that contains a `devcontainers.json` file. [VS Code has a quick-start guide for adding devcontainers to a repo](https://code.visualstudio.com/docs/devcontainers/create-dev-container)
+- [Docker](https://docs.docker.com/get-docker/) installed and running locally on your machine
 
 _Note: While this plugin has been developed and published by Coder, no Coder installations are required._
 
@@ -121,6 +122,8 @@ _Note: While this plugin has been developed and published by Coder, no Coder ins
      <YourComponent />
    </DevcontainersProvider>;
    ```
+
+6. When you click a link to open a devcontainer inside VS Code, you will be prompted to install the official [VS Code Dev Containers extension](https://marketplace.visualstudio.com/items?itemName=ms-vscode-remote.remote-containers) if you don't have it already.
 
 Have an idea for what kinds of components you would like to see? Feel free to open an issue and make a feature request!
 
