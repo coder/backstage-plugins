@@ -27,7 +27,7 @@ export type CoderAppConfig = Readonly<{
 
 const AppConfigContext = createContext<CoderAppConfig | null>(null);
 
-export function useCoderAppConfig() {
+export function useCoderAppConfig(): CoderAppConfig {
   const value = useContext(AppConfigContext);
   if (value === null) {
     throw new Error(
