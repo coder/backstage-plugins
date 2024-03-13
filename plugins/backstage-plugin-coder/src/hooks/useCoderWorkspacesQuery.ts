@@ -5,22 +5,22 @@ import { useCoderAuth } from '../components/CoderProvider/CoderAuthProvider';
 import { useBackstageEndpoints } from './useBackstageEndpoints';
 import { CoderWorkspacesConfig } from './useCoderWorkspacesConfig';
 
-type UseCoderWorkspacesOptions = Readonly<
+type UseCoderWorkspacesQueryOptions = Readonly<
   Partial<{
-    repoConfig: CoderWorkspacesConfig;
+    workspacesConfig: CoderWorkspacesConfig;
   }>
 >;
 
-export function useCoderWorkspaces(
+export function useCoderWorkspacesQuery(
   coderQuery: string,
-  options?: UseCoderWorkspacesOptions,
+  options?: UseCoderWorkspacesQueryOptions,
 ) {
   const auth = useCoderAuth();
   const { baseUrl } = useBackstageEndpoints();
-  const { repoConfig } = options ?? {};
+  const { workspacesConfig } = options ?? {};
 
-  const queryOptions = repoConfig
-    ? workspacesByRepo({ coderQuery, auth, baseUrl, repoConfig })
+  const queryOptions = workspacesConfig
+    ? workspacesByRepo({ coderQuery, auth, baseUrl, workspacesConfig })
     : workspaces({ coderQuery, auth, baseUrl });
 
   return useQuery(queryOptions);

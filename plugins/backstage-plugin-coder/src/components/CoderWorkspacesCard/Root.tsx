@@ -13,7 +13,7 @@ import {
 } from '../../hooks/useCoderWorkspacesConfig';
 
 import type { Workspace } from '../../typesConstants';
-import { useCoderWorkspaces } from '../../hooks/useCoderWorkspaces';
+import { useCoderWorkspacesQuery } from '../../hooks/useCoderWorkspacesQuery';
 import { Card } from '../Card';
 import { CoderAuthWrapper } from '../CoderAuthWrapper';
 
@@ -50,8 +50,8 @@ export const Root = ({
   const activeFilter = outerFilter ?? innerFilter;
 
   const wsConfig = useCoderWorkspacesConfig({ readEntityData });
-  const workspacesQuery = useCoderWorkspaces(activeFilter, {
-    repoConfig: wsConfig,
+  const workspacesQuery = useCoderWorkspacesQuery(activeFilter, {
+    workspacesConfig: wsConfig,
   });
 
   const headerId = `${hookId}-header`;

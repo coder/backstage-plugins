@@ -1,5 +1,5 @@
 import { waitFor } from '@testing-library/react';
-import { useCoderWorkspaces } from './useCoderWorkspaces';
+import { useCoderWorkspacesQuery } from './useCoderWorkspacesQuery';
 
 import { renderHookAsCoderEntity } from '../testHelpers/setup';
 import { mockCoderWorkspacesConfig } from '../testHelpers/mockBackstageData';
@@ -12,10 +12,10 @@ afterAll(() => {
   jest.clearAllTimers();
 });
 
-describe(`${useCoderWorkspaces.name}`, () => {
+describe(`${useCoderWorkspacesQuery.name}`, () => {
   it('Will make a request when provided correct inputs', async () => {
     const { result } = await renderHookAsCoderEntity(() => {
-      return useCoderWorkspaces('owner:me');
+      return useCoderWorkspacesQuery('owner:me');
     });
 
     await waitFor(() => expect(result.current.status).toBe('success'));
@@ -23,7 +23,7 @@ describe(`${useCoderWorkspaces.name}`, () => {
 
   it('Will not be enabled if auth token is missing', async () => {
     const { result } = await renderHookAsCoderEntity(
-      () => useCoderWorkspaces('owner:me'),
+      () => useCoderWorkspacesQuery('owner:me'),
       { authStatus: 'invalid' },
     );
 
@@ -48,8 +48,8 @@ describe(`${useCoderWorkspaces.name}`, () => {
 
   it('Will only return workspaces for a given repo when a repoConfig is provided', async () => {
     const { result } = await renderHookAsCoderEntity(() => {
-      return useCoderWorkspaces('owner:me', {
-        repoConfig: mockCoderWorkspacesConfig,
+      return useCoderWorkspacesQuery('owner:me', {
+        workspacesConfig: mockCoderWorkspacesConfig,
       });
     });
 
