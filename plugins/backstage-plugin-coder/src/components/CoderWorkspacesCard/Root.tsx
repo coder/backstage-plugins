@@ -22,9 +22,9 @@ type WorkspacesCardContext = Readonly<{
   queryFilter: string;
   onFilterChange: (newFilter: string) => void;
   workspacesQuery: UseQueryResult<readonly Workspace[]>;
-  headerId: string;
-  entityConfig: CoderEntityConfig;
+  workspacesConfig: CoderEntityConfig;
   workspaceCreationLink: string;
+  headerId: string;
 }>;
 
 const CardContext = createContext<WorkspacesCardContext | null>(null);
@@ -66,7 +66,7 @@ export const Root = ({
           headerId,
           workspacesQuery,
           queryFilter: activeFilter,
-          entityConfig: wsConfig,
+          workspacesConfig: wsConfig,
           onFilterChange: newFilter => {
             setInnerFilter(newFilter);
             onOuterFilterChange?.(newFilter);
@@ -112,9 +112,9 @@ function serializeWorkspaceUrl(
   config: CoderEntityConfig,
   coderAccessUrl: string,
 ): string {
+  const unformattedParams = config.params;
   const formattedParams = new URLSearchParams({ mode: config.mode });
 
-  const unformattedParams = config.params;
   if (unformattedParams !== undefined && unformattedParams.hasOwnProperty) {
     for (const key in unformattedParams) {
       if (!unformattedParams.hasOwnProperty(key)) {

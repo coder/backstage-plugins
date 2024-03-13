@@ -70,11 +70,11 @@ export const HeaderRow = ({
   fullBleedLayout = true,
   ...delegatedProps
 }: HeaderProps) => {
-  const { headerId, entityConfig } = useWorkspacesCardContext();
+  const { headerId, workspacesConfig } = useWorkspacesCardContext();
   const styles = useStyles({ fullBleedLayout });
 
   const HeadingComponent = headerLevel ?? 'h2';
-  const repoUrl = entityConfig?.repoUrl;
+  const { repoUrl } = workspacesConfig;
 
   return (
     <div className={`${styles.root} ${className ?? ''}`} {...delegatedProps}>
