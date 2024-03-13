@@ -1,48 +1,10 @@
-import React, {
-  type HTMLAttributes,
-  type PropsWithChildren,
-  type ReactNode,
-  Fragment,
-} from 'react';
+import React, { type HTMLAttributes, type ReactNode, Fragment } from 'react';
 
 import { type Theme, makeStyles } from '@material-ui/core';
 import type { Workspace } from '../../typesConstants';
 import { useWorkspacesCardContext } from './Root';
 import { WorkspacesListItem } from './WorkspacesListItem';
-import { CoderLogo } from '../CoderLogo';
-
-const usePlaceholderStyles = makeStyles(theme => ({
-  root: {
-    padding: `${theme.spacing(2.5)}px 0px ${theme.spacing(2)}px`,
-    display: 'flex',
-    flexFlow: 'column nowrap',
-    alignItems: 'center',
-  },
-
-  text: {
-    textAlign: 'center',
-    padding: `0 ${theme.spacing(2.5)}px`,
-    fontWeight: 400,
-    fontSize: '1.125rem',
-    color: theme.palette.text.secondary,
-    lineHeight: 1.1,
-  },
-}));
-
-type PlaceholderProps = Readonly<PropsWithChildren<unknown>>;
-
-// Placeholder is being treated as an internal implementation detail, and is
-// not expected to need much flexibility at the API level
-const Placeholder = ({ children }: PlaceholderProps) => {
-  const styles = usePlaceholderStyles();
-
-  return (
-    <div className={styles.root}>
-      <CoderLogo />
-      <p className={styles.text}>{children}</p>
-    </div>
-  );
-};
+import { Placeholder } from './Placeholder';
 
 type RenderListItemInput = Readonly<{
   workspace: Workspace;
@@ -147,80 +109,6 @@ export const WorkspacesList = ({
 
       {workspacesQuery.data && workspacesQuery.data.length > 0 && (
         <ListItemContainer className={`${styles.list} ${listClassName ?? ''}`}>
-          {workspacesQuery.data?.map((workspace, index) => (
-            <Fragment key={workspace.id}>
-              {renderListItem !== undefined ? (
-                renderListItem({
-                  workspace,
-                  index,
-                  workspaces: workspacesQuery.data,
-                })
-              ) : (
-                <WorkspacesListItem workspace={workspace} />
-              )}
-            </Fragment>
-          ))}
-
-          {console.error(
-            "Be sure to clean up all these extra .map calls when you're done!",
-          )}
-
-          {workspacesQuery.data?.map((workspace, index) => (
-            <Fragment key={workspace.id}>
-              {renderListItem !== undefined ? (
-                renderListItem({
-                  workspace,
-                  index,
-                  workspaces: workspacesQuery.data,
-                })
-              ) : (
-                <WorkspacesListItem workspace={workspace} />
-              )}
-            </Fragment>
-          ))}
-
-          {workspacesQuery.data?.map((workspace, index) => (
-            <Fragment key={workspace.id}>
-              {renderListItem !== undefined ? (
-                renderListItem({
-                  workspace,
-                  index,
-                  workspaces: workspacesQuery.data,
-                })
-              ) : (
-                <WorkspacesListItem workspace={workspace} />
-              )}
-            </Fragment>
-          ))}
-
-          {workspacesQuery.data?.map((workspace, index) => (
-            <Fragment key={workspace.id}>
-              {renderListItem !== undefined ? (
-                renderListItem({
-                  workspace,
-                  index,
-                  workspaces: workspacesQuery.data,
-                })
-              ) : (
-                <WorkspacesListItem workspace={workspace} />
-              )}
-            </Fragment>
-          ))}
-
-          {workspacesQuery.data?.map((workspace, index) => (
-            <Fragment key={workspace.id}>
-              {renderListItem !== undefined ? (
-                renderListItem({
-                  workspace,
-                  index,
-                  workspaces: workspacesQuery.data,
-                })
-              ) : (
-                <WorkspacesListItem workspace={workspace} />
-              )}
-            </Fragment>
-          ))}
-
           {workspacesQuery.data?.map((workspace, index) => (
             <Fragment key={workspace.id}>
               {renderListItem !== undefined ? (
