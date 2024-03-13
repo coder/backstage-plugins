@@ -1,48 +1,10 @@
-import React, {
-  type HTMLAttributes,
-  type PropsWithChildren,
-  type ReactNode,
-  Fragment,
-} from 'react';
+import React, { type HTMLAttributes, type ReactNode, Fragment } from 'react';
 
 import { type Theme, makeStyles } from '@material-ui/core';
 import type { Workspace } from '../../typesConstants';
 import { useWorkspacesCardContext } from './Root';
 import { WorkspacesListItem } from './WorkspacesListItem';
-import { CoderLogo } from '../CoderLogo';
-
-const usePlaceholderStyles = makeStyles(theme => ({
-  root: {
-    padding: `${theme.spacing(2.5)}px 0px ${theme.spacing(2)}px`,
-    display: 'flex',
-    flexFlow: 'column nowrap',
-    alignItems: 'center',
-  },
-
-  text: {
-    textAlign: 'center',
-    padding: `0 ${theme.spacing(2.5)}px`,
-    fontWeight: 400,
-    fontSize: '1.125rem',
-    color: theme.palette.text.secondary,
-    lineHeight: 1.1,
-  },
-}));
-
-type PlaceholderProps = Readonly<PropsWithChildren<unknown>>;
-
-// Placeholder is being treated as an internal implementation detail, and is
-// not expected to need much flexibility at the API level
-const Placeholder = ({ children }: PlaceholderProps) => {
-  const styles = usePlaceholderStyles();
-
-  return (
-    <div className={styles.root}>
-      <CoderLogo />
-      <p className={styles.text}>{children}</p>
-    </div>
-  );
-};
+import { Placeholder } from './Placeholder';
 
 type RenderListItemInput = Readonly<{
   workspace: Workspace;
@@ -60,7 +22,7 @@ type WorkspacesListProps = Readonly<
   }
 >;
 
-type StyleKey = 'root' | 'list';
+type StyleKey = 'root' | 'list' | 'code';
 
 type WorkspacesListMakeStyleInputs = Readonly<{
   fullBleedLayout: boolean;
@@ -72,10 +34,11 @@ const useWorkspacesListStyles = makeStyles<
   StyleKey
 >(theme => ({
   root: ({ fullBleedLayout }) => ({
-    maxHeight: '300px',
+    maxHeight: '260px',
     overflowX: 'hidden',
     overflowY: 'auto',
     flexShrink: 1,
+    borderTop: `1px solid ${theme.palette.divider}`,
 
     marginLeft: fullBleedLayout ? `-${theme.spacing(2)}px` : 0,
     marginRight: fullBleedLayout ? `-${theme.spacing(2)}px` : 0,
@@ -89,10 +52,18 @@ const useWorkspacesListStyles = makeStyles<
   list: {
     margin: 0,
     paddingRight: theme.spacing(2),
+    paddingBottom: theme.spacing(2),
 
-    // Not using spacing(2) for optical adjustment; want to make sure all icons
-    // are aligned by default
+    // Not using spacing(2) for optical adjustment reasons; want to make sure
+    // all workspace icons are aligned with the search bar icon by default
     paddingLeft: theme.spacing(1.75),
+  },
+
+  code: {
+    display: 'block',
+    paddingTop: theme.spacing(0.75),
+    fontSize: '87.5%',
+    color: theme.palette.text.primary,
   },
 }));
 
@@ -128,12 +99,11 @@ export const WorkspacesList = ({
           {emptyState !== undefined ? (
             emptyState
           ) : (
-            <Placeholder>
+            <Placeholder displayCta>
               {repoUrl ? (
                 <div style={{ textAlign: 'center' }}>
-                  No workspaces for repo
-                  <br />
-                  {repoUrl}
+                  No workspaces found for repo
+                  <code className={styles.code}>{repoUrl}</code>
                 </div>
               ) : (
                 <>No workspaces returned for your query</>

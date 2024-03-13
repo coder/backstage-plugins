@@ -42,8 +42,8 @@ const useStyles = makeStyles<Theme, UseStyleInputs, StyleKey>(theme => ({
       backgroundColor: theme.palette.action.hover,
     },
 
-    '&:last-child': {
-      paddingBottom: theme.spacing(2),
+    '&:first-child': {
+      borderTop: 'none',
     },
 
     '&:last-child > div': {
