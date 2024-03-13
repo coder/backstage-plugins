@@ -75,54 +75,54 @@ export function compileCoderConfig(
   repoUrl: string | undefined,
 ): CoderWorkspacesConfig {
   const { workspaces, deployment } = appConfig;
-  const compiledParams: Record<string, string | undefined> = {};
   const yamlConfig = parse(yamlConfigSchema, rawYamlConfig);
+  const mode = yamlConfig?.mode ?? workspaces.mode ?? 'manual';
+
+  const urlParams = new URLSearchParams({ mode });
+  const compiledParams: Record<string, string | undefined> = {};
 
   // Can't replace this with destructuring, because that is all-or-nothing;
   // there's no easy way to granularly check each property without a loop
   const paramsPrecedence = [workspaces.params, yamlConfig?.params ?? {}];
   for (const params of paramsPrecedence) {
     for (const key in params) {
-      if (params.hasOwnProperty(key) && typeof params[key] === 'string') {
-        compiledParams[key] = params[key];
+      // This guard clause should never trigger - in place to satisfy the
+      // Backstage ESLint rules
+      if (!params.hasOwnProperty(key)) {
+        continue;
+      }
+
+      const value = params[key];
+      if (typeof value === 'string') {
+        compiledParams[key] = value;
+        urlParams.set(`param.${key}`, value);
       }
     }
   }
 
-  // repoUrl usually ends with /tree/main/, which breaks Coder's logic for
-  // pulling down repos
-  let cleanedUrl = repoUrl;
+  // Repo URL usually ends with /tree/main/, which breaks the Coder deployment's
+  // logic for pulling down repos
+  let cleanedRepoUrl = repoUrl;
   if (repoUrl !== undefined) {
-    cleanedUrl = repoUrl.replace(/\/tree\/[\w._-]+\/?$/, '');
+    cleanedRepoUrl = repoUrl.replace(/\/tree\/[\w._-]+\/?$/, '');
+
     for (const key of workspaces.repoUrlParamKeys) {
-      compiledParams[key] = cleanedUrl;
+      compiledParams[key] = cleanedRepoUrl;
+      urlParams.set(`param.${key}`, cleanedRepoUrl);
     }
   }
 
-  const mode = yamlConfig?.mode ?? workspaces.mode ?? 'manual';
-  const urlParams = new URLSearchParams({ mode });
+  const safeTemplate = encodeURIComponent(
+    yamlConfig?.templateName ?? workspaces.templateName,
+  );
 
-  for (const key in compiledParams) {
-    // Annoying check that Backstage requires (even though the object
-    // referenced is still in the same function scope)
-    if (!compiledParams.hasOwnProperty(key)) {
-      continue;
-    }
-
-    const value = compiledParams[key];
-    if (value !== undefined) {
-      urlParams.append(`param.${key}`, value);
-    }
-  }
-
-  const safeTemplate = encodeURIComponent(workspaces.templateName);
   const creationUrl = `${
     deployment.accessUrl
   }/templates/${safeTemplate}/workspace?${urlParams.toString()}`;
 
   return {
     creationUrl,
-    repoUrl: cleanedUrl,
+    repoUrl: cleanedRepoUrl,
     repoUrlParamKeys: workspaces.repoUrlParamKeys,
     params: compiledParams,
     templateName: yamlConfig?.templateName ?? workspaces.templateName,

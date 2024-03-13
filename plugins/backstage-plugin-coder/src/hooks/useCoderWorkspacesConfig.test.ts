@@ -5,6 +5,7 @@ import {
   mockAppConfig,
   cleanedRepoUrl,
   rawRepoUrl,
+  mockCoderWorkspacesConfig,
 } from '../testHelpers/mockBackstageData';
 import {
   CoderWorkspacesConfig,
@@ -109,19 +110,19 @@ describe(`${useCoderWorkspacesConfig.name}`, () => {
       useCoderWorkspacesConfig({ readEntityData: true }),
     );
 
-    expect(result.current).toEqual(
-      expect.objectContaining<Partial<CoderWorkspacesConfig>>({
-        repoUrl: cleanedRepoUrl,
-        templateName: mockYamlConfig.templateName,
-        mode: 'auto',
-        repoUrlParamKeys: mockAppConfig.workspaces.repoUrlParamKeys,
-        params: {
-          ...mockAppConfig.workspaces.params,
-          region: mockYamlConfig.params?.region ?? '',
-          custom_repo: cleanedRepoUrl,
-          repo_url: cleanedRepoUrl,
-        },
-      }),
-    );
+    expect(result.current).toEqual<CoderWorkspacesConfig>({
+      mode: mockYamlConfig.mode,
+      repoUrl: cleanedRepoUrl,
+      creationUrl: mockCoderWorkspacesConfig.creationUrl,
+      templateName: mockYamlConfig.templateName,
+      repoUrlParamKeys: mockAppConfig.workspaces.repoUrlParamKeys,
+
+      params: {
+        ...mockAppConfig.workspaces.params,
+        region: mockYamlConfig.params?.region,
+        custom_repo: cleanedRepoUrl,
+        repo_url: cleanedRepoUrl,
+      },
+    });
   });
 });

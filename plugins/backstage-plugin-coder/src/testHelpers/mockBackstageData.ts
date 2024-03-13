@@ -30,7 +30,7 @@ const ANNOTATION_SOURCE_LOCATION_KEY = 'backstage.io/source-location';
  * have all additional parts at the end stripped off in order to make sure that
  * the Coder app is correctly able to download a repo for a workspace.
  */
-export const cleanedRepoUrl = 'https://www.zombo.com';
+export const cleanedRepoUrl = 'https://www.github.com/zombo/com';
 
 /**
  * The shape of URL that Backstage will parse from the entity data by default
@@ -57,7 +57,7 @@ export const mockYamlConfig = {
   mode: 'auto',
   params: {
     region: 'brazil',
-  } as NonNullable<YamlConfig>['params'],
+  } satisfies NonNullable<YamlConfig>['params'],
 } as const satisfies YamlConfig;
 
 export type BackstageEntity = ReturnType<typeof useEntity>['entity'];
@@ -76,29 +76,6 @@ export const mockEntity: BackstageEntity = {
   },
 };
 
-const mockUrlParams = new URLSearchParams({
-  mode: 'manual',
-  'param.repo': 'custom',
-  'param.region': 'eu-helsinki',
-  'param.custom_repo': 'https%3A%2F%2Fgithub.com%2FParkreiner%2Fpython-project',
-  'param.repo_url': 'https%3A%2F%2Fgithub.com%2FParkreiner%2Fpython-project',
-});
-
-export const mockCoderWorkspacesConfig: CoderWorkspacesConfig = {
-  mode: 'manual',
-  templateName: 'mock-entity-config',
-  repoUrlParamKeys: ['custom_repo', 'repo_url'],
-  repoUrl: cleanedRepoUrl,
-  creationUrl: `${cleanedRepoUrl}/templates/mock-entity-config/workspace?${mockUrlParams.toString()}`,
-
-  params: {
-    repo: 'custom',
-    region: 'eu-helsinki',
-    custom_repo: cleanedRepoUrl,
-    repo_url: cleanedRepoUrl,
-  },
-};
-
 export const mockAppConfig = {
   deployment: {
     accessUrl: 'https://dev.coder.com',
@@ -114,6 +91,30 @@ export const mockAppConfig = {
     },
   },
 } as const satisfies CoderAppConfig;
+
+export const mockCoderWorkspacesConfig: CoderWorkspacesConfig = {
+  mode: 'auto',
+  templateName: mockYamlConfig.templateName,
+  repoUrlParamKeys: ['custom_repo', 'repo_url'],
+  repoUrl: cleanedRepoUrl,
+
+  creationUrl: `${mockAppConfig.deployment.accessUrl}/templates/${
+    mockYamlConfig.templateName
+  }/workspace?${new URLSearchParams({
+    mode: mockYamlConfig.mode,
+    'param.repo': mockAppConfig.workspaces.params.repo,
+    'param.region': mockYamlConfig.params.region,
+    'param.custom_repo': cleanedRepoUrl,
+    'param.repo_url': cleanedRepoUrl,
+  })}`,
+
+  params: {
+    repo: 'custom',
+    region: 'eu-helsinki',
+    custom_repo: cleanedRepoUrl,
+    repo_url: cleanedRepoUrl,
+  },
+};
 
 const authedState = {
   token: mockCoderAuthToken,
