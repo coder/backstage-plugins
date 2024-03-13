@@ -22,7 +22,7 @@ type WorkspacesListProps = Readonly<
   }
 >;
 
-type StyleKey = 'root' | 'list';
+type StyleKey = 'root' | 'list' | 'code';
 
 type WorkspacesListMakeStyleInputs = Readonly<{
   fullBleedLayout: boolean;
@@ -57,6 +57,13 @@ const useWorkspacesListStyles = makeStyles<
     // Not using spacing(2) for optical adjustment reasons; want to make sure
     // all workspace icons are aligned with the search bar icon by default
     paddingLeft: theme.spacing(1.75),
+  },
+
+  code: {
+    display: 'block',
+    paddingTop: theme.spacing(0.75),
+    fontSize: '87.5%',
+    color: theme.palette.text.primary,
   },
 }));
 
@@ -95,9 +102,8 @@ export const WorkspacesList = ({
             <Placeholder>
               {repoUrl ? (
                 <div style={{ textAlign: 'center' }}>
-                  No workspaces for repo
-                  <br />
-                  {repoUrl}
+                  No workspaces found for repo
+                  <code className={styles.code}>{repoUrl}</code>
                 </div>
               ) : (
                 <>No workspaces returned for your query</>

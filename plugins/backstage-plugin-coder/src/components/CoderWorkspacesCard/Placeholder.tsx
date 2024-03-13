@@ -14,7 +14,7 @@ import { VisuallyHidden } from '../VisuallyHidden';
 
 const usePlaceholderStyles = makeStyles(theme => ({
   root: {
-    padding: `${theme.spacing(2.5)}px 0px ${theme.spacing(4)}px`,
+    padding: `${theme.spacing(4)}px 0 ${theme.spacing(5)}px`,
     display: 'flex',
     flexFlow: 'column nowrap',
     alignItems: 'center',
@@ -29,9 +29,14 @@ const usePlaceholderStyles = makeStyles(theme => ({
     lineHeight: 1.1,
   },
 
+  linkSpacer: {
+    paddingTop: theme.spacing(1.5),
+  },
+
   // Styled as a button to be more apparent to sighted users, but exposed as a
   // link for better right-click/middle-click support and screen reader support
   callToActionLink: {
+    fontWeight: 500,
     color: theme.palette.primary.contrastText,
     backgroundColor: theme.palette.primary.main,
     padding: `${theme.spacing(1)}px ${theme.spacing(1.5)}px`,
@@ -58,14 +63,16 @@ export const Placeholder = ({ children }: PlaceholderProps) => {
       <CoderLogo />
       <p className={styles.text}>{children}</p>
 
-      <a
-        href={workspaceCreationLink}
-        target="_blank"
-        className={styles.callToActionLink}
-      >
-        Create a workspace now!
-        <VisuallyHidden> (Link opens in new tab)</VisuallyHidden>
-      </a>
+      <div className={styles.linkSpacer}>
+        <a
+          href={workspaceCreationLink}
+          target="_blank"
+          className={styles.callToActionLink}
+        >
+          Create a workspace now!
+          <VisuallyHidden> (Link opens in new tab)</VisuallyHidden>
+        </a>
+      </div>
     </div>
   );
 };
