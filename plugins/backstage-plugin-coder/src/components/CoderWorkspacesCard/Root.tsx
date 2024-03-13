@@ -16,14 +16,14 @@ import type { Workspace } from '../../typesConstants';
 import { useCoderWorkspaces } from '../../hooks/useCoderWorkspaces';
 import { Card } from '../Card';
 import { CoderAuthWrapper } from '../CoderAuthWrapper';
-import { type CoderWorkspaceConfig, useCoderAppConfig } from '../CoderProvider';
+import { useCoderAppConfig } from '../CoderProvider';
 
 type WorkspacesCardContext = Readonly<{
   queryFilter: string;
   onFilterChange: (newFilter: string) => void;
   workspacesQuery: UseQueryResult<readonly Workspace[]>;
   headerId: string;
-  entityConfig: CoderEntityConfig | undefined;
+  entityConfig: CoderEntityConfig;
   workspaceCreationLink: string;
 }>;
 
@@ -48,20 +48,16 @@ export const Root = ({
   ...delegatedProps
 }: WorkspacesCardProps) => {
   const hookId = useId();
-  const appConfig = useCoderAppConfig();
   const [innerFilter, setInnerFilter] = useState(defaultQueryFilter);
   const activeFilter = outerFilter ?? innerFilter;
 
-  const dynamicConfig = useDynamicEntityConfig(readEntityData);
+  const appConfig = useCoderAppConfig();
+  const wsConfig = useCoderEntityConfig({ readEntityData });
   const workspacesQuery = useCoderWorkspaces(activeFilter, {
-    repoConfig: dynamicConfig,
+    repoConfig: wsConfig,
   });
 
   const headerId = `${hookId}-header`;
-  const activeConfig = {
-    ...appConfig.workspaces,
-    ...(dynamicConfig ?? {}),
-  };
 
   return (
     <CoderAuthWrapper type="card">
@@ -70,13 +66,13 @@ export const Root = ({
           headerId,
           workspacesQuery,
           queryFilter: activeFilter,
-          entityConfig: dynamicConfig,
+          entityConfig: wsConfig,
           onFilterChange: newFilter => {
             setInnerFilter(newFilter);
             onOuterFilterChange?.(newFilter);
           },
           workspaceCreationLink: serializeWorkspaceUrl(
-            activeConfig,
+            wsConfig,
             appConfig.deployment.accessUrl,
           ),
         }}
@@ -112,46 +108,20 @@ export function useWorkspacesCardContext(): WorkspacesCardContext {
   return contextValue;
 }
 
-function useDynamicEntityConfig(
-  isEntityLayout: boolean,
-): CoderEntityConfig | undefined {
-  const [initialEntityLayout] = useState(isEntityLayout);
-
-  // Manually throwing error to cut off any potential hooks bugs early
-  if (isEntityLayout !== initialEntityLayout) {
-    throw new Error(
-      'The value of entityLayout is not allowed to change across re-renders',
-    );
-  }
-
-  let entityConfig: CoderEntityConfig | undefined = undefined;
-  if (isEntityLayout) {
-    /* eslint-disable-next-line react-hooks/rules-of-hooks --
-       The hook call is conditional, but the condition above ensures it will be
-       locked in for the lifecycle of the component. The hook call order will
-       never change, which is what the rule is trying to protect you from */
-    entityConfig = useCoderEntityConfig();
-  }
-
-  return entityConfig;
-}
-
 function serializeWorkspaceUrl(
-  config: CoderWorkspaceConfig,
+  config: CoderEntityConfig,
   coderAccessUrl: string,
 ): string {
-  const formattedParams = new URLSearchParams({
-    mode: (config.mode ?? 'manual') satisfies CoderWorkspaceConfig['mode'],
-  });
+  const formattedParams = new URLSearchParams({ mode: config.mode });
 
-  const unformatted = config.params;
-  if (unformatted !== undefined && unformatted.hasOwnProperty) {
-    for (const key in unformatted) {
-      if (!unformatted.hasOwnProperty(key)) {
+  const unformattedParams = config.params;
+  if (unformattedParams !== undefined && unformattedParams.hasOwnProperty) {
+    for (const key in unformattedParams) {
+      if (!unformattedParams.hasOwnProperty(key)) {
         continue;
       }
 
-      const value = unformatted[key];
+      const value = unformattedParams[key];
       if (value !== undefined) {
         formattedParams.append(`param.${key}`, value);
       }

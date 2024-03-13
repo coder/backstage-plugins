@@ -6,10 +6,9 @@ import type { ScmIntegrationRegistry } from '@backstage/integration';
 
 import { useEntity } from '@backstage/plugin-catalog-react';
 import {
-  CoderWorkspaceConfig,
   type CoderAppConfig,
-  CoderAuth,
-  CoderAuthStatus,
+  type CoderAuth,
+  type CoderAuthStatus,
 } from '../components/CoderProvider';
 import {
   CoderEntityConfig,
@@ -77,16 +76,6 @@ export const mockEntity: BackstageEntity = {
   },
 };
 
-export const mockWorkspaceConfig: CoderWorkspaceConfig = {
-  templateName: 'devcontainers',
-  mode: 'manual',
-  repoUrlParamKeys: ['custom_repo', 'repo_url'],
-  params: {
-    repo: 'custom',
-    region: 'eu-helsinki',
-  },
-};
-
 export const mockCoderEntityConfig: CoderEntityConfig = {
   mode: 'manual',
   templateName: 'mock-entity-config',
@@ -105,7 +94,15 @@ export const mockAppConfig = {
     accessUrl: 'https://dev.coder.com',
   },
 
-  workspaces: mockWorkspaceConfig,
+  workspaces: {
+    templateName: 'devcontainers',
+    mode: 'manual',
+    repoUrlParamKeys: ['custom_repo', 'repo_url'],
+    params: {
+      repo: 'custom',
+      region: 'eu-helsinki',
+    },
+  },
 } as const satisfies CoderAppConfig;
 
 const authedState = {

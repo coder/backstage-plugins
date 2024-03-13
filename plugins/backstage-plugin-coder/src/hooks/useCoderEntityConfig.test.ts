@@ -1,12 +1,8 @@
 import { ValiError } from 'valibot';
-
 import { renderHookAsCoderEntity } from '../testHelpers/setup';
-import { type CoderWorkspaceConfig } from '../components/CoderProvider';
-
 import {
   mockYamlConfig,
   mockAppConfig,
-  mockWorkspaceConfig,
   cleanedRepoUrl,
   rawRepoUrl,
 } from '../testHelpers/mockBackstageData';
@@ -16,6 +12,7 @@ import {
   useCoderEntityConfig,
   type YamlConfig,
 } from './useCoderEntityConfig';
+import { CoderAppConfig } from '../plugin';
 
 describe(`${compileCoderConfig.name}`, () => {
   it('Throws a Valibot ValiError when YAML config is invalid', () => {
@@ -45,14 +42,14 @@ describe(`${compileCoderConfig.name}`, () => {
 
     for (const input of [...wrongStructure, ...wrongTypes]) {
       expect(() => {
-        compileCoderConfig(mockWorkspaceConfig, input, cleanedRepoUrl);
+        compileCoderConfig(mockAppConfig, input, cleanedRepoUrl);
       }).toThrow(ValiError);
     }
   });
 
   it('Defers to YAML keys if YAML and baseline params have key conflicts', () => {
     const result = compileCoderConfig(
-      mockWorkspaceConfig,
+      mockAppConfig,
       mockYamlConfig,
       'https://www.github.com/coder/coder',
     );
@@ -72,20 +69,19 @@ describe(`${compileCoderConfig.name}`, () => {
     const url = 'https://www.github.com/google2/the-sequel-to-google';
     const urlKeys = ['one', 'nothing', 'wrong', 'with', 'me'] as const;
 
-    const baselineParams = Object.fromEntries(urlKeys.map(key => [key, '']));
-    const baseline: CoderWorkspaceConfig = {
-      ...mockWorkspaceConfig,
-      repoUrlParamKeys: urlKeys,
-      params: baselineParams,
+    const baselineAppConfig: CoderAppConfig = {
+      ...mockAppConfig,
+      workspaces: {
+        ...mockAppConfig.workspaces,
+        repoUrlParamKeys: urlKeys,
+        params: Object.fromEntries(urlKeys.map(key => [key, ''])),
+      },
     };
 
     const yamlParams = Object.fromEntries(urlKeys.map(key => [key, 'blah']));
-    const yaml: YamlConfig = {
-      ...mockYamlConfig,
-      params: yamlParams,
-    };
+    const yaml: YamlConfig = { ...mockYamlConfig, params: yamlParams };
 
-    const result = compileCoderConfig(baseline, yaml, url);
+    const result = compileCoderConfig(baselineAppConfig, yaml, url);
     expect(result.repoUrlParamKeys).toEqual(urlKeys);
 
     const finalParams = Object.fromEntries(urlKeys.map(key => [key, url]));
@@ -94,7 +90,7 @@ describe(`${compileCoderConfig.name}`, () => {
 
   it('Removes additional URL paths if they are present at the end of the raw URL', () => {
     const result = compileCoderConfig(
-      mockWorkspaceConfig,
+      mockAppConfig,
       mockYamlConfig,
       rawRepoUrl,
     );

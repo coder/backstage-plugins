@@ -19,8 +19,8 @@ import {
   useEntity,
 } from '@backstage/plugin-catalog-react';
 import {
+  type CoderAppConfig,
   useCoderAppConfig,
-  type CoderWorkspaceConfig,
 } from '../components/CoderProvider';
 
 // Very loose parsing requirements to make interfacing with various kinds of
@@ -51,22 +51,29 @@ const yamlConfigSchema = union([
 
 export type YamlConfig = Output<typeof yamlConfigSchema>;
 
-export type CoderEntityConfig = Readonly<
-  {
-    [Key in keyof CoderWorkspaceConfig]-?: Readonly<CoderWorkspaceConfig[Key]>;
-  } & {
-    // repoUrl can't be definitely defined because (1) the value comes from an
-    // API that also doesn't give you a guarantee, and (2) it shouldn't be
-    // defined if repo info somehow isn't available
+/**
+ * Provides a cleaned and pre-processed version of all repo data that can be
+ * sourced from CoderAppConfig and any entity data.
+ */
+export type CoderEntityConfig =
+  // Was originally defined in terms of fancy mapped types; ended up being a bad
+  // idea, because it increased coupling in a bad way
+  Readonly<{
+    templateName: string;
+    repoUrlParamKeys: readonly string[];
+    mode: 'manual' | 'auto';
+    params: Record<string, string | undefined>;
+
+    // Always undefined if repo data is not available for any reason
     repoUrl: string | undefined;
-  }
->;
+  }>;
 
 export function compileCoderConfig(
-  workspaceSettings: CoderWorkspaceConfig,
+  appConfig: CoderAppConfig,
   rawYamlConfig: unknown,
   repoUrl: string | undefined,
 ): CoderEntityConfig {
+  const workspaceSettings = appConfig.workspaces;
   const compiledParams: Record<string, string | undefined> = {};
   const yamlConfig = parse(yamlConfigSchema, rawYamlConfig);
 
@@ -86,7 +93,7 @@ export function compileCoderConfig(
   if (repoUrl !== undefined) {
     // repoUrl usually ends with /tree/main/, which breaks Coder's logic for
     // pulling down repos
-    cleanedUrl = repoUrl.replace(/\/tree\/main\/?$/, '');
+    cleanedUrl = repoUrl.replace(/\/tree\/[\w._-]+\/?$/, '');
     for (const key of workspaceSettings.repoUrlParamKeys) {
       compiledParams[key] = cleanedUrl;
     }
@@ -101,7 +108,13 @@ export function compileCoderConfig(
   };
 }
 
-export function useCoderEntityConfig(): CoderEntityConfig {
+type UseCoderEntityConfigOptions = Readonly<{
+  readEntityData?: boolean;
+}>;
+
+export function useCoderEntityConfig({
+  readEntityData = true,
+}: UseCoderEntityConfigOptions): CoderEntityConfig {
   const { entity } = useEntity();
   const appConfig = useCoderAppConfig();
   const sourceControlApi = useApi(scmIntegrationsApiRef);
@@ -111,11 +124,11 @@ export function useCoderEntityConfig(): CoderEntityConfig {
 
   return useMemo(() => {
     return compileCoderConfig(
-      appConfig.workspaces,
+      appConfig,
       rawYamlConfig,
       repoData?.locationTargetUrl,
     );
     // Backstage seems to have stabilized the value of rawYamlConfig, so even
     // when it's a object, useMemo shouldn't re-run unnecessarily
-  }, [appConfig.workspaces, rawYamlConfig, repoData?.locationTargetUrl]);
+  }, [appConfig, rawYamlConfig, repoData?.locationTargetUrl]);
 }
