@@ -89,9 +89,10 @@ const useWorkspacesListStyles = makeStyles<
   list: {
     margin: 0,
     paddingRight: theme.spacing(2),
+    paddingBottom: theme.spacing(2),
 
-    // Not using spacing(2) for optical adjustment; want to make sure all icons
-    // are aligned by default
+    // Not using spacing(2) for optical adjustment reasons; want to make sure
+    // all workspace icons are aligned with the search bar icon by default
     paddingLeft: theme.spacing(1.75),
   },
 }));
