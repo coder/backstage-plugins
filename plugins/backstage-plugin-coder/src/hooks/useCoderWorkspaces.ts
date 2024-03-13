@@ -19,9 +19,12 @@ export function useCoderWorkspaces(
   const { baseUrl } = useBackstageEndpoints();
   const { repoConfig } = options ?? {};
 
-  const queryOptions = repoConfig
-    ? workspacesByRepo({ coderQuery, auth, baseUrl, repoConfig })
-    : workspaces({ coderQuery, auth, baseUrl });
+  // query by repo if readEntityData is true &&
+  // if the catalog entity is a repository
+  const queryOptions =
+    repoConfig && repoConfig.repoUrl
+      ? workspacesByRepo({ coderQuery, auth, baseUrl, repoConfig })
+      : workspaces({ coderQuery, auth, baseUrl });
 
   return useQuery(queryOptions);
 }

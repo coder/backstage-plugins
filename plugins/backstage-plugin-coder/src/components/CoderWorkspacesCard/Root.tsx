@@ -4,7 +4,7 @@ import React, {
   useContext,
   useState,
 } from 'react';
-
+import { makeStyles } from '@material-ui/core';
 import { useId } from '../../hooks/hookPolyfills';
 import { UseQueryResult } from '@tanstack/react-query';
 import {
@@ -16,6 +16,7 @@ import type { Workspace } from '../../typesConstants';
 import { useCoderWorkspaces } from '../../hooks/useCoderWorkspaces';
 import { Card } from '../Card';
 import { CoderAuthWrapper } from '../CoderAuthWrapper';
+import { VisuallyHidden } from '../VisuallyHidden';
 
 type WorkspacesCardContext = Readonly<{
   queryFilter: string;
@@ -51,6 +52,22 @@ function useDynamicEntityConfig(
   return entityConfig;
 }
 
+const useStyles = makeStyles(theme => ({
+  button: {
+    color: theme.palette.type,
+    backgroundColor: theme.palette.background.paper,
+    border: 'none',
+    paddingTop: theme.spacing(2),
+    fontSize: theme.typography.body2.fontSize,
+    cursor: 'pointer',
+  },
+
+  snippet: {
+    backgroundColor: theme.palette.grey[100],
+    borderRadius: '0.4em',
+  },
+}));
+
 export type WorkspacesCardProps = Readonly<
   Omit<HTMLAttributes<HTMLDivElement>, 'role' | 'aria-labelledby'> & {
     queryFilter?: string;
@@ -69,9 +86,22 @@ export const Root = ({
   readEntityData = false,
   ...delegatedProps
 }: WorkspacesCardProps) => {
+  const styles = useStyles();
   const hookId = useId();
   const [innerFilter, setInnerFilter] = useState(defaultQueryFilter);
   const activeFilter = outerFilter ?? innerFilter;
+
+  const [isExpanded, setIsExpanded] = useState(false);
+  const toggleExpansion = () => {
+    setIsExpanded(!isExpanded);
+  };
+  const handleKeyDown: React.KeyboardEventHandler<
+    HTMLButtonElement
+  > = event => {
+    if (event.key === 'Enter') {
+      toggleExpansion();
+    }
+  };
 
   const dynamicConfig = useDynamicEntityConfig(readEntityData);
   const workspacesQuery = useCoderWorkspaces(activeFilter, {
@@ -107,6 +137,40 @@ export const Root = ({
               around keyboard input and button children seems like the easiest
               approach */}
           <div role="form">{children}</div>
+          {dynamicConfig && !dynamicConfig.repoUrl && (
+            <div>
+              <button
+                onClick={toggleExpansion}
+                onKeyDown={handleKeyDown}
+                type="button"
+                className={styles.button}
+              >
+                {isExpanded ? '▼' : '►'}{' '}
+                {isExpanded ? 'Hide text' : 'Why am I seeing all workspaces?'}
+              </button>
+              {isExpanded && (
+                <p>
+                  The{' '}
+                  <code className={styles.snippet}>EntitySourceLocation</code>{' '}
+                  for this entity has no defined{' '}
+                  <code className={styles.snippet}>locationTargetUrl</code>,
+                  thus all workspaces are displayed. Consider disabling{' '}
+                  <code className={styles.snippet}>readEntityData</code>;
+                  details in our{' '}
+                  <a
+                    href="https://github.com/coder/backstage-plugins/blob/main/plugins/backstage-plugin-coder/docs/components.md#notes-4"
+                    rel="noopener noreferrer"
+                    target="_blank"
+                    style={{ textDecoration: 'underline', color: 'inherit' }}
+                  >
+                    docs
+                    <VisuallyHidden> (link opens in new tab)</VisuallyHidden>
+                  </a>
+                  .
+                </p>
+              )}
+            </div>
+          )}
         </Card>
       </CardContext.Provider>
     </CoderAuthWrapper>
