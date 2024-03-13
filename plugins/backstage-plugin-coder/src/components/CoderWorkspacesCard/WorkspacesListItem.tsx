@@ -42,7 +42,7 @@ const useStyles = makeStyles<Theme, UseStyleInputs, StyleKey>(theme => ({
       backgroundColor: theme.palette.action.hover,
     },
 
-    '&:first-child > div': {
+    '&:first-child': {
       borderTop: 'none',
     },
 

@@ -76,6 +76,7 @@ const useWorkspacesListStyles = makeStyles<
     overflowX: 'hidden',
     overflowY: 'auto',
     flexShrink: 1,
+    borderTop: `1px solid ${theme.palette.divider}`,
 
     marginLeft: fullBleedLayout ? `-${theme.spacing(2)}px` : 0,
     marginRight: fullBleedLayout ? `-${theme.spacing(2)}px` : 0,
@@ -159,6 +160,10 @@ export const WorkspacesList = ({
               )}
             </Fragment>
           ))}
+
+          {console.error(
+            "Be sure to clean up all these extra .map calls when you're done!",
+          )}
 
           {workspacesQuery.data?.map((workspace, index) => (
             <Fragment key={workspace.id}>
