@@ -16,6 +16,7 @@ import type { Workspace } from '../../typesConstants';
 import { useCoderWorkspaces } from '../../hooks/useCoderWorkspaces';
 import { Card } from '../Card';
 import { CoderAuthWrapper } from '../CoderAuthWrapper';
+import { type CoderWorkspaceConfig, useCoderAppConfig } from '../CoderProvider';
 
 type WorkspacesCardContext = Readonly<{
   queryFilter: string;
@@ -23,9 +24,93 @@ type WorkspacesCardContext = Readonly<{
   workspacesQuery: UseQueryResult<readonly Workspace[]>;
   headerId: string;
   entityConfig: CoderEntityConfig | undefined;
+  workspaceCreationLink: string;
 }>;
 
 const CardContext = createContext<WorkspacesCardContext | null>(null);
+
+export type WorkspacesCardProps = Readonly<
+  Omit<HTMLAttributes<HTMLDivElement>, 'role' | 'aria-labelledby'> & {
+    queryFilter?: string;
+    defaultQueryFilter?: string;
+    onFilterChange?: (newFilter: string) => void;
+    readEntityData?: boolean;
+  }
+>;
+
+export const Root = ({
+  children,
+  className,
+  queryFilter: outerFilter,
+  onFilterChange: onOuterFilterChange,
+  defaultQueryFilter = 'owner:me',
+  readEntityData = false,
+  ...delegatedProps
+}: WorkspacesCardProps) => {
+  const hookId = useId();
+  const appConfig = useCoderAppConfig();
+  const [innerFilter, setInnerFilter] = useState(defaultQueryFilter);
+  const activeFilter = outerFilter ?? innerFilter;
+
+  const dynamicConfig = useDynamicEntityConfig(readEntityData);
+  const workspacesQuery = useCoderWorkspaces(activeFilter, {
+    repoConfig: dynamicConfig,
+  });
+
+  const headerId = `${hookId}-header`;
+  const activeConfig = {
+    ...appConfig.workspaces,
+    ...(dynamicConfig ?? {}),
+  };
+
+  return (
+    <CoderAuthWrapper type="card">
+      <CardContext.Provider
+        value={{
+          headerId,
+          workspacesQuery,
+          queryFilter: activeFilter,
+          entityConfig: dynamicConfig,
+          onFilterChange: newFilter => {
+            setInnerFilter(newFilter);
+            onOuterFilterChange?.(newFilter);
+          },
+          workspaceCreationLink: serializeWorkspaceUrl(
+            activeConfig,
+            appConfig.deployment.accessUrl,
+          ),
+        }}
+      >
+        {/*
+         * 2024-01-31: This output is a <div>, but that should be changed to a
+         * <search> once that element is supported by more browsers. Setting up
+         * accessibility markup and landmark behavior manually in the meantime
+         */}
+        <Card role="search" aria-labelledby={headerId} {...delegatedProps}>
+          {/* Want to expose the overall container as a form for good
+              semantics and screen reader support, but since there isn't an
+              explicit submission process (queries happen automatically), it
+              felt better to use a <div> with a role override to side-step edge
+              cases around keyboard input and button children that native <form>
+              elements automatically introduce */}
+          <div role="form">{children}</div>
+        </Card>
+      </CardContext.Provider>
+    </CoderAuthWrapper>
+  );
+};
+
+export function useWorkspacesCardContext(): WorkspacesCardContext {
+  const contextValue = useContext(CardContext);
+
+  if (contextValue === null) {
+    throw new Error(
+      `Not calling ${useWorkspacesCardContext.name} from inside a ${Root.name}`,
+    );
+  }
+
+  return contextValue;
+}
 
 function useDynamicEntityConfig(
   isEntityLayout: boolean,
@@ -51,76 +136,28 @@ function useDynamicEntityConfig(
   return entityConfig;
 }
 
-export type WorkspacesCardProps = Readonly<
-  Omit<HTMLAttributes<HTMLDivElement>, 'role' | 'aria-labelledby'> & {
-    queryFilter?: string;
-    defaultQueryFilter?: string;
-    onFilterChange?: (newFilter: string) => void;
-    readEntityData?: boolean;
-  }
->;
-
-export const Root = ({
-  children,
-  className,
-  queryFilter: outerFilter,
-  onFilterChange: onOuterFilterChange,
-  defaultQueryFilter = 'owner:me',
-  readEntityData = false,
-  ...delegatedProps
-}: WorkspacesCardProps) => {
-  const hookId = useId();
-  const [innerFilter, setInnerFilter] = useState(defaultQueryFilter);
-  const activeFilter = outerFilter ?? innerFilter;
-
-  const dynamicConfig = useDynamicEntityConfig(readEntityData);
-  const workspacesQuery = useCoderWorkspaces(activeFilter, {
-    repoConfig: dynamicConfig,
+function serializeWorkspaceUrl(
+  config: CoderWorkspaceConfig,
+  coderAccessUrl: string,
+): string {
+  const formattedParams = new URLSearchParams({
+    mode: (config.mode ?? 'manual') satisfies CoderWorkspaceConfig['mode'],
   });
 
-  const headerId = `${hookId}-header`;
+  const unformatted = config.params;
+  if (unformatted !== undefined && unformatted.hasOwnProperty) {
+    for (const key in unformatted) {
+      if (!unformatted.hasOwnProperty(key)) {
+        continue;
+      }
 
-  return (
-    <CoderAuthWrapper type="card">
-      <CardContext.Provider
-        value={{
-          headerId,
-          workspacesQuery,
-          queryFilter: activeFilter,
-          entityConfig: dynamicConfig,
-          onFilterChange: newFilter => {
-            setInnerFilter(newFilter);
-            onOuterFilterChange?.(newFilter);
-          },
-        }}
-      >
-        {/*
-         * 2024-01-31: This output is a <div>, but that should be changed to a
-         * <search> once it's supported by more browsers. Setting up
-         * accessibility markup and landmark behavior manually in the meantime
-         */}
-        <Card role="search" aria-labelledby={headerId} {...delegatedProps}>
-          {/* Want to expose the overall container as a form for good
-              semantics and screen reader support, but since there isn't an
-              explicit submission process (queries happen automatically),
-              using a base div with a role override to side-step edge cases
-              around keyboard input and button children seems like the easiest
-              approach */}
-          <div role="form">{children}</div>
-        </Card>
-      </CardContext.Provider>
-    </CoderAuthWrapper>
-  );
-};
-
-export function useWorkspacesCardContext(): WorkspacesCardContext {
-  const contextValue = useContext(CardContext);
-
-  if (contextValue === null) {
-    throw new Error(
-      `Not calling ${useWorkspacesCardContext.name} from inside a ${Root.name}`,
-    );
+      const value = unformatted[key];
+      if (value !== undefined) {
+        formattedParams.append(`param.${key}`, value);
+      }
+    }
   }
 
-  return contextValue;
+  const safeTemplate = encodeURIComponent(config.templateName);
+  return `${coderAccessUrl}/templates/${safeTemplate}/workspace?${formattedParams.toString()}`;
 }

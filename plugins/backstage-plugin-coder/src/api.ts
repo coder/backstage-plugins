@@ -8,11 +8,7 @@ import {
   workspacesResponseSchema,
   WorkspaceAgentStatus,
 } from './typesConstants';
-import {
-  CoderAuth,
-  CoderWorkspaceConfig,
-  assertValidCoderAuth,
-} from './components/CoderProvider';
+import { CoderAuth, assertValidCoderAuth } from './components/CoderProvider';
 
 export const CODER_QUERY_KEY_PREFIX = 'coder-backstage-plugin';
 
@@ -190,32 +186,6 @@ export async function getWorkspacesByRepo(
   }
 
   return matchedWorkspaces;
-}
-
-export function serializeWorkspaceUrl(
-  config: CoderWorkspaceConfig,
-  coderAccessUrl: string,
-): string {
-  const formattedParams = new URLSearchParams({
-    mode: (config.mode ?? 'manual') satisfies CoderWorkspaceConfig['mode'],
-  });
-
-  const unformatted = config.params;
-  if (unformatted !== undefined && unformatted.hasOwnProperty) {
-    for (const key in unformatted) {
-      if (!unformatted.hasOwnProperty(key)) {
-        continue;
-      }
-
-      const value = unformatted[key];
-      if (value !== undefined) {
-        formattedParams.append(`param.${key}`, value);
-      }
-    }
-  }
-
-  const safeTemplate = encodeURIComponent(config.templateName);
-  return `${coderAccessUrl}/templates/${safeTemplate}/workspace?${formattedParams.toString()}`;
 }
 
 export function getWorkspaceAgentStatuses(
