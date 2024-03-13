@@ -139,12 +139,6 @@ At present, the official [Visual Studio Remote Development extensions](https://g
 
 Please see the [directory for our API references](./docs/README.md) for additional information.
 
-## Roadmap
-
-This plugin is in active development. The following features are planned:
-
-- TODO: Fill out list
-
 ## Contributing
 
 This plugin is part of the Backstage community. We welcome contributions!

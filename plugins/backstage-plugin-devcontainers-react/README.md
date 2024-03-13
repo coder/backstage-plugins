@@ -132,12 +132,6 @@ While this does not directly apply to the React plugin, there are limits around 
 
 Please see the [directory for our API references](./docs/README.md) for additional information.
 
-## Roadmap
-
-This plugin is in active development. The following features are planned:
-
-- TODO: Fill out list
-
 ## Contributing
 
 This plugin is part of the Backstage community. We welcome contributions!
