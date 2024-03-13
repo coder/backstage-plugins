@@ -19,9 +19,10 @@ export function useCoderWorkspacesQuery(
   const { baseUrl } = useBackstageEndpoints();
   const { workspacesConfig } = options ?? {};
 
-  const queryOptions = workspacesConfig
-    ? workspacesByRepo({ coderQuery, auth, baseUrl, workspacesConfig })
-    : workspaces({ coderQuery, auth, baseUrl });
+  const queryOptions =
+    workspacesConfig && workspacesConfig.repoUrl
+      ? workspacesByRepo({ coderQuery, auth, baseUrl, workspacesConfig })
+      : workspaces({ coderQuery, auth, baseUrl });
 
   return useQuery(queryOptions);
 }
