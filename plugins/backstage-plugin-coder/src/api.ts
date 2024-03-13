@@ -1,7 +1,7 @@
 import { parse } from 'valibot';
 import { type UseQueryOptions } from '@tanstack/react-query';
 
-import { CoderEntityConfig } from './hooks/useCoderEntityConfig';
+import { CoderWorkspacesConfig } from './hooks/useCoderWorkspacesConfig';
 import {
   type Workspace,
   workspaceBuildParametersSchema,
@@ -144,7 +144,7 @@ async function getWorkspaceBuildParameters(inputs: BuildParamsFetchInputs) {
 
 type WorkspacesByRepoFetchInputs = Readonly<
   WorkspacesFetchInputs & {
-    repoConfig: CoderEntityConfig;
+    repoConfig: CoderWorkspacesConfig;
   }
 >;
 

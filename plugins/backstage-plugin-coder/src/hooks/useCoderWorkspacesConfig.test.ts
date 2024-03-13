@@ -7,11 +7,11 @@ import {
   rawRepoUrl,
 } from '../testHelpers/mockBackstageData';
 import {
-  CoderEntityConfig,
+  CoderWorkspacesConfig,
   compileCoderConfig,
-  useCoderEntityConfig,
+  useCoderWorkspacesConfig,
   type YamlConfig,
-} from './useCoderEntityConfig';
+} from './useCoderWorkspacesConfig';
 import { CoderAppConfig } from '../plugin';
 
 describe(`${compileCoderConfig.name}`, () => {
@@ -55,7 +55,7 @@ describe(`${compileCoderConfig.name}`, () => {
     );
 
     expect(result).toEqual(
-      expect.objectContaining<Partial<CoderEntityConfig>>({
+      expect.objectContaining<Partial<CoderWorkspacesConfig>>({
         templateName: mockYamlConfig.templateName,
         mode: mockYamlConfig.mode,
         params: expect.objectContaining({
@@ -96,19 +96,19 @@ describe(`${compileCoderConfig.name}`, () => {
     );
 
     expect(result).toEqual(
-      expect.objectContaining<Partial<CoderEntityConfig>>({
+      expect.objectContaining<Partial<CoderWorkspacesConfig>>({
         repoUrl: cleanedRepoUrl,
       }),
     );
   });
 });
 
-describe(`${useCoderEntityConfig.name}`, () => {
+describe(`${useCoderWorkspacesConfig.name}`, () => {
   it('Reads relevant data from CoderProvider, entity, and source control API', async () => {
-    const { result } = await renderHookAsCoderEntity(useCoderEntityConfig);
+    const { result } = await renderHookAsCoderEntity(useCoderWorkspacesConfig);
 
     expect(result.current).toEqual(
-      expect.objectContaining<Partial<CoderEntityConfig>>({
+      expect.objectContaining<Partial<CoderWorkspacesConfig>>({
         repoUrl: cleanedRepoUrl,
         templateName: mockYamlConfig.templateName,
         mode: 'auto',

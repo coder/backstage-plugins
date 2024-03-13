@@ -8,9 +8,9 @@ import React, {
 import { useId } from '../../hooks/hookPolyfills';
 import { UseQueryResult } from '@tanstack/react-query';
 import {
-  useCoderEntityConfig,
-  type CoderEntityConfig,
-} from '../../hooks/useCoderEntityConfig';
+  useCoderWorkspacesConfig,
+  type CoderWorkspacesConfig,
+} from '../../hooks/useCoderWorkspacesConfig';
 
 import type { Workspace } from '../../typesConstants';
 import { useCoderWorkspaces } from '../../hooks/useCoderWorkspaces';
@@ -21,7 +21,7 @@ type WorkspacesCardContext = Readonly<{
   queryFilter: string;
   onFilterChange: (newFilter: string) => void;
   workspacesQuery: UseQueryResult<readonly Workspace[]>;
-  workspacesConfig: CoderEntityConfig;
+  workspacesConfig: CoderWorkspacesConfig;
   headerId: string;
 }>;
 
@@ -49,7 +49,7 @@ export const Root = ({
   const [innerFilter, setInnerFilter] = useState(defaultQueryFilter);
   const activeFilter = outerFilter ?? innerFilter;
 
-  const wsConfig = useCoderEntityConfig({ readEntityData });
+  const wsConfig = useCoderWorkspacesConfig({ readEntityData });
   const workspacesQuery = useCoderWorkspaces(activeFilter, {
     repoConfig: wsConfig,
   });

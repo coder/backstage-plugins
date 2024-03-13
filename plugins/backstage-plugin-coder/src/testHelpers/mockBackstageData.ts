@@ -11,9 +11,9 @@ import {
   type CoderAuthStatus,
 } from '../components/CoderProvider';
 import {
-  CoderEntityConfig,
+  CoderWorkspacesConfig,
   type YamlConfig,
-} from '../hooks/useCoderEntityConfig';
+} from '../hooks/useCoderWorkspacesConfig';
 import { ScmIntegrationsApi } from '@backstage/integration-react';
 
 import { API_ROUTE_PREFIX, ASSETS_ROUTE_PREFIX } from '../api';
@@ -26,9 +26,9 @@ import { API_ROUTE_PREFIX, ASSETS_ROUTE_PREFIX } from '../api';
 const ANNOTATION_SOURCE_LOCATION_KEY = 'backstage.io/source-location';
 
 /**
- * The URL that will be exposed via useCoderEntityConfig. This value must have
- * all additional parts at the end stripped off in order to make sure that the
- * Coder app is correctly able to download a repo for a workspace.
+ * The URL that will be exposed via useCoderWorkspacesConfig. This value must
+ * have all additional parts at the end stripped off in order to make sure that
+ * the Coder app is correctly able to download a repo for a workspace.
  */
 export const cleanedRepoUrl = 'https://www.zombo.com';
 
@@ -76,11 +76,21 @@ export const mockEntity: BackstageEntity = {
   },
 };
 
-export const mockCoderEntityConfig: CoderEntityConfig = {
+const mockUrlParams = new URLSearchParams({
+  mode: 'manual',
+  'param.repo': 'custom',
+  'param.region': 'eu-helsinki',
+  'param.custom_repo': 'https%3A%2F%2Fgithub.com%2FParkreiner%2Fpython-project',
+  'param.repo_url': 'https%3A%2F%2Fgithub.com%2FParkreiner%2Fpython-project',
+});
+
+export const mockCoderWorkspacesConfig: CoderWorkspacesConfig = {
   mode: 'manual',
   templateName: 'mock-entity-config',
   repoUrlParamKeys: ['custom_repo', 'repo_url'],
   repoUrl: cleanedRepoUrl,
+  creationUrl: `${cleanedRepoUrl}/templates/mock-entity-config/workspace?${mockUrlParams.toString()}`,
+
   params: {
     repo: 'custom',
     region: 'eu-helsinki',

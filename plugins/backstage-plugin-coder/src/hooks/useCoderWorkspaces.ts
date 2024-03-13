@@ -3,11 +3,11 @@ import { useQuery } from '@tanstack/react-query';
 import { workspaces, workspacesByRepo } from '../api';
 import { useCoderAuth } from '../components/CoderProvider/CoderAuthProvider';
 import { useBackstageEndpoints } from './useBackstageEndpoints';
-import { CoderEntityConfig } from './useCoderEntityConfig';
+import { CoderWorkspacesConfig } from './useCoderWorkspacesConfig';
 
 type UseCoderWorkspacesOptions = Readonly<
   Partial<{
-    repoConfig: CoderEntityConfig;
+    repoConfig: CoderWorkspacesConfig;
   }>
 >;
 

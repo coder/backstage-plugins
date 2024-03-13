@@ -4,7 +4,7 @@ import React, {
   useContext,
 } from 'react';
 
-import type { YamlConfig } from '../../hooks/useCoderEntityConfig';
+import type { YamlConfig } from '../../hooks/useCoderWorkspacesConfig';
 
 export type CoderAppConfig = Readonly<{
   deployment: Readonly<{

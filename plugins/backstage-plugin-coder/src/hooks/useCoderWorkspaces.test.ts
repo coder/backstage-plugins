@@ -2,7 +2,7 @@ import { waitFor } from '@testing-library/react';
 import { useCoderWorkspaces } from './useCoderWorkspaces';
 
 import { renderHookAsCoderEntity } from '../testHelpers/setup';
-import { mockCoderEntityConfig } from '../testHelpers/mockBackstageData';
+import { mockCoderWorkspacesConfig } from '../testHelpers/mockBackstageData';
 
 beforeAll(() => {
   jest.useFakeTimers();
@@ -49,7 +49,7 @@ describe(`${useCoderWorkspaces.name}`, () => {
   it('Will only return workspaces for a given repo when a repoConfig is provided', async () => {
     const { result } = await renderHookAsCoderEntity(() => {
       return useCoderWorkspaces('owner:me', {
-        repoConfig: mockCoderEntityConfig,
+        repoConfig: mockCoderWorkspacesConfig,
       });
     });
 

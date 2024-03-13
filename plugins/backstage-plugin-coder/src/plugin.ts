@@ -152,7 +152,7 @@ export const CoderWorkspacesCardWorkspacesListItem = coderPlugin.provide(
 /**
  * All custom hooks exposed by the plugin.
  */
-export { useCoderEntityConfig } from './hooks/useCoderEntityConfig';
+export { useCoderWorkspacesConfig } from './hooks/useCoderWorkspacesConfig';
 export { useCoderWorkspaces } from './hooks/useCoderWorkspaces';
 export { useWorkspacesCardContext } from './components/CoderWorkspacesCard/Root';
 

@@ -55,7 +55,7 @@ export type YamlConfig = Output<typeof yamlConfigSchema>;
  * Provides a cleaned and pre-processed version of all repo data that can be
  * sourced from CoderAppConfig and any entity data.
  */
-export type CoderEntityConfig =
+export type CoderWorkspacesConfig =
   // Was originally defined in terms of fancy mapped types; ended up being a bad
   // idea, because it increased coupling in a bad way
   Readonly<{
@@ -73,7 +73,7 @@ export function compileCoderConfig(
   appConfig: CoderAppConfig,
   rawYamlConfig: unknown,
   repoUrl: string | undefined,
-): CoderEntityConfig {
+): CoderWorkspacesConfig {
   const { workspaces, deployment } = appConfig;
   const compiledParams: Record<string, string | undefined> = {};
   const yamlConfig = parse(yamlConfigSchema, rawYamlConfig);
@@ -130,13 +130,13 @@ export function compileCoderConfig(
   };
 }
 
-type UseCoderEntityConfigOptions = Readonly<{
+type UseCoderWorkspacesConfigOptions = Readonly<{
   readEntityData?: boolean;
 }>;
 
-export function useCoderEntityConfig({
+export function useCoderWorkspacesConfig({
   readEntityData = false,
-}: UseCoderEntityConfigOptions): CoderEntityConfig {
+}: UseCoderWorkspacesConfigOptions): CoderWorkspacesConfig {
   const appConfig = useCoderAppConfig();
   const { rawYaml, repoUrl } = useDynamicEntity(readEntityData);
 
