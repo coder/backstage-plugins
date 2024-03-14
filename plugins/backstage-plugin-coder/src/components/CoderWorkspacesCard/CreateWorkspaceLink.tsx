@@ -1,9 +1,6 @@
 import React, { type AnchorHTMLAttributes, type ForwardedRef } from 'react';
 import { makeStyles } from '@material-ui/core';
-
-import { useCoderAppConfig } from '../CoderProvider';
 import { useWorkspacesCardContext } from './Root';
-import { serializeWorkspaceUrl } from '../../api';
 
 import { VisuallyHidden } from '../VisuallyHidden';
 import AddIcon from '@material-ui/icons/AddCircleOutline';
@@ -49,23 +46,14 @@ export const CreateWorkspaceLink = ({
   ...delegatedProps
 }: CreateButtonLinkProps) => {
   const styles = useStyles();
-  const appConfig = useCoderAppConfig();
-  const { entityConfig } = useWorkspacesCardContext();
-
-  const activeConfig = {
-    ...appConfig.workspaces,
-    ...(entityConfig ?? {}),
-  };
+  const { workspaceCreationLink } = useWorkspacesCardContext();
 
   return (
     <Tooltip ref={tooltipRef} title={tooltipText} {...tooltipProps}>
       <a
         target={target}
         className={`${styles.root} ${className ?? ''}`}
-        href={serializeWorkspaceUrl(
-          activeConfig,
-          appConfig.deployment.accessUrl,
-        )}
+        href={workspaceCreationLink}
         {...delegatedProps}
       >
         {children ?? <AddIcon />}

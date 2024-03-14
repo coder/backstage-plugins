@@ -14,7 +14,6 @@ const DEFAULT_TAG_NAME = 'devcontainers';
 
 type ProcessorOptions = Readonly<{
   tagName: string;
-  eraseTags: boolean;
   logger: Logger;
 }>;
 
@@ -36,7 +35,6 @@ export class DevcontainersProcessor implements CatalogProcessor {
   static fromConfig(readerConfig: Config, options: ProcessorSetupOptions) {
     const processorOptions: ProcessorOptions = {
       tagName: options.tagName || DEFAULT_TAG_NAME,
-      eraseTags: options.eraseTags ?? false,
       logger: options.logger,
     };
 
@@ -97,7 +95,13 @@ export class DevcontainersProcessor implements CatalogProcessor {
         entityLogger.info('Did not find devcontainer config');
       }
     }
-    return this.eraseTag(entity, DEFAULT_TAG_NAME, entityLogger);
+
+    // When the entity goes through the processing loop again, it will not
+    // contain the devcontainers tag that we added in the previous round, so we
+    // will not need to remove it.  This also means we avoid mistakenly removing
+    // any colliding tag added by the user or another plugin.
+    // https://backstage.io/docs/features/software-catalog/life-of-an-entity/#stitching
+    return entity;
   }
 
   private addTag(entity: Entity, newTag: string, logger: Logger): Entity {
@@ -111,26 +115,6 @@ export class DevcontainersProcessor implements CatalogProcessor {
       metadata: {
         ...entity.metadata,
         tags: [...(entity.metadata?.tags ?? []), newTag],
-      },
-    };
-  }
-
-  private eraseTag(entity: Entity, targetTag: string, logger: Logger): Entity {
-    const skipTagErasure =
-      !this.options.eraseTags ||
-      !Array.isArray(entity.metadata.tags) ||
-      !entity.metadata.tags?.includes(targetTag);
-
-    if (skipTagErasure) {
-      return entity;
-    }
-
-    logger.info(`Removing "${targetTag}" tag from component`);
-    return {
-      ...entity,
-      metadata: {
-        ...entity.metadata,
-        tags: entity.metadata.tags?.filter(tag => tag !== targetTag),
       },
     };
   }
