@@ -1,6 +1,6 @@
 # @coder/backstage-plugin-devcontainers-backend
 
-Automatically detect [development containers (devcontainer) files](https://containers.dev/) in your repositories on GitHub/GitLab/Bitbucket, and have Backstage automatically tag them in the background!
+Automatically detect [development containers (dev container) files](https://containers.dev/) in your repositories on GitHub/GitLab/Bitbucket, and have Backstage automatically tag them in the background!
 
 ## Screenshots
 
@@ -17,7 +17,7 @@ _Note: While this plugin can be used standalone, it has been designed to be a ba
 
 ### When combined with the frontend plugin
 
-- Provides an end-to-end solution for automatically adding/removing devcontainers metadata in your Backstage installation, while letting you read them from custom hooks and components
+- Provides an end-to-end solution for automatically adding/removing dev containers metadata in your Backstage installation, while letting you read them from custom hooks and components
 
 ## Setup
 
@@ -81,7 +81,7 @@ _Note: While this plugin has been developed and published by Coder, no Coder ins
    }
    ```
 
-5. As your provider of choice re-validates data and emits more entity information, `DevcontainersProcessor` will automatically intercept the data and append or remove tags, based on whether the current repository has a devcontainers file! (See our API docs for more info on our [appending/removal process](./docs/classes.md#notes))
+5. As your provider of choice re-validates data and emits more entity information, `DevcontainersProcessor` will automatically intercept the data and append or remove tags, based on whether the current repository has a dev containers file! (See our API docs for more info on our [appending/removal process](./docs/classes.md#notes))
 
 Full example:
 
@@ -125,9 +125,9 @@ export default async function createPlugin(
 
 This plugin lets the user decide how to bring in repository data. As such, the plugin is limited by (1) what data your Backstage repo provider is able to detect, and (2) what API calls your source control manager supports.
 
-Basic devcontainers support has been tested for GitHub, GitLab, and Bitbucket, using their default Backstage data providers. All three are able to detect a devcontainer config file, as long as the file is located in a supported location, as defined by [the official devcontainers specification](https://containers.dev/implementors/spec/#devcontainerjson).
+Basic dev containers support has been tested for GitHub, GitLab, and Bitbucket, using their default Backstage data providers. All three are able to detect a dev container config file, as long as the file is located in a supported location, as defined by [the official dev containers specification](https://containers.dev/implementors/spec/#devcontainerjson).
 
-Other providers can be used, but are not guaranteed to work out of the box. In addition, not all source control managers provide an API for searching for deeply-nested files. In some cases, only the first two devcontainer config locations will be detectable.
+Other providers can be used, but are not guaranteed to work out of the box. In addition, not all source control managers provide an API for searching for deeply-nested files. In some cases, only the first two dev container config locations will be detectable.
 
 We are happy to expand support for other source control managers, though. If you have a specific use case you'd like our help with, feel free to open a new issue!
 

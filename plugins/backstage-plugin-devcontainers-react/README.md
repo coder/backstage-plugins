@@ -14,11 +14,11 @@ _Note: While this plugin can be used standalone, it has been designed to be a fr
 
 ### Standalone features
 
-- Custom hooks for reading your special devcontainer metadata tag inside your repo entities, and providing ready-made links to opening that repo in VS Code
+- Custom hooks for reading your special dev container metadata tag inside your repo entities, and providing ready-made links to opening that repo in VS Code
 
 ### When combined with the backend plugin
 
-- Provides an end-to-end solution for automatically adding/removing devcontainers metadata in your Backstage installation, while letting you read them from custom hooks and components
+- Provides an end-to-end solution for automatically adding/removing dev containers metadata in your Backstage installation, while letting you read them from custom hooks and components
 
 ## Setup
 
@@ -29,7 +29,7 @@ This section will walk you through adding the plugin to your Backstage deploymen
 Ensure that you have the following ready to go:
 
 - A Backstage deployment that you can modify
-- A GitHub/GitLab/Bitbucket repository that contains a `devcontainers.json` file. [VS Code has a quick-start guide for adding devcontainers to a repo](https://code.visualstudio.com/docs/devcontainers/create-dev-container)
+- A GitHub/GitLab/Bitbucket repository that contains a `devcontainers.json` file. [VS Code has a quick-start guide for adding dev containers to a repo](https://code.visualstudio.com/docs/devcontainers/create-dev-container)
 - [Docker](https://docs.docker.com/get-docker/) installed and running locally on your machine
 
 _Note: While this plugin has been developed and published by Coder, no Coder installations are required._
@@ -66,7 +66,7 @@ _Note: While this plugin has been developed and published by Coder, no Coder ins
 
        <Grid item md={6} xs={12}>
          <DevcontainersProvider config={devcontainersConfig}>
-           {/* Content that uses Devcontainers goes here */}
+           {/* Content that uses Dev containers goes here */}
          </DevcontainersProvider>
        </Grid>
 
@@ -77,7 +77,7 @@ _Note: While this plugin has been developed and published by Coder, no Coder ins
    );
    ```
 
-4. If you are trying out the devcontainers functionality, we provide a pre-made `ExampleDevcontainersComponent`. You can include it like so:
+4. If you are trying out the dev containers functionality, we provide a pre-made `ExampleDevcontainersComponent`. You can include it like so:
 
    ```tsx
    // Update imports
@@ -108,11 +108,11 @@ _Note: While this plugin has been developed and published by Coder, no Coder ins
      return (
        {state.hasUrl ? (
          <>
-           <p>Your entity supports devcontainers!</p>
+           <p>Your entity supports dev containers!</p>
            <a href={state.vsCodeUrl}>Click here to launch VS Code</a>
          </>
        ) : (
-         <p>No devcontainers plugin tag detected</p>
+         <p>No dev containers plugin tag detected</p>
        )}
      );
    };
@@ -123,7 +123,7 @@ _Note: While this plugin has been developed and published by Coder, no Coder ins
    </DevcontainersProvider>;
    ```
 
-6. When you click a link to open a devcontainer inside VS Code, you will be prompted to install the official [VS Code Dev Containers extension](https://marketplace.visualstudio.com/items?itemName=ms-vscode-remote.remote-containers) if you don't have it already.
+6. When you click a link to open a dev container inside VS Code, you will be prompted to install the official [VS Code Dev Containers extension](https://marketplace.visualstudio.com/items?itemName=ms-vscode-remote.remote-containers) if you don't have it already.
 
 Have an idea for what kinds of components you would like to see? Feel free to open an issue and make a feature request!
 
