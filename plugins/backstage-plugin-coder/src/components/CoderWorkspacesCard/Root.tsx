@@ -95,18 +95,13 @@ export const Root = ({
   const toggleExpansion = () => {
     setIsExpanded(!isExpanded);
   };
-  const handleKeyDown: React.KeyboardEventHandler<
-    HTMLButtonElement
-  > = event => {
-    if (event.key === 'Enter') {
-      toggleExpansion();
-    }
-  };
 
   const dynamicConfig = useDynamicEntityConfig(readEntityData);
   const workspacesQuery = useCoderWorkspaces(activeFilter, {
     repoConfig: dynamicConfig,
   });
+  const showEntityDataReminder =
+    workspacesQuery.data && dynamicConfig && !dynamicConfig.repoUrl;
 
   const headerId = `${hookId}-header`;
 
@@ -137,11 +132,10 @@ export const Root = ({
               around keyboard input and button children seems like the easiest
               approach */}
           <div role="form">{children}</div>
-          {workspacesQuery.data && dynamicConfig && !dynamicConfig.repoUrl && (
+          {showEntityDataReminder && (
             <div>
               <button
                 onClick={toggleExpansion}
-                onKeyDown={handleKeyDown}
                 type="button"
                 className={styles.button}
               >
@@ -150,11 +144,8 @@ export const Root = ({
               </button>
               {isExpanded && (
                 <p>
-                  The{' '}
-                  <code className={styles.snippet}>EntitySourceLocation</code>{' '}
-                  for this entity has no defined{' '}
-                  <code className={styles.snippet}>locationTargetUrl</code>,
-                  thus all workspaces are displayed. Consider disabling{' '}
+                  This component displays all workspaces when the entity has no
+                  repo URL to filter by. Consider disabling{' '}
                   <code className={styles.snippet}>readEntityData</code>;
                   details in our{' '}
                   <a

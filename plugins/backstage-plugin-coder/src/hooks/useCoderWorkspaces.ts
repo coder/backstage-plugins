@@ -18,13 +18,11 @@ export function useCoderWorkspaces(
   const auth = useCoderAuth();
   const { baseUrl } = useBackstageEndpoints();
   const { repoConfig } = options ?? {};
+  const hasRepoData = repoConfig && repoConfig.repoUrl;
 
-  // query by repo if readEntityData is true &&
-  // if the catalog entity is a repository
-  const queryOptions =
-    repoConfig && repoConfig.repoUrl
-      ? workspacesByRepo({ coderQuery, auth, baseUrl, repoConfig })
-      : workspaces({ coderQuery, auth, baseUrl });
+  const queryOptions = hasRepoData
+    ? workspacesByRepo({ coderQuery, auth, baseUrl, repoConfig })
+    : workspaces({ coderQuery, auth, baseUrl });
 
   return useQuery(queryOptions);
 }
