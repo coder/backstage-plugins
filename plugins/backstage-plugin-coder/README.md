@@ -23,7 +23,7 @@ This assumes you already have a [Coder](https://github.com/coder/coder) deployme
 Replace `https://coder.example.com` with your Coder deployment access URL. This also assumes
 you have a template that has a parameter for a git repository URL (e.g. `git_repo_url`) that auto-clones
 the repository or uses [envbuilder](https://coder.com/docs/v2/latest/templates/devcontainers) to build
-the dev container.
+the Dev Container.
 
 1. If you have a standalone Backstage app (you didn't clone this repo), then do
 

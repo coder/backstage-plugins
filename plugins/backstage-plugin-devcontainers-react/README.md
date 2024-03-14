@@ -14,7 +14,7 @@ _Note: While this plugin can be used standalone, it has been designed to be a fr
 
 ### Standalone features
 
-- Custom hooks for reading your special dev container metadata tag inside your repo entities, and providing ready-made links to opening that repo in VS Code
+- Custom hooks for reading your special Dev Container metadata tag inside your repo entities, and providing ready-made links to opening that repo in VS Code
 
 ### When combined with the backend plugin
 
@@ -123,7 +123,7 @@ _Note: While this plugin has been developed and published by Coder, no Coder ins
    </DevcontainersProvider>;
    ```
 
-6. When you click a link to open a dev container inside VS Code, you will be prompted to install the official [VS Code Dev Containers extension](https://marketplace.visualstudio.com/items?itemName=ms-vscode-remote.remote-containers) if you don't have it already.
+6. When you click a link to open a Dev Container inside VS Code, you will be prompted to install the official [VS Code Dev Containers extension](https://marketplace.visualstudio.com/items?itemName=ms-vscode-remote.remote-containers) if you don't have it already.
 
 Have an idea for what kinds of components you would like to see? Feel free to open an issue and make a feature request!
 

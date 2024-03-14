@@ -2,7 +2,7 @@
 
 ## General notes
 
-- All type definitions for the Dev container plugin are defined as type aliases and not interfaces, to prevent the risk of accidental interface merging. If you need to extend from one of our types, you can do it in one of two ways:
+- All type definitions for the Dev Container plugin are defined as type aliases and not interfaces, to prevent the risk of accidental interface merging. If you need to extend from one of our types, you can do it in one of two ways:
 
   ```tsx
   // Type intersection

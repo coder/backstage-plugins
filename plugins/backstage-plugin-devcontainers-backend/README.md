@@ -1,6 +1,6 @@
 # @coder/backstage-plugin-devcontainers-backend
 
-Automatically detect [development containers (dev container) files](https://containers.dev/) in your repositories on GitHub/GitLab/Bitbucket, and have Backstage automatically tag them in the background!
+Automatically detect [development containers (Dev Container) files](https://containers.dev/) in your repositories on GitHub/GitLab/Bitbucket, and have Backstage automatically tag them in the background!
 
 ## Screenshots
 
@@ -125,9 +125,9 @@ export default async function createPlugin(
 
 This plugin lets the user decide how to bring in repository data. As such, the plugin is limited by (1) what data your Backstage repo provider is able to detect, and (2) what API calls your source control manager supports.
 
-Basic Dev Containers support has been tested for GitHub, GitLab, and Bitbucket, using their default Backstage data providers. All three are able to detect a dev container config file, as long as the file is located in a supported location, as defined by [the official Dev Containers specification](https://containers.dev/implementors/spec/#devcontainerjson).
+Basic Dev Containers support has been tested for GitHub, GitLab, and Bitbucket, using their default Backstage data providers. All three are able to detect a Dev Container config file, as long as the file is located in a supported location, as defined by [the official Dev Containers specification](https://containers.dev/implementors/spec/#devcontainerjson).
 
-Other providers can be used, but are not guaranteed to work out of the box. In addition, not all source control managers provide an API for searching for deeply-nested files. In some cases, only the first two dev container config locations will be detectable.
+Other providers can be used, but are not guaranteed to work out of the box. In addition, not all source control managers provide an API for searching for deeply-nested files. In some cases, only the first two Dev Container config locations will be detectable.
 
 We are happy to expand support for other source control managers, though. If you have a specific use case you'd like our help with, feel free to open a new issue!
 
