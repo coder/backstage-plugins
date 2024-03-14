@@ -66,7 +66,7 @@ export const HeaderRow = ({
   hgroupClassName,
   subheaderClassName,
   activeRepoFilteringText,
-  headerText = 'Coder workspaces',
+  headerText = 'Coder Workspaces',
   fullBleedLayout = true,
   ...delegatedProps
 }: HeaderProps) => {
