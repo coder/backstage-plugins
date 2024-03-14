@@ -18,7 +18,7 @@ _Note: While this plugin can be used standalone, it has been designed to be a fr
 
 ### When combined with the backend plugin
 
-- Provides an end-to-end solution for automatically adding/removing dev containers metadata in your Backstage installation, while letting you read them from custom hooks and components
+- Provides an end-to-end solution for automatically adding/removing Dev Containers metadata in your Backstage installation, while letting you read them from custom hooks and components
 
 ## Setup
 
@@ -29,7 +29,7 @@ This section will walk you through adding the plugin to your Backstage deploymen
 Ensure that you have the following ready to go:
 
 - A Backstage deployment that you can modify
-- A GitHub/GitLab/Bitbucket repository that contains a `devcontainers.json` file. [VS Code has a quick-start guide for adding dev containers to a repo](https://code.visualstudio.com/docs/devcontainers/create-dev-container)
+- A GitHub/GitLab/Bitbucket repository that contains a `devcontainers.json` file. [VS Code has a quick-start guide for adding Dev Containers to a repo](https://code.visualstudio.com/docs/devcontainers/create-dev-container)
 - [Docker](https://docs.docker.com/get-docker/) installed and running locally on your machine
 
 _Note: While this plugin has been developed and published by Coder, no Coder installations are required._
@@ -66,7 +66,7 @@ _Note: While this plugin has been developed and published by Coder, no Coder ins
 
        <Grid item md={6} xs={12}>
          <DevcontainersProvider config={devcontainersConfig}>
-           {/* Content that uses Dev containers goes here */}
+           {/* Content that uses Dev Containers goes here */}
          </DevcontainersProvider>
        </Grid>
 
@@ -77,7 +77,7 @@ _Note: While this plugin has been developed and published by Coder, no Coder ins
    );
    ```
 
-4. If you are trying out the dev containers functionality, we provide a pre-made `ExampleDevcontainersComponent`. You can include it like so:
+4. If you are trying out the Dev Containers functionality, we provide a pre-made `ExampleDevcontainersComponent`. You can include it like so:
 
    ```tsx
    // Update imports
@@ -108,11 +108,11 @@ _Note: While this plugin has been developed and published by Coder, no Coder ins
      return (
        {state.hasUrl ? (
          <>
-           <p>Your entity supports dev containers!</p>
+           <p>Your entity supports Dev Containers!</p>
            <a href={state.vsCodeUrl}>Click here to launch VS Code</a>
          </>
        ) : (
-         <p>No dev containers plugin tag detected</p>
+         <p>No Dev Containers plugin tag detected</p>
        )}
      );
    };

@@ -8,7 +8,7 @@ This is the main documentation page for the frontend Devcontainer plugin's React
 
 ## `useDevcontainers`
 
-This hook gives you access to a set of properties that describe whether the currently-viewed entity has dev containers data.
+This hook gives you access to a set of properties that describe whether the currently-viewed entity has Dev Containers data.
 
 ### Type signature
 
@@ -31,11 +31,11 @@ const YourComponent = () => {
   return (
     {state.hasUrl ? (
       <>
-        <p>Your entity supports dev containers!</p>
+        <p>Your entity supports Dev Containers!</p>
         <a href={state.vsCodeUrl}>Click here to launch VS Code</a>
       </>
     ) : (
-      <p>No devcontainers plugin tag detected</p>
+      <p>No Dev Containers plugin tag detected</p>
     )}
   );
 };

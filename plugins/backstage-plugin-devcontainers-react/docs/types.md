@@ -22,7 +22,7 @@
 
 ## `DevcontainersConfig`
 
-Defines a set of configuration options for setting how the frontend detects whether a repo entity supports the dev containers spec.
+Defines a set of configuration options for setting how the frontend detects whether a repo entity supports the Dev Containers spec.
 
 ### Type definition
 
