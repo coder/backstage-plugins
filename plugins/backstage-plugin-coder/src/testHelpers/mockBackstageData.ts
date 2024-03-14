@@ -92,29 +92,33 @@ export const mockAppConfig = {
   },
 } as const satisfies CoderAppConfig;
 
-export const mockCoderWorkspacesConfig: CoderWorkspacesConfig = {
-  mode: 'auto',
-  templateName: mockYamlConfig.templateName,
-  repoUrlParamKeys: ['custom_repo', 'repo_url'],
-  repoUrl: cleanedRepoUrl,
-
-  creationUrl: `${mockAppConfig.deployment.accessUrl}/templates/${
-    mockYamlConfig.templateName
-  }/workspace?${new URLSearchParams({
+export const mockCoderWorkspacesConfig: CoderWorkspacesConfig = (() => {
+  const urlParams = new URLSearchParams({
     mode: mockYamlConfig.mode,
     'param.repo': mockAppConfig.workspaces.params.repo,
     'param.region': mockYamlConfig.params.region,
     'param.custom_repo': cleanedRepoUrl,
     'param.repo_url': cleanedRepoUrl,
-  })}`,
+  });
 
-  params: {
-    repo: 'custom',
-    region: 'eu-helsinki',
-    custom_repo: cleanedRepoUrl,
-    repo_url: cleanedRepoUrl,
-  },
-};
+  return {
+    mode: 'auto',
+    templateName: mockYamlConfig.templateName,
+    repoUrlParamKeys: ['custom_repo', 'repo_url'],
+    repoUrl: cleanedRepoUrl,
+
+    creationUrl: `${mockAppConfig.deployment.accessUrl}/templates/${
+      mockYamlConfig.templateName
+    }/workspace?${urlParams.toString()}`,
+
+    params: {
+      repo: 'custom',
+      region: 'eu-helsinki',
+      custom_repo: cleanedRepoUrl,
+      repo_url: cleanedRepoUrl,
+    },
+  };
+})();
 
 const authedState = {
   token: mockCoderAuthToken,
