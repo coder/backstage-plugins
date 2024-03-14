@@ -36,7 +36,7 @@ _Note: While this plugin has been developed and published by Coder, no Coder ins
 
 ### Installation
 
-1. From your Backstage deployment's `app` directory, run the following command:
+1. From your Backstage deployment's directory, run the following command:
    ```shell
    yarn --cwd packages/app add @coder/backstage-plugin-devcontainers-react
    ```
