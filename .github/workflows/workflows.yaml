@@ -7,11 +7,13 @@ on:
     branches:
       - main
     paths:
+      - .github/*.yml
       - .github/workflows/*.yaml
   pull_request:
     branches:
       - main
     paths:
+      - .github/*.yml
       - .github/workflows/*.yaml
 
 # Cancel in-progress runs for pull requests when developers push changes.
