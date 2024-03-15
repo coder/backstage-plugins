@@ -1,4 +1,4 @@
-# @coder/backstage-plugin-devcontainers-backend
+# Automatically tag repos with Dev Containers metadata
 
 Automatically detect [development containers (Dev Container) files](https://containers.dev/) in your repositories on GitHub/GitLab/Bitbucket, and have Backstage automatically tag them in the background!
 
