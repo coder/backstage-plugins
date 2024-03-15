@@ -1,6 +1,6 @@
 # Go straight from Backstage to your editor with Dev Containers
 
-Automatically launch fully-contained dev environments with [development containers (devcontainers)](https://containers.dev/), right from Backstage!
+Automatically launch fully-contained dev environments with [development containers (dev containers)](https://containers.dev/), right from Backstage!
 
 ## Screenshots
 
