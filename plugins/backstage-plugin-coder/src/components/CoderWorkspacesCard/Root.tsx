@@ -109,7 +109,9 @@ export const Root = ({
 
   const headerId = `${hookId}-header`;
   const showEntityDataReminder =
-    workspacesQuery.data !== undefined && Boolean(wsConfig.repoUrl);
+    readEntityData &&
+    Boolean(wsConfig.repoUrl) &&
+    workspacesQuery.data !== undefined;
 
   return (
     <CoderAuthWrapper type="card">
