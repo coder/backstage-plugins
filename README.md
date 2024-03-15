@@ -1,3 +1,5 @@
+<img src="./images/banner-image.png" alt="Official Coder plugins for Backstage" />
+
 # Backstage Plugins
 
 A collection of plugins that extend [Backstage](https://backstage.io) to help with developer onboarding, context switching, and automated IDE environments (remote or local).
