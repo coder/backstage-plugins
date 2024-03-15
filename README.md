@@ -2,7 +2,7 @@
 
 # Backstage Plugins
 
-A collection of plugins that extend [Backstage](https://backstage.io) to help with developer onboarding, context switching, and automated IDE environments (remote or local).
+A collection of plugins that extend [Backstage](https://backstage.io) to help with developer onboarding, context switching, and automated IDEs (remote or local).
 
 - [backstage-plugin-coder](./plugins/backstage-plugin-coder): A plugin for integrating Coder workspaces with Backstage.
 - [backstage-plugin-devcontainers-backend](./plugins/backstage-plugin-devcontainers-backend): A plugin for integrating VS Code Dev Containers extension with Backstage catalog items (no Coder deployment necessary).
