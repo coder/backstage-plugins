@@ -1,4 +1,4 @@
-# Open repos directly from Backstage with Dev Containers
+# Go straight from Backstage to your editor with Dev Containers
 
 Automatically launch fully-contained dev environments with [development containers (devcontainers)](https://containers.dev/), right from Backstage!
 
