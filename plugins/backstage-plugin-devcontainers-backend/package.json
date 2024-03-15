@@ -48,7 +48,12 @@
   ],
   "keywords": [
     "backstage",
-    "dev containers",
-    "devcontainers"
+    "devcontainers",
+    "github",
+    "gitlab",
+    "bitbucket",
+    "developer-tools",
+    "ide",
+    "vscode"
   ]
 }
