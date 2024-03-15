@@ -125,6 +125,7 @@ See to the [Coder REST API Reference](https://coder.com/docs/v2/latest/api) for 
 
 This plugin is in active development. The following features are planned:
 
+- [ ] Example component using the Coder API to make authenticated requests on behalf of the user
 - [ ] Add support for only rendering component if `catalog-info.yaml` indicates the item is compatible with Coder
 - [ ] OAuth support (vs. token auth) for linking Coder accounts
 - [ ] "Open in Coder" button/card component for catalog items
