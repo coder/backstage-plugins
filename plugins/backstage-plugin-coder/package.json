@@ -61,6 +61,12 @@
     "dist"
   ],
   "keywords": [
-    "backstage"
+    "backstage",
+    "coder",
+    "developer-tools",
+    "platform",
+    "ide",
+    "vscode",
+    "jetbrains"
   ]
 }
