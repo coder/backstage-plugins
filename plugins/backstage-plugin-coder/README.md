@@ -2,8 +2,6 @@
 
 Create and manage [Coder workspaces](https://coder.com/docs/v2/latest) from Backstage.
 
-<!-- TOOD: Add Loom -->
-
 ## Screenshots
 
 ![Coder authentication](./screenshots/coder-auth.png)
@@ -15,7 +13,6 @@ Create and manage [Coder workspaces](https://coder.com/docs/v2/latest) from Back
 - Users link their Coder accounts with Backstage via tokens
 - Associate Coder workspaces with catalog items in Backstage
 - Workspace list component for viewing and managing workspaces
-<!-- - Full Coder API access for custom plugins & integrations -->
 
 ## Setup
 
@@ -103,23 +100,6 @@ the Dev Container.
      <CoderWorkspacesCard readEntityData />
    </Grid>;
    ```
-
-<!-- Individual components of the card can also be imported. See [the plugin documentation](./docs) for full configuration options and API reference. -->
-
-<!-- ### API Access
-
-The plugin provides a `CoderApi` instance for accessing the Coder API. This can be used in custom plugins and integrations. Here is an example component that lists all templates:
-
-```tsx
-import { useCoder } from '@coder/backstage-plugin-coder';
-
-// TODO. I believe Michael said this is possible today?
-// This can be a very basic component that requires auth
-// and lists all templates in a basic unstyled list
-// with a refresh button
-```
-
-See to the [Coder REST API Reference](https://coder.com/docs/v2/latest/api) for more details -->
 
 ## Roadmap
 
