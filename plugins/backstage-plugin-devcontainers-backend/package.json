@@ -40,7 +40,7 @@
   "devDependencies": {
     "@backstage/cli": "^0.25.1",
     "@types/supertest": "^2.0.12",
-    "msw": "^1.0.0",
+    "msw": "^2.2.3",
     "supertest": "^6.2.4"
   },
   "files": [
