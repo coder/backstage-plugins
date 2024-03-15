@@ -1,5 +1,6 @@
 {
   "name": "@coder/backstage-plugin-devcontainers-backend",
+  "description": "Automatically detect development containers (Dev Container) files in your repositories on GitHub/GitLab/Bitbucket, and have Backstage automatically tag them in the background!",
   "version": "0.0.0",
   "main": "src/index.ts",
   "types": "src/index.ts",
@@ -44,5 +45,15 @@
   },
   "files": [
     "dist"
+  ],
+  "keywords": [
+    "backstage",
+    "devcontainers",
+    "github",
+    "gitlab",
+    "bitbucket",
+    "developer-tools",
+    "ide",
+    "vscode"
   ]
 }

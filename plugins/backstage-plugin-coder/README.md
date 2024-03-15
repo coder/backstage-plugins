@@ -1,4 +1,4 @@
-# @coder/backstage-plugin-coder
+# Integrate Coder Workspaces into Backstage
 
 Create and manage [Coder workspaces](https://coder.com/docs/v2/latest) from Backstage.
 
