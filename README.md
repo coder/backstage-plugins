@@ -4,7 +4,7 @@ A collection of plugins that extend [Backstage](https://backstage.io) to help wi
 
 - [backstage-plugin-coder](./plugins/backstage-plugin-coder/README.md): A plugin for integrating Coder workspaces with Backstage.
 - [backstage-plugin-devcontainers-backend](./plugins/backstage-plugin-devcontainers/README.md): A plugin for integrating VS Code Dev Containers extension with Backstage catalog items (no Coder deployment necessary).
-- [backstage-plugin-devcontainers-react](./plugins/backstage-plugin-devcontainers-react/README.md): A plugin for allowing you to detect and work with devcontainers repo data added by `backstage-plugin-devcontainers-backend`, namely letting you open a repo in VS Code with a full devcontainers setup (no Coder deployment necessary).
+- [backstage-plugin-devcontainers-react](./plugins/backstage-plugin-devcontainers-react/README.md): A plugin for allowing you to detect and work with Dev Containers repo data added by `backstage-plugin-devcontainers-backend`, namely letting you open a repo in VS Code with a full Dev Containers setup (no Coder deployment necessary).
 
 Please use [GitHub issues](https://github.com/coder/backstage-plugins/issues) to report any issues or feature requests.
 

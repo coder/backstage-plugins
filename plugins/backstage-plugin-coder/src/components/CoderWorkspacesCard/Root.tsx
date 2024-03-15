@@ -4,7 +4,7 @@ import React, {
   useContext,
   useState,
 } from 'react';
-
+import { makeStyles } from '@material-ui/core';
 import { useId } from '../../hooks/hookPolyfills';
 import { UseQueryResult } from '@tanstack/react-query';
 import {
@@ -16,6 +16,7 @@ import type { Workspace } from '../../typesConstants';
 import { useCoderWorkspacesQuery } from '../../hooks/useCoderWorkspacesQuery';
 import { Card } from '../Card';
 import { CoderAuthWrapper } from '../CoderAuthWrapper';
+import { VisuallyHidden } from '../VisuallyHidden';
 
 type WorkspacesCardContext = Readonly<{
   queryFilter: string;
@@ -27,6 +28,22 @@ type WorkspacesCardContext = Readonly<{
 
 const CardContext = createContext<WorkspacesCardContext | null>(null);
 
+const useStyles = makeStyles(theme => ({
+  button: {
+    color: theme.palette.type,
+    backgroundColor: theme.palette.background.paper,
+    border: 'none',
+    paddingTop: theme.spacing(2),
+    fontSize: theme.typography.body2.fontSize,
+    cursor: 'pointer',
+  },
+
+  snippet: {
+    backgroundColor: theme.palette.grey[100],
+    borderRadius: '0.4em',
+  },
+}));
+
 export type WorkspacesCardProps = Readonly<
   Omit<HTMLAttributes<HTMLDivElement>, 'role' | 'aria-labelledby'> & {
     queryFilter?: string;
@@ -35,6 +52,42 @@ export type WorkspacesCardProps = Readonly<
     readEntityData?: boolean;
   }
 >;
+
+const DataReminder = () => {
+  const [isExpanded, setIsExpanded] = useState(false);
+  const styles = useStyles();
+
+  return (
+    <div>
+      <button
+        type="button"
+        onClick={() => setIsExpanded(!isExpanded)}
+        className={styles.button}
+      >
+        {isExpanded ? '▼' : '►'}{' '}
+        {isExpanded ? 'Hide text' : 'Why am I seeing all workspaces?'}
+      </button>
+
+      {isExpanded && (
+        <p>
+          This component displays all workspaces when the entity has no repo URL
+          to filter by. Consider disabling{' '}
+          <code className={styles.snippet}>readEntityData</code>;{' '}
+          <a
+            href="https://github.com/coder/backstage-plugins/blob/main/plugins/backstage-plugin-coder/docs/components.md#notes-4"
+            rel="noopener noreferrer"
+            target="_blank"
+            style={{ textDecoration: 'underline', color: 'inherit' }}
+          >
+            details in our docs
+            <VisuallyHidden> (link opens in new tab)</VisuallyHidden>
+          </a>
+          .
+        </p>
+      )}
+    </div>
+  );
+};
 
 export const Root = ({
   children,
@@ -55,6 +108,8 @@ export const Root = ({
   });
 
   const headerId = `${hookId}-header`;
+  const showEntityDataReminder =
+    workspacesQuery.data !== undefined && Boolean(wsConfig.repoUrl);
 
   return (
     <CoderAuthWrapper type="card">
@@ -83,6 +138,7 @@ export const Root = ({
               cases around keyboard input and button children that native <form>
               elements automatically introduce */}
           <div role="form">{children}</div>
+          {showEntityDataReminder && <DataReminder />}
         </Card>
       </CardContext.Provider>
     </CoderAuthWrapper>
@@ -91,7 +147,6 @@ export const Root = ({
 
 export function useWorkspacesCardContext(): WorkspacesCardContext {
   const contextValue = useContext(CardContext);
-
   if (contextValue === null) {
     throw new Error(
       `Not calling ${useWorkspacesCardContext.name} from inside a ${Root.name}`,

@@ -104,8 +104,8 @@ export const CoderAuthInputForm = () => {
       <div>
         <CoderLogo className={styles.coderLogo} />
         <p>
-          Your Coder session token is {mapAuthStatusToText(status)}. Please
-          enter a new token from your{' '}
+          Link your Coder account to create remote workspaces. Please enter a
+          new token from your{' '}
           <Link
             to={`${appConfig.deployment.accessUrl}/cli-auth`}
             target="_blank"
@@ -162,20 +162,3 @@ export const CoderAuthInputForm = () => {
     </form>
   );
 };
-
-function mapAuthStatusToText(status: CoderAuthStatus): string {
-  switch (status) {
-    case 'tokenMissing': {
-      return 'missing';
-    }
-
-    case 'initializing':
-    case 'authenticating': {
-      return status;
-    }
-
-    default: {
-      return 'invalid';
-    }
-  }
-}

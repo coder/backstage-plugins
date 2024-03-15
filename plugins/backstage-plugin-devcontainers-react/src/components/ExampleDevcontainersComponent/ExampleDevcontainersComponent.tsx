@@ -29,14 +29,14 @@ export const ExampleDevcontainersComponent = () => {
 
       {state.hasUrl ? (
         <>
-          <p>Your entity supports devcontainers!</p>
+          <p>Your entity supports Dev Containers!</p>
           <a href={state.vsCodeUrl} className={styles.link}>
             Click here to launch VSCode
             <VisuallyHidden> (link opens in new tab)</VisuallyHidden>
           </a>
         </>
       ) : (
-        <p>No devcontainers plugin tag detected</p>
+        <p>No Dev Containers plugin tag detected</p>
       )}
     </InfoCard>
   );

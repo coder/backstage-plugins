@@ -12,8 +12,8 @@ This component is designed as a lightweight demonstration of the main [`useDevco
 
 Its main functionality is:
 
-- Detecting whether the current repo entity being viewed supports has been tagged with the configured devcontainers tag (as defined by the config options in [`DevcontainersConfig`](./types.md#devcontainersconfig))
-- Displaying a link to launch the repo in a devcontainer via VS Code.
+- Detecting whether the current repo entity being viewed supports has been tagged with the configured Dev Containers tag (as defined by the config options in [`DevcontainersConfig`](./types.md#devcontainersconfig))
+- Displaying a link to launch the repo in a Dev Container via VS Code.
 
 It does not have support for extensibility.
 

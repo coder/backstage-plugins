@@ -173,7 +173,7 @@ export const ExtraActionsButton = ({
             closeMenu();
           }}
         >
-          Refresh workspaces list
+          Refresh
         </MenuItem>
 
         <MenuItem
@@ -182,7 +182,7 @@ export const ExtraActionsButton = ({
             closeMenu();
           }}
         >
-          Eject token
+          Unlink Coder account
         </MenuItem>
       </Menu>
     </>
