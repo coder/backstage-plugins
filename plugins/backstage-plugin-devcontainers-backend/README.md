@@ -32,7 +32,7 @@ _Note: While this plugin has been developed and published by Coder, no Coder ins
 
 ### Installation
 
-1. From your Backstage deployment's `backend` directory, run the following command:
+1. From your Backstage deployment, run the following command:
    ```shell
    yarn --cwd packages/backend add @coder/backstage-plugin-devcontainers-backend
    ```
