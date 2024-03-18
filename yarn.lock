@@ -3909,24 +3909,24 @@
     react-helmet "6.1.0"
     react-use "^17.2.4"
 
-"@backstage/plugin-user-settings@^0.8.0":
-  version "0.8.0"
-  resolved "https://registry.yarnpkg.com/@backstage/plugin-user-settings/-/plugin-user-settings-0.8.0.tgz#a82c10651b559b15b2fdd12652388705fdbb9d2c"
-  integrity sha512-H6tNvjqLWiSM3MS/sBkKdrUGgT7ou7DMPXYWy6dl1bSRMLeYrmLwH7gjbkwhAo6wojjCG6cbcnWOFcYZ9EQHoA==
+"@backstage/plugin-user-settings@^0.8.1":
+  version "0.8.1"
+  resolved "https://registry.yarnpkg.com/@backstage/plugin-user-settings/-/plugin-user-settings-0.8.1.tgz#f5a345e1a4f63f67227cf134c8d57732b3d963ab"
+  integrity sha512-lVJ3Vn3C9TPOvxEgl2Dd9E83rz9tnrCFELzaCBud/tEAO8cXNskD1Xlhf0GgXbOMsQ515udBSLoApiKHaHdU3w==
   dependencies:
-    "@backstage/core-app-api" "^1.11.3"
-    "@backstage/core-compat-api" "^0.1.1"
-    "@backstage/core-components" "^0.13.10"
-    "@backstage/core-plugin-api" "^1.8.2"
+    "@backstage/core-app-api" "^1.12.0"
+    "@backstage/core-compat-api" "^0.2.0"
+    "@backstage/core-components" "^0.14.0"
+    "@backstage/core-plugin-api" "^1.9.0"
     "@backstage/errors" "^1.2.3"
-    "@backstage/frontend-plugin-api" "^0.5.0"
-    "@backstage/plugin-catalog-react" "^1.9.3"
-    "@backstage/theme" "^0.5.0"
+    "@backstage/frontend-plugin-api" "^0.6.0"
+    "@backstage/plugin-catalog-react" "^1.10.0"
+    "@backstage/theme" "^0.5.1"
     "@backstage/types" "^1.1.1"
     "@material-ui/core" "^4.12.2"
     "@material-ui/icons" "^4.9.1"
     "@material-ui/lab" "4.0.0-alpha.61"
-    "@types/react" "^16.13.1 || ^17.0.0"
+    "@types/react" "^16.13.1 || ^17.0.0 || ^18.0.0"
     react-use "^17.2.4"
     zen-observable "^0.10.0"
 
@@ -9672,7 +9672,7 @@ anymatch@^3.0.3, anymatch@~3.1.2:
     "@backstage/plugin-techdocs" "^1.9.3"
     "@backstage/plugin-techdocs-module-addons-contrib" "^1.1.4"
     "@backstage/plugin-techdocs-react" "^1.1.15"
-    "@backstage/plugin-user-settings" "^0.8.0"
+    "@backstage/plugin-user-settings" "^0.8.1"
     "@backstage/theme" "^0.5.0"
     "@coder/backstage-plugin-coder" "0.0.0"
     "@coder/backstage-plugin-devcontainers-react" "0.0.0"
