@@ -15,7 +15,7 @@ const mockEntity: BackstageEntity = {
   kind: 'Component',
   metadata: {
     name: 'metadata',
-    tags: [mockTagName],
+    tags: [mockTagName, 'other', 'random', 'values'],
     annotations: {
       [ANNOTATION_SOURCE_LOCATION]: `${mockUrlRoot}/tree/main`,
     },
@@ -43,7 +43,7 @@ describe(`${useDevcontainers.name}`, () => {
     expect(result.current.vsCodeUrl).toBe(undefined);
   });
 
-  it('Provides a VS Code-formatted link when the current entity has a devcontainers tag', () => {
+  it('Provides a VS Code-formatted link when the current entity has a designated devcontainers tag', () => {
     const { result } = render(mockTagName);
     expect(result.current.vsCodeUrl).toEqual(
       `vscode://ms-vscode-remote.remote-containers/cloneInVolume?url=${mockUrlRoot}`,
