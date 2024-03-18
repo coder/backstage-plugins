@@ -4,7 +4,6 @@ import React, {
   useContext,
   useState,
 } from 'react';
-import { makeStyles } from '@material-ui/core';
 import { useId } from '../../hooks/hookPolyfills';
 import { UseQueryResult } from '@tanstack/react-query';
 import {
@@ -16,8 +15,9 @@ import type { Workspace } from '../../typesConstants';
 import { useCoderWorkspaces } from '../../hooks/useCoderWorkspaces';
 import { Card } from '../Card';
 import { CoderAuthWrapper } from '../CoderAuthWrapper';
-import { VisuallyHidden } from '../VisuallyHidden';
+
 import { type CoderWorkspaceConfig, useCoderAppConfig } from '../CoderProvider';
+import { EntityDataReminder } from './EntityDataReminder';
 
 type WorkspacesCardContext = Readonly<{
   queryFilter: string;
@@ -29,22 +29,6 @@ type WorkspacesCardContext = Readonly<{
 }>;
 
 const CardContext = createContext<WorkspacesCardContext | null>(null);
-
-const useStyles = makeStyles(theme => ({
-  button: {
-    color: theme.palette.type,
-    backgroundColor: theme.palette.background.paper,
-    border: 'none',
-    paddingTop: theme.spacing(2),
-    fontSize: theme.typography.body2.fontSize,
-    cursor: 'pointer',
-  },
-
-  snippet: {
-    backgroundColor: theme.palette.grey[100],
-    borderRadius: '0.4em',
-  },
-}));
 
 export type WorkspacesCardProps = Readonly<
   Omit<HTMLAttributes<HTMLDivElement>, 'role' | 'aria-labelledby'> & {
@@ -64,29 +48,26 @@ export const Root = ({
   readEntityData = false,
   ...delegatedProps
 }: WorkspacesCardProps) => {
-  const styles = useStyles();
   const hookId = useId();
   const appConfig = useCoderAppConfig();
   const [innerFilter, setInnerFilter] = useState(defaultQueryFilter);
   const activeFilter = outerFilter ?? innerFilter;
 
-  const [isExpanded, setIsExpanded] = useState(false);
-  const toggleExpansion = () => {
-    setIsExpanded(!isExpanded);
-  };
-
   const dynamicConfig = useDynamicEntityConfig(readEntityData);
   const workspacesQuery = useCoderWorkspaces(activeFilter, {
     repoConfig: dynamicConfig,
   });
-  const showEntityDataReminder =
-    workspacesQuery.data && dynamicConfig && !dynamicConfig.repoUrl;
 
   const headerId = `${hookId}-header`;
   const activeConfig = {
     ...appConfig.workspaces,
     ...(dynamicConfig ?? {}),
   };
+
+  const showEntityDataReminder =
+    workspacesQuery.data !== undefined &&
+    dynamicConfig !== undefined &&
+    !dynamicConfig.repoUrl;
 
   return (
     <CoderAuthWrapper type="card">
@@ -119,36 +100,7 @@ export const Root = ({
               cases around keyboard input and button children that native <form>
               elements automatically introduce */}
           <div role="form">{children}</div>
-          {showEntityDataReminder && (
-            <div>
-              <button
-                onClick={toggleExpansion}
-                type="button"
-                className={styles.button}
-              >
-                {isExpanded ? '▼' : '►'}{' '}
-                {isExpanded ? 'Hide text' : 'Why am I seeing all workspaces?'}
-              </button>
-              {isExpanded && (
-                <p>
-                  This component displays all workspaces when the entity has no
-                  repo URL to filter by. Consider disabling{' '}
-                  <code className={styles.snippet}>readEntityData</code>;
-                  details in our{' '}
-                  <a
-                    href="https://github.com/coder/backstage-plugins/blob/main/plugins/backstage-plugin-coder/docs/components.md#notes-4"
-                    rel="noopener noreferrer"
-                    target="_blank"
-                    style={{ textDecoration: 'underline', color: 'inherit' }}
-                  >
-                    docs
-                    <VisuallyHidden> (link opens in new tab)</VisuallyHidden>
-                  </a>
-                  .
-                </p>
-              )}
-            </div>
-          )}
+          {showEntityDataReminder && <EntityDataReminder />}
         </Card>
       </CardContext.Provider>
     </CoderAuthWrapper>
