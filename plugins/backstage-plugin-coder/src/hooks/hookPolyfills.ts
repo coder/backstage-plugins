@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import React, { useState } from 'react';
 
 let idCounter = 0;
 
@@ -13,14 +13,17 @@ let idCounter = 0;
  *
  * @see {@link https://react.dev/reference/react/useId}
  */
-export function useId(): string {
-  // Dirty initialiation - this does break the "renders should always be pure"
+function useIdPolyfill(): string {
+  // Dirty initialization - this does break the "renders should always be pure"
   // rule, but it's being done in a controlled way, and there's no other way to
   // ensure a truly unique value is available on the very first render.
-  const [readonlyIdRoot] = useState(() => {
+  const [readonlyId] = useState(() => {
     idCounter++;
-    return String(idCounter);
+    return `:r${idCounter}:`;
   });
 
-  return `:r${readonlyIdRoot}:`;
+  return readonlyId;
 }
+
+export const useId =
+  typeof React.useId === 'undefined' ? useIdPolyfill : React.useId;
