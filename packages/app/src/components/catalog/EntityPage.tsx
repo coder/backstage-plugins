@@ -160,7 +160,7 @@ const overviewContent = (
 
     <Grid item md={6} xs={12}>
       <CoderProvider appConfig={coderAppConfig}>
-        <CoderWorkspacesCard />
+        <CoderWorkspacesCard readEntityData />
       </CoderProvider>
     </Grid>
 
