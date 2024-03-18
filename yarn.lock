@@ -2780,19 +2780,7 @@
     "@backstage/config" "^1.1.1"
     "@backstage/errors" "^1.2.3"
 
-"@backstage/integration-react@^1.1.23":
-  version "1.1.23"
-  resolved "https://registry.yarnpkg.com/@backstage/integration-react/-/integration-react-1.1.23.tgz#259bcfcf450ff5fdb6f51604649e976cb3385db4"
-  integrity sha512-3cFQyWl6mVH6z1cVTJ8aZZdwk4+wsGZkk6smtOpoamSZ7PtodR+V3ZXU/eeb3Sz2GCMUK/r9XWmOnPF1+nuEpw==
-  dependencies:
-    "@backstage/config" "^1.1.1"
-    "@backstage/core-plugin-api" "^1.8.2"
-    "@backstage/integration" "^1.8.0"
-    "@material-ui/core" "^4.12.2"
-    "@material-ui/icons" "^4.9.1"
-    "@types/react" "^16.13.1 || ^17.0.0"
-
-"@backstage/integration-react@^1.1.24":
+"@backstage/integration-react@^1.1.23", "@backstage/integration-react@^1.1.24":
   version "1.1.24"
   resolved "https://registry.yarnpkg.com/@backstage/integration-react/-/integration-react-1.1.24.tgz#2ae41ca6ad73cf5064bbe988229f0c942ba39198"
   integrity sha512-C7aIYFCU14drZx9k0knDZeY4uq4oN5gbI4OVYJtQFVdZlgWwUuycxtw8ar9XAEzIl+UgPcpIpIWsbvOLBb8Qaw==
@@ -3809,20 +3797,20 @@
     p-limit "^3.1.0"
     winston "^3.2.1"
 
-"@backstage/plugin-techdocs-module-addons-contrib@^1.1.4":
-  version "1.1.4"
-  resolved "https://registry.yarnpkg.com/@backstage/plugin-techdocs-module-addons-contrib/-/plugin-techdocs-module-addons-contrib-1.1.4.tgz#91338470076ae0a15b05c27a9bd8d43b2c0d6d5b"
-  integrity sha512-Eht9iQ2MdQioRRzFE4xPmFH726sIbr1mh75jw1uefiI05z3ZyNR3LslecDN2KCXsTQUt5zgN4aQwsacjifdhSQ==
+"@backstage/plugin-techdocs-module-addons-contrib@^1.1.5":
+  version "1.1.5"
+  resolved "https://registry.yarnpkg.com/@backstage/plugin-techdocs-module-addons-contrib/-/plugin-techdocs-module-addons-contrib-1.1.5.tgz#a590fa2d0db5026300d44103e5499d2e2d987378"
+  integrity sha512-AP6wnawcTD3ElV9WddxuaXx3m8cEupWTsIaIHYJ27fN1XFqcsFdQ1g9yMxv3v58ie+em+LvvqvdEAdI4co6HnA==
   dependencies:
-    "@backstage/core-components" "^0.13.10"
-    "@backstage/core-plugin-api" "^1.8.2"
-    "@backstage/integration" "^1.8.0"
-    "@backstage/integration-react" "^1.1.23"
-    "@backstage/plugin-techdocs-react" "^1.1.15"
+    "@backstage/core-components" "^0.14.0"
+    "@backstage/core-plugin-api" "^1.9.0"
+    "@backstage/integration" "^1.9.0"
+    "@backstage/integration-react" "^1.1.24"
+    "@backstage/plugin-techdocs-react" "^1.1.16"
     "@material-ui/core" "^4.12.2"
     "@material-ui/icons" "^4.9.1"
-    "@react-hookz/web" "^23.0.0"
-    git-url-parse "^13.0.0"
+    "@react-hookz/web" "^24.0.0"
+    git-url-parse "^14.0.0"
     photoswipe "^5.3.7"
 
 "@backstage/plugin-techdocs-node@^1.11.1":
@@ -3859,19 +3847,19 @@
     recursive-readdir "^2.2.2"
     winston "^3.2.1"
 
-"@backstage/plugin-techdocs-react@^1.1.15":
-  version "1.1.15"
-  resolved "https://registry.yarnpkg.com/@backstage/plugin-techdocs-react/-/plugin-techdocs-react-1.1.15.tgz#6902aa7e95c652995c92f3ecd712de998b1d5c70"
-  integrity sha512-Kc1nhVN//Dt+7+EvPFNu0RtRfT+F7TApZZ9TQP3zabLJTGDms3aKWZJJhNHCE3e5QlXX4uuUMojQaHGEjjbF3w==
+"@backstage/plugin-techdocs-react@^1.1.15", "@backstage/plugin-techdocs-react@^1.1.16":
+  version "1.1.16"
+  resolved "https://registry.yarnpkg.com/@backstage/plugin-techdocs-react/-/plugin-techdocs-react-1.1.16.tgz#e71757282b450708184058f2e3c7124c3909a454"
+  integrity sha512-AQd373U13riDaWbPg+EiyIqNh4T00tM2OviDPmY0DjV2TCNOGczH/WiNt3y/Q56HYBvN02vbmGt1RnjBlvkQKw==
   dependencies:
-    "@backstage/catalog-model" "^1.4.3"
+    "@backstage/catalog-model" "^1.4.4"
     "@backstage/config" "^1.1.1"
-    "@backstage/core-components" "^0.13.10"
-    "@backstage/core-plugin-api" "^1.8.2"
+    "@backstage/core-components" "^0.14.0"
+    "@backstage/core-plugin-api" "^1.9.0"
     "@backstage/version-bridge" "^1.0.7"
     "@material-ui/core" "^4.12.2"
     "@material-ui/styles" "^4.11.0"
-    "@types/react" "^16.13.1 || ^17.0.0"
+    "@types/react" "^16.13.1 || ^17.0.0 || ^18.0.0"
     jss "~10.10.0"
     lodash "^4.17.21"
     react-helmet "6.1.0"
@@ -9670,7 +9658,7 @@ anymatch@^3.0.3, anymatch@~3.1.2:
     "@backstage/plugin-search-react" "^1.7.5"
     "@backstage/plugin-tech-radar" "^0.6.12"
     "@backstage/plugin-techdocs" "^1.9.3"
-    "@backstage/plugin-techdocs-module-addons-contrib" "^1.1.4"
+    "@backstage/plugin-techdocs-module-addons-contrib" "^1.1.5"
     "@backstage/plugin-techdocs-react" "^1.1.15"
     "@backstage/plugin-user-settings" "^0.8.0"
     "@backstage/theme" "^0.5.0"
