@@ -1,13 +1,25 @@
 import React, { useState } from 'react';
 import { useId } from '../../hooks/hookPolyfills';
-import { makeStyles } from '@material-ui/core';
+import { Theme, makeStyles } from '@material-ui/core';
 import { VisuallyHidden } from '../VisuallyHidden';
+import { useWorkspacesCardContext } from './Root';
 
-const useStyles = makeStyles(theme => ({
-  root: {
-    borderTop: `1px solid ${theme.palette.divider}`,
+type UseStyleProps = Readonly<{
+  hasData: boolean;
+}>;
+
+type UseStyleKeys =
+  | 'root'
+  | 'button'
+  | 'disclosureTriangle'
+  | 'disclosureBody'
+  | 'snippet';
+
+const useStyles = makeStyles<Theme, UseStyleProps, UseStyleKeys>(theme => ({
+  root: ({ hasData }) => ({
     paddingTop: theme.spacing(1),
-  },
+    borderTop: hasData ? 'none' : `1px solid ${theme.palette.divider}`,
+  }),
 
   button: {
     width: '100%',
@@ -55,8 +67,9 @@ const useStyles = makeStyles(theme => ({
 }));
 
 export const EntityDataReminder = () => {
-  const styles = useStyles();
   const [isExpanded, setIsExpanded] = useState(false);
+  const { workspacesQuery } = useWorkspacesCardContext();
+  const styles = useStyles({ hasData: workspacesQuery.data !== undefined });
 
   const hookId = useId();
   const disclosureBodyId = `${hookId}-disclosure-body`;
