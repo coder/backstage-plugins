@@ -79,6 +79,7 @@ export class DevcontainersProcessor implements CatalogProcessor {
       name: entity.metadata.name,
       rootUrl,
     });
+
     try {
       const jsonUrl = await this.findDevcontainerJson(rootUrl, entityLogger);
       entityLogger.info('Found devcontainer config', { url: jsonUrl });
@@ -146,6 +147,7 @@ export class DevcontainersProcessor implements CatalogProcessor {
       '.devcontainer/devcontainer.json',
       '.devcontainer.json',
     ];
+
     for (const location of staticLocations) {
       // TODO: We could possibly store the ETag of the devcontainer we last
       // found and include that in the request, which should result in less
@@ -170,9 +172,11 @@ export class DevcontainersProcessor implements CatalogProcessor {
     const globUrl = `${rootUrl}/.devcontainer/*/devcontainer.json`;
     const res = await this.urlReader.search(globUrl);
     const url = res.files[0]?.url;
+
     if (url === undefined) {
       throw new NotFoundError(`${globUrl} did not match any files`);
     }
+
     return url;
   }
 }
