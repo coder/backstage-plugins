@@ -63,19 +63,21 @@ describe(`${DevcontainersProcessor.name}`, () => {
       ];
 
       const processor = makeProcessor();
-      for (const kind of otherEntityKinds) {
-        const inputEntity = { ...baseEntity, kind };
-        const inputSnapshot = structuredClone(inputEntity);
+      await Promise.all(
+        otherEntityKinds.map(async kind => {
+          const inputEntity = { ...baseEntity, kind };
+          const inputSnapshot = structuredClone(inputEntity);
 
-        const outputEntity = await processor.preProcessEntity(
-          inputEntity,
-          baseLocation,
-          jest.fn(),
-        );
+          const outputEntity = await processor.preProcessEntity(
+            inputEntity,
+            baseLocation,
+            jest.fn(),
+          );
 
-        expect(outputEntity).toBe(inputEntity);
-        expect(outputEntity).toEqual(inputSnapshot);
-      }
+          expect(outputEntity).toBe(inputEntity);
+          expect(outputEntity).toEqual(inputSnapshot);
+        }),
+      );
     });
 
     it("Returns an unmodified component entity when the entity's repo does not match the devcontainers pattern", async () => {
