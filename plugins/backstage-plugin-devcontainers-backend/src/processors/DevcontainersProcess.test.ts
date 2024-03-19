@@ -17,7 +17,7 @@ const baseEntity: Entity = {
   kind: 'Component',
   metadata: {
     name: 'metadata',
-    tags: [],
+    tags: [], // Purposefully left empty
     annotations: {
       [ANNOTATION_SOURCE_LOCATION]: `${mockUrlRoot}/tree/main`,
     },
@@ -102,33 +102,25 @@ describe(`${DevcontainersProcessor.name}`, () => {
     });
 
     it("Produces a new component entity with the devcontainers tag when the entity's repo matches the devcontainers pattern", async () => {
-      const inputEntity: Entity = {
-        ...baseEntity,
-        metadata: {
-          ...baseEntity.metadata,
-          tags: [DEFAULT_TAG_NAME],
-        },
-      };
-
-      const inputSnapshot = structuredClone(inputEntity);
+      const inputSnapshot = structuredClone(baseEntity);
       const processor = makeProcessor(DEFAULT_TAG_NAME);
 
       const outputEntity = await processor.preProcessEntity(
-        inputEntity,
+        baseEntity,
         baseLocation,
         jest.fn(),
       );
 
       // Assert no mutations
-      expect(outputEntity).not.toEqual(inputEntity);
-      expect(inputEntity.metadata.tags).toBe(inputSnapshot.metadata.tags);
-      expect(inputEntity).toEqual(inputSnapshot);
+      expect(outputEntity).not.toEqual(baseEntity);
+      expect(baseEntity.metadata.tags).toBe(inputSnapshot.metadata.tags);
+      expect(baseEntity).toEqual(inputSnapshot);
 
       // Assert that tag was appended
       expect(outputEntity.metadata.tags).toContain(DEFAULT_TAG_NAME);
     });
 
-    it('Creates new entity with custom devcontainers tag if provided', async () => {
+    it('Creates new entity by using custom devcontainers tag when it is provided', async () => {
       // 99% sure that this test case will fail with our current code; use TDD
       // to assert that the user code is not working, and then fix the issue
       expect.hasAssertions();
