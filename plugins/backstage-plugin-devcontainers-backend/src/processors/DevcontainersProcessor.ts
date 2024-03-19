@@ -27,7 +27,7 @@ type ProcessorSetupOptions = Readonly<
 const STATIC_DEVCONTAINERS_LOCATIONS = [
   '.devcontainer/devcontainer.json',
   '.devcontainer.json',
-];
+] as const satisfies readonly string[];
 
 export class DevcontainersProcessor implements CatalogProcessor {
   private readonly urlReader: UrlReader;
