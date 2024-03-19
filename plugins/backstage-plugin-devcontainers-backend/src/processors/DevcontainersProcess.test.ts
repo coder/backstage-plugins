@@ -81,7 +81,22 @@ describe(`${DevcontainersProcessor.name}`, () => {
     });
 
     it("Returns an unmodified component entity when the entity's repo does not match the devcontainers pattern", async () => {
-      expect.hasAssertions();
+      const invalidLocation: LocationSpec = {
+        ...baseLocation,
+        target: 'definitely not valid',
+      };
+
+      const processor = makeProcessor();
+      const inputSnapshot = structuredClone(baseEntity);
+
+      const outputEntity = await processor.preProcessEntity(
+        baseEntity,
+        invalidLocation,
+        jest.fn(),
+      );
+
+      expect(outputEntity).toBe(baseEntity);
+      expect(outputEntity).toEqual(inputSnapshot);
     });
 
     it("Produces a new component entity with the devcontainers tag when the entity's repo matches the devcontainers pattern", async () => {
