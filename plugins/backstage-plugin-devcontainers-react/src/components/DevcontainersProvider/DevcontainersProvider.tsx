@@ -5,7 +5,7 @@ import React, {
   useMemo,
 } from 'react';
 
-const DEFAULT_DEVCONTAINERS_TAG = 'devcontainers-plugin';
+export const DEFAULT_DEVCONTAINERS_TAG = 'devcontainers-plugin';
 
 export type DevcontainersConfig = Readonly<{
   /**
