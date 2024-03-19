@@ -29,8 +29,7 @@ const baseEntity: Entity = {
 const baseLocation: LocationSpec = {
   type: 'Component',
   presence: 'optional',
-  target:
-    'https://github.com/Parkreiner/python-project/blob/main/catalog-info.yaml',
+  target: `${mockUrlRoot}/blob/main/catalog-info.yaml`,
 };
 
 function makeProcessor(tagName?: string): DevcontainersProcessor {
@@ -103,32 +102,33 @@ describe(`${DevcontainersProcessor.name}`, () => {
       expect(outputEntity).toEqual(inputSnapshot);
     });
 
-    it("Produces a new component entity with the devcontainers tag when the entity's repo matches the devcontainers pattern", async () => {
-      const inputSnapshot = structuredClone(baseEntity);
+    it.only("Produces a new component entity with the devcontainers tag when the entity's repo matches the devcontainers pattern", async () => {
+      const inputEntity = { ...baseEntity };
+      const inputSnapshot = structuredClone(inputEntity);
       const processor = makeProcessor(DEFAULT_TAG_NAME);
 
       const outputEntity = await processor.preProcessEntity(
-        baseEntity,
+        inputEntity,
         baseLocation,
         jest.fn(),
       );
 
       // Assert no mutations
-      expect(outputEntity).not.toEqual(baseEntity);
-      expect(baseEntity.metadata.tags).toBe(inputSnapshot.metadata.tags);
-      expect(baseEntity).toEqual(inputSnapshot);
+      expect(outputEntity).not.toEqual(inputEntity);
+      expect(inputEntity.metadata.tags).toEqual(inputSnapshot.metadata.tags);
+      expect(inputEntity).toEqual(inputSnapshot);
 
       // Assert that tag was appended
       expect(outputEntity.metadata.tags).toContain(DEFAULT_TAG_NAME);
     });
 
-    it.skip('Creates new entity by using custom devcontainers tag when it is provided', async () => {
+    it('Creates new entity by using custom devcontainers tag when it is provided', async () => {
       // 99% sure that this test case will fail with our current code; use TDD
       // to assert that the user code is not working, and then fix the issue
       expect.hasAssertions();
     });
 
-    it.skip('Emits an error when a component entity supports devcontainers, but the repo query fails', async () => {
+    it('Emits an error when a component entity supports devcontainers, but the repo query fails', async () => {
       const emitter: CatalogProcessorEmit = jest.fn();
       expect(emitter).toHaveBeenCalled();
     });
