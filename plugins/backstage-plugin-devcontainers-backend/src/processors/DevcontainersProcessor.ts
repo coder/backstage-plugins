@@ -160,8 +160,6 @@ export class DevcontainersProcessor implements CatalogProcessor {
       // going off about every two minutes so it might be worth it.
       try {
         const fileUrl = `${rootUrl}/${location}`;
-        console.log({ fileUrl });
-
         await this.urlReader.readUrl(fileUrl);
         return fileUrl;
       } catch (error) {
