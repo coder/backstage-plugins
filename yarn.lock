@@ -2276,45 +2276,7 @@
     express "^4.17.1"
     knex "^3.0.0"
 
-"@backstage/backend-tasks@^0.5.14":
-  version "0.5.14"
-  resolved "https://registry.yarnpkg.com/@backstage/backend-tasks/-/backend-tasks-0.5.14.tgz#0c0022339daf528ecd6d39fca891642b5ed7ddb5"
-  integrity sha512-bVRAOM86lhOk/tG0z+oXvPdIqtusgPxMO93WaayXbr0R7Tx4Ogp8pg49s7XU4WB7Mdq+fmyiqp1VQt0NR3FCwQ==
-  dependencies:
-    "@backstage/backend-common" "^0.20.1"
-    "@backstage/config" "^1.1.1"
-    "@backstage/errors" "^1.2.3"
-    "@backstage/types" "^1.1.1"
-    "@opentelemetry/api" "^1.3.0"
-    "@types/luxon" "^3.0.0"
-    cron "^2.0.0"
-    knex "^3.0.0"
-    lodash "^4.17.21"
-    luxon "^3.0.0"
-    uuid "^8.0.0"
-    winston "^3.2.1"
-    zod "^3.22.4"
-
-"@backstage/backend-tasks@^0.5.17":
-  version "0.5.17"
-  resolved "https://registry.yarnpkg.com/@backstage/backend-tasks/-/backend-tasks-0.5.17.tgz#76ba27d3356fd32bc8ee9701b9f6bc1b458271b2"
-  integrity sha512-2h3pQV3ucSltBu6mzedgNPwT5p7FJW5vJiaHBUTb/pgK4AoPgBzNITlunHWCqNxXmrcz1YrQ1Ur7G95KYDj4cg==
-  dependencies:
-    "@backstage/backend-common" "^0.21.2"
-    "@backstage/config" "^1.1.1"
-    "@backstage/errors" "^1.2.3"
-    "@backstage/types" "^1.1.1"
-    "@opentelemetry/api" "^1.3.0"
-    "@types/luxon" "^3.0.0"
-    cron "^3.0.0"
-    knex "^3.0.0"
-    lodash "^4.17.21"
-    luxon "^3.0.0"
-    uuid "^8.0.0"
-    winston "^3.2.1"
-    zod "^3.22.4"
-
-"@backstage/backend-tasks@^0.5.18":
+"@backstage/backend-tasks@^0.5.14", "@backstage/backend-tasks@^0.5.17", "@backstage/backend-tasks@^0.5.18":
   version "0.5.18"
   resolved "https://registry.yarnpkg.com/@backstage/backend-tasks/-/backend-tasks-0.5.18.tgz#fd0aeea5f8b7fca3c1434c24ba885559124390dc"
   integrity sha512-uYH/qj9OIc1Iupqf4N31HKEpTzbnNavysUkcoJFGR4+vV17gvuw3JSaLUXMK1z/soansAZHliRPktsQQ51nAqQ==
@@ -8825,9 +8787,9 @@
     "@types/react" "*"
 
 "@types/react@*", "@types/react@^16.13.1 || ^17.0.0", "@types/react@^16.13.1 || ^17.0.0 || ^18.0.0", "@types/react@^18":
-  version "18.2.66"
-  resolved "https://registry.yarnpkg.com/@types/react/-/react-18.2.66.tgz#d2eafc8c4e70939c5432221adb23d32d76bfe451"
-  integrity sha512-OYTmMI4UigXeFMF/j4uv0lBBEbongSgptPrHBxqME44h9+yNov+oL6Z3ocJKo0WyXR84sQUNeyIp9MRfckvZpg==
+  version "18.2.67"
+  resolved "https://registry.yarnpkg.com/@types/react/-/react-18.2.67.tgz#96b7af0b5e79c756f4bdd981de2ca28472c858e5"
+  integrity sha512-vkIE2vTIMHQ/xL0rgmuoECBCkZFZeHr49HeWSc24AptMbNRo7pwSBvj73rlJJs9fGKj0koS+V7kQB1jHS0uCgw==
   dependencies:
     "@types/prop-types" "*"
     "@types/scheduler" "*"
@@ -11524,14 +11486,6 @@ crelt@^1.0.5:
   version "1.0.6"
   resolved "https://registry.yarnpkg.com/crelt/-/crelt-1.0.6.tgz#7cc898ea74e190fb6ef9dae57f8f81cf7302df72"
   integrity sha512-VQ2MBenTq1fWZUH9DJNGti7kKv6EeAuYr3cLwxUWhIu1baTaXh4Ib5W2CqHVqib4/MqbYGJqiL3Zb8GJZr3l4g==
-
-cron@^2.0.0:
-  version "2.4.4"
-  resolved "https://registry.yarnpkg.com/cron/-/cron-2.4.4.tgz#988c1757b3f288d1dfcc360ee6d80087448916dc"
-  integrity sha512-MHlPImXJj3K7x7lyUHjtKEOl69CSlTOWxS89jiFgNkzXfvhVjhMz/nc7/EIfN9vgooZp8XTtXJ1FREdmbyXOiQ==
-  dependencies:
-    "@types/luxon" "~3.3.0"
-    luxon "~3.3.0"
 
 cron@^3.0.0:
   version "3.1.6"
@@ -17002,11 +16956,6 @@ luxon@^3.0.0, luxon@~3.4.0:
   version "3.4.4"
   resolved "https://registry.yarnpkg.com/luxon/-/luxon-3.4.4.tgz#cf20dc27dc532ba41a169c43fdcc0063601577af"
   integrity sha512-zobTr7akeGHnv7eBOXcRgMeCP6+uyYsczwmeRCauvpvaAltgNyTbLH/+VaEAPUeWBT+1GuNmz4wC/6jtQzbbVA==
-
-luxon@~3.3.0:
-  version "3.3.0"
-  resolved "https://registry.yarnpkg.com/luxon/-/luxon-3.3.0.tgz#d73ab5b5d2b49a461c47cedbc7e73309b4805b48"
-  integrity sha512-An0UCfG/rSiqtAIiBPO0Y9/zAnHUZxAMiCpTd5h2smgsj7GGmcenvrvww2cqNA8/4A5ZrD1gJpHN2mIHZQF+Mg==
 
 lz-string@^1.5.0:
   version "1.5.0"
