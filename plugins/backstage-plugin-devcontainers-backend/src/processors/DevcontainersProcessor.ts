@@ -59,10 +59,11 @@ export class DevcontainersProcessor implements CatalogProcessor {
   ): Promise<Entity> {
     // The location of a component should be the catalog-info.yaml file, but
     // check just to be sure.
-    if (
+    const shouldNotProcess =
       entity.kind !== 'Component' ||
-      !location.target.endsWith('/catalog-info.yaml')
-    ) {
+      !location.target.endsWith('/catalog-info.yaml');
+
+    if (shouldNotProcess) {
       return entity;
     }
 
@@ -98,11 +99,14 @@ export class DevcontainersProcessor implements CatalogProcessor {
       }
     }
 
-    // When the entity goes through the processing loop again, it will not
-    // contain the devcontainers tag that we added in the previous round, so we
-    // will not need to remove it.  This also means we avoid mistakenly removing
-    // any colliding tag added by the user or another plugin.
-    // https://backstage.io/docs/features/software-catalog/life-of-an-entity/#stitching
+    /**
+     * When the entity goes through the processing loop again, it will not
+     * contain the devcontainers tag that we added in the previous round, so we
+     * will not need to remove it.  This also means we avoid mistakenly removing
+     * any colliding tag added by the user or another plugin.
+     *
+     * @see {@link https://backstage.io/docs/features/software-catalog/life-of-an-entity/#stitching}
+     */
     return entity;
   }
 
