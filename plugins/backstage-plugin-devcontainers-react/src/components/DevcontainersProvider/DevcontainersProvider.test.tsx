@@ -40,9 +40,12 @@ describe(`${DevcontainersProvider.name}`, () => {
   });
 
   it("Uses the default devcontainers tag when a tag override isn't provided", () => {
+    const emptyConfig: DevcontainersConfig = {};
     const { result } = renderHook(useDevcontainersConfig, {
       wrapper: ({ children }) => (
-        <DevcontainersProvider config={{}}>{children}</DevcontainersProvider>
+        <DevcontainersProvider config={emptyConfig}>
+          {children}
+        </DevcontainersProvider>
       ),
     });
 
