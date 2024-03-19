@@ -5,6 +5,7 @@ import {
   ANNOTATION_SOURCE_LOCATION,
 } from '@backstage/catalog-model';
 import {
+  DEFAULT_TAG_NAME,
   DevcontainersProcessor,
   PROCESSOR_NAME_PREFIX,
 } from './DevcontainersProcessor';
@@ -30,8 +31,9 @@ const baseLocation: LocationSpec = {
     'https://github.com/Parkreiner/python-project/blob/main/catalog-info.yaml',
 };
 
-function makeProcessor(): DevcontainersProcessor {
+function makeProcessor(tagName?: string): DevcontainersProcessor {
   return DevcontainersProcessor.fromConfig(new ConfigReader({}), {
+    tagName,
     logger: createLogger({ silent: true }),
   });
 }
@@ -100,9 +102,30 @@ describe(`${DevcontainersProcessor.name}`, () => {
     });
 
     it("Produces a new component entity with the devcontainers tag when the entity's repo matches the devcontainers pattern", async () => {
-      // Make sure that this test case asserts that there are no mutations to
-      // the original entity
-      expect.hasAssertions();
+      const inputEntity: Entity = {
+        ...baseEntity,
+        metadata: {
+          ...baseEntity.metadata,
+          tags: [DEFAULT_TAG_NAME],
+        },
+      };
+
+      const inputSnapshot = structuredClone(inputEntity);
+      const processor = makeProcessor(DEFAULT_TAG_NAME);
+
+      const outputEntity = await processor.preProcessEntity(
+        inputEntity,
+        baseLocation,
+        jest.fn(),
+      );
+
+      // Assert no mutations
+      expect(outputEntity).not.toEqual(inputEntity);
+      expect(inputEntity.metadata.tags).toBe(inputSnapshot.metadata.tags);
+      expect(inputEntity).toEqual(inputSnapshot);
+
+      // Assert that tag was appended
+      expect(outputEntity.metadata.tags).toContain(DEFAULT_TAG_NAME);
     });
 
     it('Creates new entity with custom devcontainers tag if provided', async () => {
