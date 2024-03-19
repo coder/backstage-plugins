@@ -3739,18 +3739,18 @@
     qs "^6.9.4"
     react-use "^17.2.4"
 
-"@backstage/plugin-tech-radar@^0.6.12":
-  version "0.6.12"
-  resolved "https://registry.yarnpkg.com/@backstage/plugin-tech-radar/-/plugin-tech-radar-0.6.12.tgz#b7c304d8ae2a2ef1d5add841ad28336871a1022a"
-  integrity sha512-wY9dUvkweo/9yW0Ii7esynvuOd/dGz/spU3E6szkEFXodluBOD5U1D91eURvBAghqWv8Ms6GOHzLhj5bfwxCYA==
+"@backstage/plugin-tech-radar@^0.6.13":
+  version "0.6.13"
+  resolved "https://registry.yarnpkg.com/@backstage/plugin-tech-radar/-/plugin-tech-radar-0.6.13.tgz#056ad894f3308cdc71b2b69a0b96865292fff0a0"
+  integrity sha512-KK+Ve30d/pTCeu8q06m7hAj3B/RBqAV4rCYvyYCWSjW/NbsrOx5Eqc246QVH4/2bqqrhmDe8ZjdmHeT421091Q==
   dependencies:
-    "@backstage/core-compat-api" "^0.1.1"
-    "@backstage/core-components" "^0.13.10"
-    "@backstage/core-plugin-api" "^1.8.2"
-    "@backstage/frontend-plugin-api" "^0.5.0"
+    "@backstage/core-compat-api" "^0.2.0"
+    "@backstage/core-components" "^0.14.0"
+    "@backstage/core-plugin-api" "^1.9.0"
+    "@backstage/frontend-plugin-api" "^0.6.0"
     "@material-ui/core" "^4.12.2"
     "@material-ui/icons" "^4.9.1"
-    "@types/react" "^16.13.1 || ^17.0.0"
+    "@types/react" "^16.13.1 || ^17.0.0 || ^18.0.0"
     color "^4.0.1"
     d3-force "^3.0.0"
     react-use "^17.2.4"
@@ -8825,9 +8825,9 @@
     "@types/react" "*"
 
 "@types/react@*", "@types/react@^16.13.1 || ^17.0.0", "@types/react@^16.13.1 || ^17.0.0 || ^18.0.0", "@types/react@^18":
-  version "18.2.66"
-  resolved "https://registry.yarnpkg.com/@types/react/-/react-18.2.66.tgz#d2eafc8c4e70939c5432221adb23d32d76bfe451"
-  integrity sha512-OYTmMI4UigXeFMF/j4uv0lBBEbongSgptPrHBxqME44h9+yNov+oL6Z3ocJKo0WyXR84sQUNeyIp9MRfckvZpg==
+  version "18.2.67"
+  resolved "https://registry.yarnpkg.com/@types/react/-/react-18.2.67.tgz#96b7af0b5e79c756f4bdd981de2ca28472c858e5"
+  integrity sha512-vkIE2vTIMHQ/xL0rgmuoECBCkZFZeHr49HeWSc24AptMbNRo7pwSBvj73rlJJs9fGKj0koS+V7kQB1jHS0uCgw==
   dependencies:
     "@types/prop-types" "*"
     "@types/scheduler" "*"
@@ -9641,7 +9641,7 @@ anymatch@^3.0.3, anymatch@~3.1.2:
     "@backstage/plugin-scaffolder" "^1.17.1"
     "@backstage/plugin-search" "^1.4.6"
     "@backstage/plugin-search-react" "^1.7.5"
-    "@backstage/plugin-tech-radar" "^0.6.12"
+    "@backstage/plugin-tech-radar" "^0.6.13"
     "@backstage/plugin-techdocs" "^1.9.3"
     "@backstage/plugin-techdocs-module-addons-contrib" "^1.1.5"
     "@backstage/plugin-techdocs-react" "^1.1.15"
