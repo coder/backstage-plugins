@@ -49,7 +49,7 @@ export class DevcontainersProcessor implements CatalogProcessor {
 
   getProcessorName(): string {
     // Very specific name to avoid name conflicts
-    return 'backstage-plugin-devcontainers-backend/devcontainers-processor';
+    return `${PROCESSOR_NAME_PREFIX}/devcontainers-processor`;
   }
 
   async preProcessEntity(
