@@ -24,6 +24,11 @@ type ProcessorSetupOptions = Readonly<
   }
 >;
 
+const STATIC_DEVCONTAINERS_LOCATIONS = [
+  '.devcontainer/devcontainer.json',
+  '.devcontainer.json',
+];
+
 export class DevcontainersProcessor implements CatalogProcessor {
   private readonly urlReader: UrlReader;
   private readonly options: ProcessorOptions;
@@ -147,18 +152,16 @@ export class DevcontainersProcessor implements CatalogProcessor {
     // not every provider appears to support `search` anyway so getting static
     // files will result in wider support anyway.
     logger.info('Searching for devcontainer config', { url: rootUrl });
-    const staticLocations = [
-      '.devcontainer/devcontainer.json',
-      '.devcontainer.json',
-    ];
 
-    for (const location of staticLocations) {
+    for (const location of STATIC_DEVCONTAINERS_LOCATIONS) {
       // TODO: We could possibly store the ETag of the devcontainer we last
       // found and include that in the request, which should result in less
       // bandwidth if the provider supports ETags.  I am seeing the request
       // going off about every two minutes so it might be worth it.
       try {
         const fileUrl = `${rootUrl}/${location}`;
+        console.log({ fileUrl });
+
         await this.urlReader.readUrl(fileUrl);
         return fileUrl;
       } catch (error) {
