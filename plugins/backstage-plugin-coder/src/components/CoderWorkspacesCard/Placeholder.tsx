@@ -75,7 +75,7 @@ export const Placeholder = ({
             target="_blank"
             className={styles.callToActionLink}
           >
-            Create a workspace now!
+            Create workspace
             <VisuallyHidden> (Link opens in new tab)</VisuallyHidden>
           </a>
         </div>
