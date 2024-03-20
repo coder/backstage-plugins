@@ -37,8 +37,8 @@ const baseLocation: LocationSpec = {
 
 function makeProcessor(tagName?: string): DevcontainersProcessor {
   const logger = createLogger({ silent: true });
-  const urlReader = new ConfigReader({});
-  return DevcontainersProcessor.fromConfig(urlReader, { tagName, logger });
+  const readerConfig = new ConfigReader({});
+  return DevcontainersProcessor.fromConfig(readerConfig, { tagName, logger });
 }
 
 describe(`${DevcontainersProcessor.name}`, () => {
