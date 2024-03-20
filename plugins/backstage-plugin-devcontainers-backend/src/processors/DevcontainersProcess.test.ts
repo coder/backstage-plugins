@@ -162,10 +162,6 @@ describe(`${DevcontainersProcessor.name}`, () => {
 
       // Assert that tag was appended
       expect(outputEntity.metadata.tags).toContain(customTag);
-
-      // 99% sure that this test case will fail with our current code; use TDD
-      // to assert that the user code is not working, and then fix the issue
-      expect.hasAssertions();
     });
   });
 });
