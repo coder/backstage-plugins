@@ -1,12 +1,11 @@
-import { rest } from 'msw';
-import { setupServer } from 'msw/node';
-import { setupRequestMockHandlers } from '@backstage/backend-test-utils';
 import {
+  type ReadUrlResponse,
+  type ReadUrlOptions,
+  type SearchResponse,
   type UrlReader,
   getVoidLogger,
-  ReadUrlResponse,
-  ReadUrlOptions,
 } from '@backstage/backend-common';
+import { NotFoundError } from '@backstage/errors';
 import type { LocationSpec } from '@backstage/plugin-catalog-common';
 import {
   type Entity,
@@ -17,10 +16,8 @@ import {
   DevcontainersProcessor,
   PROCESSOR_NAME_PREFIX,
 } from './DevcontainersProcessor';
-import { NotFoundError } from '@backstage/errors';
 
-const sourceRoot = 'https://github.com';
-const mockUrlRoot = `${sourceRoot}/absolutely-fake-company1930/example-repo`;
+const mockUrlRoot = 'https://github.com/example-company/example-repo';
 
 const baseEntity: Entity = {
   apiVersion: 'backstage.io/v1alpha1',
@@ -42,6 +39,12 @@ const baseLocation: LocationSpec = {
 
 type SetupOptions = Readonly<{
   tagName?: string;
+
+  searchThrowCallback?: (
+    url: string,
+    readOptions: ReadUrlOptions | undefined,
+  ) => never;
+
   readUrlThrowCallback?: (
     url: string,
     readOptions: ReadUrlOptions | undefined,
@@ -49,7 +52,11 @@ type SetupOptions = Readonly<{
 }>;
 
 function setupProcessor(options?: SetupOptions) {
-  const { tagName = DEFAULT_TAG_NAME, readUrlThrowCallback } = options ?? {};
+  const {
+    searchThrowCallback,
+    readUrlThrowCallback,
+    tagName = DEFAULT_TAG_NAME,
+  } = options ?? {};
 
   /**
    * Tried to get this working as more of an integration test that used MSW, but
@@ -64,15 +71,25 @@ function setupProcessor(options?: SetupOptions) {
    */
   const mockReader = {
     readTree: jest.fn(),
-    search: jest.fn(),
     readUrl: jest.fn(async (url, readOptions): Promise<ReadUrlResponse> => {
       readUrlThrowCallback?.(url, readOptions);
 
       return {
         buffer: jest.fn(),
         stream: jest.fn(),
-        etag: readOptions?.etag,
-        lastModifiedAt: new Date(0),
+      };
+    }),
+    search: jest.fn(async (url, readOptions): Promise<SearchResponse> => {
+      searchThrowCallback?.(url, readOptions);
+
+      return {
+        etag: readOptions?.etag ?? 'fallback etag',
+        files: [
+          {
+            content: () => Promise.resolve(new Buffer('blah')),
+            url: mockUrlRoot,
+          },
+        ],
       };
     }),
   } as const satisfies UrlReader;
@@ -95,15 +112,6 @@ describe(`${DevcontainersProcessor.name}`, () => {
   });
 
   describe('preProcessEntity', () => {
-    // const worker = setupServer();
-    // setupRequestMockHandlers(worker);
-
-    // worker.use(
-    //   rest.get('*', (req, res, ctx) => {
-    //     return res(ctx.status(200), ctx.json({ hah: 'yeah' }));
-    //   }),
-    // );
-
     it('Returns unmodified entity whenever kind is not "Component"', async () => {
       /**
        * Formats taken from Backstage docs
@@ -206,12 +214,7 @@ describe(`${DevcontainersProcessor.name}`, () => {
         },
       });
 
-      await processor.preProcessEntity(
-        { ...baseEntity },
-        baseLocation,
-        emitter,
-      );
-
+      await processor.preProcessEntity(baseEntity, baseLocation, emitter);
       expect(emitter).toHaveBeenCalled();
     });
 
@@ -223,12 +226,7 @@ describe(`${DevcontainersProcessor.name}`, () => {
         },
       });
 
-      await processor.preProcessEntity(
-        { ...baseEntity },
-        baseLocation,
-        emitter,
-      );
-
+      await processor.preProcessEntity(baseEntity, baseLocation, emitter);
       expect(emitter).not.toHaveBeenCalled();
     });
   });
