@@ -1,6 +1,7 @@
 import { rest } from 'msw';
 import { setupServer } from 'msw/node';
 import { setupRequestMockHandlers } from '@backstage/backend-test-utils';
+import { getVoidLogger } from '@backstage/backend-common';
 import type { LocationSpec } from '@backstage/plugin-catalog-common';
 import type { CatalogProcessorEmit } from '@backstage/plugin-catalog-node';
 import { ConfigReader } from '@backstage/config';
@@ -8,14 +9,14 @@ import {
   type Entity,
   ANNOTATION_SOURCE_LOCATION,
 } from '@backstage/catalog-model';
-import { createLogger } from 'winston';
 import {
   DEFAULT_TAG_NAME,
   DevcontainersProcessor,
   PROCESSOR_NAME_PREFIX,
 } from './DevcontainersProcessor';
 
-const mockUrlRoot = 'https://www.github.com/example-company/example-repo';
+const sourceRoot = 'github.com';
+const mockUrlRoot = `https://www.${sourceRoot}/absolutely-fake-company1930/example-repo`;
 
 const baseEntity: Entity = {
   apiVersion: 'backstage.io/v1alpha1',
@@ -36,9 +37,18 @@ const baseLocation: LocationSpec = {
 };
 
 function makeProcessor(tagName?: string): DevcontainersProcessor {
-  const logger = createLogger({ silent: true });
-  const readerConfig = new ConfigReader({});
-  return DevcontainersProcessor.fromConfig(readerConfig, { tagName, logger });
+  const readerConfig = new ConfigReader({
+    backend: {
+      reading: {
+        allow: [{ host: `${sourceRoot}/*` }, { host: 'localhost' }],
+      },
+    },
+  });
+
+  return DevcontainersProcessor.fromConfig(readerConfig, {
+    tagName,
+    logger: getVoidLogger(),
+  });
 }
 
 describe(`${DevcontainersProcessor.name}`, () => {
@@ -55,8 +65,8 @@ describe(`${DevcontainersProcessor.name}`, () => {
     setupRequestMockHandlers(worker);
 
     worker.use(
-      rest.all('https://www.github.com/*', (_, res, ctx) => {
-        console.log('Blah');
+      rest.get('*', (req, res, ctx) => {
+        console.log(req);
         return res(ctx.status(200), ctx.json({ hah: 'yeah' }));
       }),
     );
