@@ -18,7 +18,7 @@ type ProcessorOptions = Readonly<{
   logger: Logger;
 }>;
 
-type ProcessorSetupOptions = Readonly<
+type FromConfigOptions = Readonly<
   Partial<ProcessorOptions> & {
     logger: Logger;
   }
@@ -38,7 +38,7 @@ export class DevcontainersProcessor implements CatalogProcessor {
     this.options = options;
   }
 
-  static fromConfig(readerConfig: Config, options: ProcessorSetupOptions) {
+  static fromConfig(readerConfig: Config, options: FromConfigOptions) {
     const processorOptions: ProcessorOptions = {
       tagName: options.tagName || DEFAULT_TAG_NAME,
       logger: options.logger,
