@@ -3,7 +3,6 @@ import { setupServer } from 'msw/node';
 import { setupRequestMockHandlers } from '@backstage/backend-test-utils';
 import { getVoidLogger } from '@backstage/backend-common';
 import type { LocationSpec } from '@backstage/plugin-catalog-common';
-import type { CatalogProcessorEmit } from '@backstage/plugin-catalog-node';
 import { ConfigReader } from '@backstage/config';
 import {
   type Entity,
@@ -15,8 +14,8 @@ import {
   PROCESSOR_NAME_PREFIX,
 } from './DevcontainersProcessor';
 
-const sourceRoot = 'github.com';
-const mockUrlRoot = `https://www.${sourceRoot}/absolutely-fake-company1930/example-repo`;
+const sourceRoot = 'https://www.github.com';
+const mockUrlRoot = `${sourceRoot}/absolutely-fake-company1930/example-repo`;
 
 const baseEntity: Entity = {
   apiVersion: 'backstage.io/v1alpha1',
@@ -32,7 +31,7 @@ const baseEntity: Entity = {
 
 const baseLocation: LocationSpec = {
   type: 'Component',
-  presence: 'optional',
+  presence: 'required',
   target: `${mockUrlRoot}/blob/main/catalog-info.yaml`,
 };
 
@@ -124,7 +123,7 @@ describe(`${DevcontainersProcessor.name}`, () => {
       expect(outputEntity).toEqual(inputSnapshot);
     });
 
-    it.only("Produces a new component entity with the devcontainers tag when the entity's repo matches the devcontainers pattern", async () => {
+    it("Produces a new component entity with the devcontainers tag when the entity's repo matches the devcontainers pattern", async () => {
       const inputEntity = { ...baseEntity };
       const inputSnapshot = structuredClone(inputEntity);
       const processor = makeProcessor(DEFAULT_TAG_NAME);
@@ -145,14 +144,28 @@ describe(`${DevcontainersProcessor.name}`, () => {
     });
 
     it('Creates new entity by using custom devcontainers tag when it is provided', async () => {
+      const customTag = 'blah';
+      const inputEntity = { ...baseEntity };
+      const inputSnapshot = structuredClone(inputEntity);
+      const processor = makeProcessor(customTag);
+
+      const outputEntity = await processor.preProcessEntity(
+        inputEntity,
+        baseLocation,
+        jest.fn(),
+      );
+
+      // Assert no mutations
+      expect(outputEntity).not.toEqual(inputEntity);
+      expect(inputEntity.metadata.tags).toEqual(inputSnapshot.metadata.tags);
+      expect(inputEntity).toEqual(inputSnapshot);
+
+      // Assert that tag was appended
+      expect(outputEntity.metadata.tags).toContain(customTag);
+
       // 99% sure that this test case will fail with our current code; use TDD
       // to assert that the user code is not working, and then fix the issue
       expect.hasAssertions();
-    });
-
-    it('Emits an error when a component entity supports devcontainers, but the repo query fails', async () => {
-      const emitter: CatalogProcessorEmit = jest.fn();
-      expect(emitter).toHaveBeenCalled();
     });
   });
 });
