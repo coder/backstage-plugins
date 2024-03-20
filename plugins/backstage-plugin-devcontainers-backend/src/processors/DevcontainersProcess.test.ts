@@ -1,3 +1,6 @@
+import { rest } from 'msw';
+import { setupServer } from 'msw/node';
+import { setupRequestMockHandlers } from '@backstage/backend-test-utils';
 import type { LocationSpec } from '@backstage/plugin-catalog-common';
 import type { CatalogProcessorEmit } from '@backstage/plugin-catalog-node';
 import { ConfigReader } from '@backstage/config';
@@ -33,10 +36,9 @@ const baseLocation: LocationSpec = {
 };
 
 function makeProcessor(tagName?: string): DevcontainersProcessor {
-  return DevcontainersProcessor.fromConfig(new ConfigReader({}), {
-    tagName,
-    logger: createLogger({ silent: true }),
-  });
+  const logger = createLogger({ silent: true });
+  const urlReader = new ConfigReader({});
+  return DevcontainersProcessor.fromConfig(urlReader, { tagName, logger });
 }
 
 describe(`${DevcontainersProcessor.name}`, () => {
@@ -49,6 +51,16 @@ describe(`${DevcontainersProcessor.name}`, () => {
   });
 
   describe('preProcessEntity', () => {
+    const worker = setupServer();
+    setupRequestMockHandlers(worker);
+
+    worker.use(
+      rest.all('https://www.github.com/*', (_, res, ctx) => {
+        console.log('Blah');
+        return res(ctx.status(200), ctx.json({ hah: 'yeah' }));
+      }),
+    );
+
     it('Returns unmodified entity whenever kind is not "Component"', async () => {
       /**
        * Formats taken from Backstage docs
@@ -83,10 +95,10 @@ describe(`${DevcontainersProcessor.name}`, () => {
       );
     });
 
-    it("Returns an unmodified component entity when the entity's repo does not match the devcontainers pattern", async () => {
+    it('Returns an unmodified component entity when location is not for catalog-info.yaml file', async () => {
       const invalidLocation: LocationSpec = {
         ...baseLocation,
-        target: 'definitely not valid',
+        target: 'https://www.definitely-not-valid.com/fake-repo/cool.html',
       };
 
       const processor = makeProcessor();
