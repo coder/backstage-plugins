@@ -24,11 +24,6 @@ type FromConfigOptions = Readonly<
   }
 >;
 
-const STATIC_DEVCONTAINERS_LOCATIONS = [
-  '.devcontainer/devcontainer.json',
-  '.devcontainer.json',
-] as const satisfies readonly string[];
-
 export class DevcontainersProcessor implements CatalogProcessor {
   private readonly urlReader: UrlReader;
   private readonly options: ProcessorOptions;
@@ -37,6 +32,11 @@ export class DevcontainersProcessor implements CatalogProcessor {
     this.urlReader = urlReader;
     this.options = options;
   }
+
+  static fileLocations: readonly string[] = [
+    '.devcontainer/devcontainer.json',
+    '.devcontainer.json',
+  ];
 
   static fromConfig(readerConfig: Config, options: FromConfigOptions) {
     const processorOptions: ProcessorOptions = {
@@ -89,7 +89,7 @@ export class DevcontainersProcessor implements CatalogProcessor {
     try {
       const jsonUrl = await this.findDevcontainerJson(rootUrl, entityLogger);
       entityLogger.info('Found devcontainer config', { url: jsonUrl });
-      return this.addTag(entity, DEFAULT_TAG_NAME, entityLogger);
+      return this.addTag(entity, this.options.tagName, entityLogger);
     } catch (error) {
       if (!isError(error) || error.name !== 'NotFoundError') {
         emit(
@@ -153,16 +153,18 @@ export class DevcontainersProcessor implements CatalogProcessor {
     // files will result in wider support anyway.
     logger.info('Searching for devcontainer config', { url: rootUrl });
 
-    for (const location of STATIC_DEVCONTAINERS_LOCATIONS) {
+    for (const location of DevcontainersProcessor.fileLocations) {
       // TODO: We could possibly store the ETag of the devcontainer we last
       // found and include that in the request, which should result in less
       // bandwidth if the provider supports ETags.  I am seeing the request
       // going off about every two minutes so it might be worth it.
       try {
         const fileUrl = `${rootUrl}/${location}`;
+        console.log({ fileUrl });
         await this.urlReader.readUrl(fileUrl);
         return fileUrl;
       } catch (error) {
+        console.error(error);
         if (!isError(error) || error.name !== 'NotFoundError') {
           throw error;
         }
