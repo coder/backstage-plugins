@@ -31,6 +31,7 @@ type VisuallyHiddenProps = HTMLAttributes<HTMLElement> & {
 
 export const VisuallyHidden = ({
   children,
+  style,
   ...delegatedProps
 }: VisuallyHiddenProps) => {
   const [forceShow, setForceShow] = useState(false);
@@ -61,10 +62,17 @@ export const VisuallyHidden = ({
     };
   }, []);
 
-  return forceShow ? (
-    <>{children}</>
-  ) : (
-    <span style={visuallyHiddenStyles} {...delegatedProps}>
+  if (forceShow) {
+    return <>{children}</>;
+  }
+
+  return (
+    <span
+      style={
+        style ? { ...visuallyHiddenStyles, ...style } : visuallyHiddenStyles
+      }
+      {...delegatedProps}
+    >
       {children}
     </span>
   );
