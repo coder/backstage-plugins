@@ -26,7 +26,7 @@ _Note: While this plugin can be used standalone, it has been designed to be a ba
 Ensure that you have the following ready to go:
 
 - A Backstage deployment that you can modify
-- A GitHub/GitLab/Bitbucket repository that contains a `devcontainers.json` metadata file. [VS Code has a quick-start guide for adding devcontainers to a repo](https://code.visualstudio.com/docs/devcontainers/create-dev-container).
+- A GitHub/GitLab/Bitbucket repository that contains a `devcontainers.json` metadata file. [VS Code has a quick-start guide for adding Dev Containers to a repo](https://code.visualstudio.com/docs/devcontainers/create-dev-container).
 
 _Note: While this plugin has been developed and published by Coder, no Coder installations are required._
 
