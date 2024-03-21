@@ -112,20 +112,22 @@ _Note: While this plugin has been developed and published by Coder, no Coder ins
 
    ```tsx
    // Inside your custom component's file
+   import React from 'react';
    import { useDevcontainers } from '@coder/backstage-plugin-devcontainers-react';
 
    export const YourComponent = () => {
      const state = useDevcontainers();
-
      return (
-       {state.hasUrl ? (
-         <>
-           <p>Your entity supports Dev Containers!</p>
-           <a href={state.vsCodeUrl}>Click here to launch VS Code</a>
-         </>
-       ) : (
-         <p>No Dev Containers plugin tag detected</p>
-       )}
+       <>
+         {state.hasUrl ? (
+           <>
+             <p>Your entity supports Dev Containers!</p>
+             <a href={state.vsCodeUrl}>Click here to launch VS Code</a>
+           </>
+         ) : (
+           <p>No Dev Containers plugin tag detected</p>
+         )}
+       </>
      );
    };
 
