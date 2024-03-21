@@ -40,14 +40,14 @@ export const VisuallyHidden = ({
       return undefined;
     }
 
-    const handleKeyDown = (ev: KeyboardEvent) => {
-      if (ev.key === 'Alt') {
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.shiftKey && event.key === 'Alt') {
         setForceShow(true);
       }
     };
 
-    const handleKeyUp = (ev: KeyboardEvent) => {
-      if (ev.key === 'Alt') {
+    const handleKeyUp = (event: KeyboardEvent) => {
+      if (event.key === 'Alt') {
         setForceShow(false);
       }
     };
