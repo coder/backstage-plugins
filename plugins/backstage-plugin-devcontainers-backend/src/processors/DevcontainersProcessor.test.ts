@@ -37,18 +37,15 @@ const baseLocation: LocationSpec = {
   target: `${mockUrlRoot}/blob/main/catalog-info.yaml`,
 };
 
+type ThrowCallback = (
+  url: string,
+  readOptions: ReadUrlOptions | undefined,
+) => never;
+
 type SetupOptions = Readonly<{
   tagName?: string;
-
-  searchThrowCallback?: (
-    url: string,
-    readOptions: ReadUrlOptions | undefined,
-  ) => never;
-
-  readUrlThrowCallback?: (
-    url: string,
-    readOptions: ReadUrlOptions | undefined,
-  ) => never;
+  searchThrowCallback?: ThrowCallback;
+  readUrlThrowCallback?: ThrowCallback;
 }>;
 
 function setupProcessor(options?: SetupOptions) {
@@ -86,7 +83,7 @@ function setupProcessor(options?: SetupOptions) {
         etag: readOptions?.etag ?? 'fallback etag',
         files: [
           {
-            content: () => Promise.resolve(new Buffer('blah')),
+            content: async () => Buffer.from('blah'),
             url: mockUrlRoot,
           },
         ],
@@ -177,12 +174,11 @@ describe(`${DevcontainersProcessor.name}`, () => {
       );
 
       expect(mockReader.readUrl).toHaveBeenCalled();
-
-      expect(outputEntity).not.toEqual(inputEntity);
-      expect(inputEntity.metadata.tags).toEqual(inputSnapshot.metadata.tags);
-      expect(inputEntity).toEqual(inputSnapshot);
-
       expect(outputEntity.metadata.tags).toContain(DEFAULT_TAG_NAME);
+
+      // Assert that no mutations happened
+      expect(outputEntity).not.toBe(inputEntity);
+      expect(inputEntity).toEqual(inputSnapshot);
     });
 
     it('Creates new entity by using custom devcontainers tag when it is provided', async () => {
@@ -198,12 +194,11 @@ describe(`${DevcontainersProcessor.name}`, () => {
       );
 
       expect(mockReader.readUrl).toHaveBeenCalled();
-
-      expect(outputEntity).not.toEqual(inputEntity);
-      expect(inputEntity.metadata.tags).toEqual(inputSnapshot.metadata.tags);
-      expect(inputEntity).toEqual(inputSnapshot);
-
       expect(outputEntity.metadata.tags).toContain(customTag);
+
+      // Assert that no mutations happened
+      expect(outputEntity).not.toBe(inputEntity);
+      expect(inputEntity).toEqual(inputSnapshot);
     });
 
     it('Emits an error entity when reading from the URL throws anything other than a NotFoundError', async () => {
