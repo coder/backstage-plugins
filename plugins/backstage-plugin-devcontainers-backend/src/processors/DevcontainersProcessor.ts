@@ -11,7 +11,7 @@ import { type UrlReader, UrlReaders } from '@backstage/backend-common';
 import { type Logger } from 'winston';
 
 export const DEFAULT_TAG_NAME = 'devcontainers';
-export const PROCESSOR_NAME_PREFIX = 'backstage-plugin-devcontainers-backend/';
+export const PROCESSOR_NAME_PREFIX = 'backstage-plugin-devcontainers-backend';
 
 type ProcessorOptions = Readonly<{
   tagName: string;
