@@ -1,6 +1,6 @@
 import {
-  type ReadUrlResponse,
   type ReadUrlOptions,
+  type ReadUrlResponse,
   type SearchResponse,
   type UrlReader,
   getVoidLogger,
@@ -50,8 +50,8 @@ type SetupOptions = Readonly<{
 
 function setupProcessor(options?: SetupOptions) {
   const {
-    searchThrowCallback,
     readUrlThrowCallback,
+    searchThrowCallback,
     tagName = DEFAULT_TAG_NAME,
   } = options ?? {};
 
@@ -176,9 +176,19 @@ describe(`${DevcontainersProcessor.name}`, () => {
       expect(mockReader.readUrl).toHaveBeenCalled();
       expect(outputEntity.metadata.tags).toContain(DEFAULT_TAG_NAME);
 
-      // Assert that no mutations happened
+      // Rest of test asserts that no mutations happened
       expect(outputEntity).not.toBe(inputEntity);
       expect(inputEntity).toEqual(inputSnapshot);
+
+      const metadataCompare = structuredClone(inputSnapshot.metadata);
+      delete metadataCompare.tags;
+
+      expect(outputEntity).toEqual(
+        expect.objectContaining({
+          ...inputSnapshot,
+          metadata: expect.objectContaining(metadataCompare),
+        }),
+      );
     });
 
     it('Creates new entity by using custom devcontainers tag when it is provided', async () => {
@@ -196,9 +206,19 @@ describe(`${DevcontainersProcessor.name}`, () => {
       expect(mockReader.readUrl).toHaveBeenCalled();
       expect(outputEntity.metadata.tags).toContain(customTag);
 
-      // Assert that no mutations happened
+      // Rest of test asserts that no mutations happened
       expect(outputEntity).not.toBe(inputEntity);
       expect(inputEntity).toEqual(inputSnapshot);
+
+      const metadataCompare = structuredClone(inputSnapshot.metadata);
+      delete metadataCompare.tags;
+
+      expect(outputEntity).toEqual(
+        expect.objectContaining({
+          ...inputSnapshot,
+          metadata: expect.objectContaining(metadataCompare),
+        }),
+      );
     });
 
     it('Emits an error entity when reading from the URL throws anything other than a NotFoundError', async () => {
