@@ -37,6 +37,15 @@ const baseLocation: LocationSpec = {
   target: `${mockUrlRoot}/blob/main/catalog-info.yaml`,
 };
 
+type MockFile = Readonly<{
+  url: string;
+  content: string;
+}>;
+
+const defaultFiles: readonly MockFile[] = [
+  { url: mockUrlRoot, content: 'blah' },
+];
+
 type ThrowCallback = (
   url: string,
   readOptions: ReadUrlOptions | undefined,
@@ -44,14 +53,22 @@ type ThrowCallback = (
 
 type SetupOptions = Readonly<{
   tagName?: string;
-  searchThrowCallback?: ThrowCallback;
+  files?: readonly MockFile[];
+
+  // It'd arguably be better to define all of these via mapped types, but I felt
+  // like it made the code too hard to follow if you don't know the TS syntax.
+  // There should be one callback for each property on UrlReader
+  readTreeThrowCallback?: ThrowCallback;
   readUrlThrowCallback?: ThrowCallback;
+  searchThrowCallback?: ThrowCallback;
 }>;
 
 function setupProcessor(options?: SetupOptions) {
+  // Not using all properties from SetupOptions just yet
   const {
     readUrlThrowCallback,
     searchThrowCallback,
+    files = defaultFiles,
     tagName = DEFAULT_TAG_NAME,
   } = options ?? {};
 
@@ -81,12 +98,10 @@ function setupProcessor(options?: SetupOptions) {
 
       return {
         etag: readOptions?.etag ?? 'fallback etag',
-        files: [
-          {
-            content: async () => Buffer.from('blah'),
-            url: mockUrlRoot,
-          },
-        ],
+        files: files.map(file => ({
+          url: file.url,
+          content: async () => Buffer.from(file.content),
+        })),
       };
     }),
   } as const satisfies UrlReader;
