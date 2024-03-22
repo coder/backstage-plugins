@@ -25,13 +25,12 @@ const visuallyHiddenStyles: CSSProperties = {
   border: 0,
 };
 
-type VisuallyHiddenProps = HTMLAttributes<HTMLElement> & {
+type VisuallyHiddenProps = Omit<HTMLAttributes<HTMLElement>, 'style'> & {
   children: ReactNode;
 };
 
 export const VisuallyHidden = ({
   children,
-  style,
   ...delegatedProps
 }: VisuallyHiddenProps) => {
   const [forceShow, setForceShow] = useState(false);
@@ -67,12 +66,7 @@ export const VisuallyHidden = ({
   }
 
   return (
-    <span
-      style={
-        style ? { ...visuallyHiddenStyles, ...style } : visuallyHiddenStyles
-      }
-      {...delegatedProps}
-    >
+    <span style={visuallyHiddenStyles} {...delegatedProps}>
       {children}
     </span>
   );
