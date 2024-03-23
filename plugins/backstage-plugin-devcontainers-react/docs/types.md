@@ -46,5 +46,5 @@ See example for [`CoderProvider`](./components.md#coderprovider)
 
 ### Notes
 
-- Most properties are defined first and foremost to help integrate the frontend plugin with the [companion backend devcontainers plugin](../../backstage-plugin-devcontainers-backend/README.md).
+- Most properties are defined first and foremost to help integrate the frontend plugin with the [companion backend Dev Containers plugin](../../backstage-plugin-devcontainers-backend/README.md).
 - By default, the frontend and backend plugins are configured to use the same value for `tagName` (the string `devcontainers`). If this default is overridden on the backend, the value of `DevcontainersConfig` must be updated on the frontend to match (and vice versa)

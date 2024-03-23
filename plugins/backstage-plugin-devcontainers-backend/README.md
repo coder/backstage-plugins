@@ -1,4 +1,4 @@
-# @coder/backstage-plugin-devcontainers-backend
+# Automatically tag your repos that support Dev Containers
 
 Automatically detect [development containers (Dev Container) files](https://containers.dev/) in your repositories on GitHub/GitLab/Bitbucket, and have Backstage automatically tag them in the background!
 
@@ -32,7 +32,7 @@ _Note: While this plugin has been developed and published by Coder, no Coder ins
 
 ### Installation
 
-1. From your Backstage deployment's `backend` directory, run the following command:
+1. From your Backstage deployment, run the following command:
    ```shell
    yarn --cwd packages/backend add @coder/backstage-plugin-devcontainers-backend
    ```

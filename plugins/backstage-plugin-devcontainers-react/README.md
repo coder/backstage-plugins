@@ -1,6 +1,6 @@
-# @coder/backstage-plugin-devcontainers-react
+# Go straight from Backstage to your editor with Dev Containers
 
-Automatically launch fully-contained dev environments with [development containers (devcontainers)](https://containers.dev/), right from Backstage!
+Automatically launch fully-contained dev environments with [development containers (dev containers)](https://containers.dev/), right from Backstage!
 
 ## Screenshots
 
@@ -36,7 +36,7 @@ _Note: While this plugin has been developed and published by Coder, no Coder ins
 
 ### Installation
 
-1. From your Backstage deployment's `app` directory, run the following command:
+1. From your Backstage deployment's directory, run the following command:
    ```shell
    yarn --cwd packages/app add @coder/backstage-plugin-devcontainers-react
    ```

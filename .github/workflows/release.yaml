@@ -48,7 +48,7 @@ jobs:
       # Version it with the version in the tag and upload it to a draft release.
       - run: yarn version --new-version ${{ needs.split-tag.outputs.version }}
       - run: yarn pack
-      - uses: softprops/action-gh-release@v1
+      - uses: softprops/action-gh-release@v2
         with:
           draft: true
           files: plugins/backstage-plugin-${{ needs.split-tag.outputs.plugin }}/*.tgz

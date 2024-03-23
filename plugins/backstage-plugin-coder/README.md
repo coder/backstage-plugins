@@ -1,8 +1,6 @@
-# @coder/backstage-plugin-coder
+# Integrate Coder Workspaces into Backstage
 
 Create and manage [Coder workspaces](https://coder.com/docs/v2/latest) from Backstage.
-
-<!-- TOOD: Add Loom -->
 
 ## Screenshots
 
@@ -15,7 +13,6 @@ Create and manage [Coder workspaces](https://coder.com/docs/v2/latest) from Back
 - Users link their Coder accounts with Backstage via tokens
 - Associate Coder workspaces with catalog items in Backstage
 - Workspace list component for viewing and managing workspaces
-<!-- - Full Coder API access for custom plugins & integrations -->
 
 ## Setup
 
@@ -104,27 +101,11 @@ the Dev Container.
    </Grid>;
    ```
 
-<!-- Individual components of the card can also be imported. See [the plugin documentation](./docs) for full configuration options and API reference. -->
-
-<!-- ### API Access
-
-The plugin provides a `CoderApi` instance for accessing the Coder API. This can be used in custom plugins and integrations. Here is an example component that lists all templates:
-
-```tsx
-import { useCoder } from '@coder/backstage-plugin-coder';
-
-// TODO. I believe Michael said this is possible today?
-// This can be a very basic component that requires auth
-// and lists all templates in a basic unstyled list
-// with a refresh button
-```
-
-See to the [Coder REST API Reference](https://coder.com/docs/v2/latest/api) for more details -->
-
 ## Roadmap
 
 This plugin is in active development. The following features are planned:
 
+- [ ] Example component using the Coder API to make authenticated requests on behalf of the user
 - [ ] Add support for only rendering component if `catalog-info.yaml` indicates the item is compatible with Coder
 - [ ] OAuth support (vs. token auth) for linking Coder accounts
 - [ ] "Open in Coder" button/card component for catalog items

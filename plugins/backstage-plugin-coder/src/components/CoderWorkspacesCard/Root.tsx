@@ -15,7 +15,7 @@ import type { Workspace } from '../../typesConstants';
 import { useCoderWorkspacesQuery } from '../../hooks/useCoderWorkspacesQuery';
 import { Card } from '../Card';
 import { CoderAuthWrapper } from '../CoderAuthWrapper';
-import { DataReminder } from './DataReminder';
+import { EntityDataReminder } from './EntityDataReminder';
 
 type WorkspacesCardContext = Readonly<{
   queryFilter: string;
@@ -49,15 +49,15 @@ export const Root = ({
   const [innerFilter, setInnerFilter] = useState(defaultQueryFilter);
   const activeFilter = outerFilter ?? innerFilter;
 
-  const wsConfig = useCoderWorkspacesConfig({ readEntityData });
+  const workspacesConfig = useCoderWorkspacesConfig({ readEntityData });
   const workspacesQuery = useCoderWorkspacesQuery(activeFilter, {
-    workspacesConfig: wsConfig,
+    workspacesConfig,
   });
 
   const headerId = `${hookId}-header`;
   const showEntityDataReminder =
     readEntityData &&
-    Boolean(wsConfig.repoUrl) &&
+    Boolean(workspacesConfig.repoUrl) &&
     workspacesQuery.data !== undefined;
 
   return (
@@ -66,8 +66,8 @@ export const Root = ({
         value={{
           headerId,
           workspacesQuery,
+          workspacesConfig,
           queryFilter: activeFilter,
-          workspacesConfig: wsConfig,
           onFilterChange: newFilter => {
             setInnerFilter(newFilter);
             onOuterFilterChange?.(newFilter);
@@ -87,7 +87,7 @@ export const Root = ({
               cases around keyboard input and button children that native <form>
               elements automatically introduce */}
           <div role="form">{children}</div>
-          {showEntityDataReminder && <DataReminder />}
+          {showEntityDataReminder && <EntityDataReminder />}
         </Card>
       </CardContext.Provider>
     </CoderAuthWrapper>
