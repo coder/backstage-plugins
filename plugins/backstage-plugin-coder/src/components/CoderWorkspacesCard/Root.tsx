@@ -58,7 +58,7 @@ export const Root = ({
   const headerId = `${hookId}-header`;
   const showEntityDataReminder =
     readEntityData &&
-    Boolean(workspacesConfig.repoUrl) &&
+    !workspacesConfig.repoUrl &&
     workspacesQuery.data !== undefined;
 
   return (
