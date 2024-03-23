@@ -50,8 +50,9 @@ export const Root = ({
   const activeFilter = outerFilter ?? innerFilter;
 
   const workspacesConfig = useCoderWorkspacesConfig({ readEntityData });
-  const workspacesQuery = useCoderWorkspacesQuery(activeFilter, {
+  const workspacesQuery = useCoderWorkspacesQuery({
     workspacesConfig,
+    coderQuery: activeFilter,
   });
 
   const headerId = `${hookId}-header`;

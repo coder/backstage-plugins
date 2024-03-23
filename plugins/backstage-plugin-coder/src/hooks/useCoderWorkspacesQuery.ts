@@ -5,19 +5,17 @@ import { useCoderAuth } from '../components/CoderProvider/CoderAuthProvider';
 import { useBackstageEndpoints } from './useBackstageEndpoints';
 import { CoderWorkspacesConfig } from './useCoderWorkspacesConfig';
 
-type UseCoderWorkspacesQueryOptions = Readonly<
-  Partial<{
-    workspacesConfig: CoderWorkspacesConfig;
-  }>
->;
+type QueryInput = Readonly<{
+  coderQuery: string;
+  workspacesConfig?: CoderWorkspacesConfig;
+}>;
 
-export function useCoderWorkspacesQuery(
-  coderQuery: string,
-  options?: UseCoderWorkspacesQueryOptions,
-) {
+export function useCoderWorkspacesQuery({
+  coderQuery,
+  workspacesConfig,
+}: QueryInput) {
   const auth = useCoderAuth();
   const { baseUrl } = useBackstageEndpoints();
-  const { workspacesConfig } = options ?? {};
   const hasRepoData = workspacesConfig && workspacesConfig.repoUrl;
 
   const queryOptions = hasRepoData
