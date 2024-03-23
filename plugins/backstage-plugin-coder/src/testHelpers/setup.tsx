@@ -5,6 +5,7 @@ import {
   type RenderHookResult,
   renderHook,
   waitFor,
+  render,
 } from '@testing-library/react';
 /* eslint-enable @backstage/no-undeclared-imports */
 
@@ -188,3 +189,26 @@ export const renderHookAsCoderEntity = async <
   await waitFor(() => expect(renderHookValue.result.current).not.toBe(null));
   return renderHookValue;
 };
+
+export function renderInCoderEnvironment(children: React.ReactNode) {
+  const mockErrorApi = getMockErrorApi();
+  const mockSourceControl = getMockSourceControl();
+  const mockConfigApi = getMockConfigApi();
+
+  const mainMarkup = (
+    <TestApiProvider
+      apis={[
+        [errorApiRef, mockErrorApi],
+        [scmIntegrationsApiRef, mockSourceControl],
+        [configApiRef, mockConfigApi],
+      ]}
+    >
+      <CoderProviderWithMockAuth appConfig={mockAppConfig}>
+        <EntityProvider entity={mockEntity}>{children}</EntityProvider>
+      </CoderProviderWithMockAuth>
+    </TestApiProvider>
+  );
+
+  const wrapped = wrapInTestApp(mainMarkup) as unknown as typeof mainMarkup;
+  return render(wrapped);
+}

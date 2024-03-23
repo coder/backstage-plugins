@@ -1,51 +1,22 @@
 import React from 'react';
-import { render, screen } from '@testing-library/react';
-import { EntityProvider } from '@backstage/plugin-catalog-react';
-import {
-  getMockConfigApi,
-  getMockErrorApi,
-  getMockSourceControl,
-  mockAppConfig,
-  mockEntity,
-} from '../../testHelpers/mockBackstageData';
+import { screen } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
+import { mockAppConfig } from '../../testHelpers/mockBackstageData';
+import { renderInCoderEnvironment } from '../../testHelpers/setup';
 import { Root } from './Root';
 import { CreateWorkspaceLink } from './CreateWorkspaceLink';
-import { CoderProviderWithMockAuth } from '../../testHelpers/setup';
-import { TestApiProvider, wrapInTestApp } from '@backstage/test-utils';
-import { configApiRef, errorApiRef } from '@backstage/core-plugin-api';
-import { scmIntegrationsApiRef } from '@backstage/integration-react';
-import userEvent from '@testing-library/user-event';
 
-function renderComponent() {
-  const mockErrorApi = getMockErrorApi();
-  const mockSourceControl = getMockSourceControl();
-  const mockConfigApi = getMockConfigApi();
-
-  const mainMarkup = (
-    <TestApiProvider
-      apis={[
-        [errorApiRef, mockErrorApi],
-        [scmIntegrationsApiRef, mockSourceControl],
-        [configApiRef, mockConfigApi],
-      ]}
-    >
-      <CoderProviderWithMockAuth appConfig={mockAppConfig}>
-        <EntityProvider entity={mockEntity}>
-          <Root>
-            <CreateWorkspaceLink />
-          </Root>
-        </EntityProvider>
-      </CoderProviderWithMockAuth>
-    </TestApiProvider>
+function render() {
+  return renderInCoderEnvironment(
+    <Root>
+      <CreateWorkspaceLink />
+    </Root>,
   );
-
-  const wrapped = wrapInTestApp(mainMarkup) as unknown as typeof mainMarkup;
-  return render(wrapped);
 }
 
 describe(`${CreateWorkspaceLink.name}`, () => {
   it('Displays a link based on the current entity', async () => {
-    renderComponent();
+    render();
     const link = await screen.findByRole<HTMLAnchorElement>('link');
 
     expect(link).not.toBeDisabled();
@@ -56,7 +27,7 @@ describe(`${CreateWorkspaceLink.name}`, () => {
   });
 
   it('Will display a tooltip while hovered over', async () => {
-    renderComponent();
+    render();
     const link = await screen.findByRole<HTMLAnchorElement>('link');
     const user = userEvent.setup();
 
