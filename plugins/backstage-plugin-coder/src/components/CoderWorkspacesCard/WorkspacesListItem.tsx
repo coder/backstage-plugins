@@ -9,9 +9,9 @@ import { type Theme, makeStyles } from '@material-ui/core';
 import { useId } from '../../hooks/hookPolyfills';
 
 import { useCoderAppConfig } from '../CoderProvider';
-import { isWorkspaceOnline } from '../../api';
+import { getWorkspaceAgentStatuses } from '../../api';
 
-import type { Workspace } from '../../typesConstants';
+import type { Workspace, WorkspaceStatus } from '../../typesConstants';
 import { WorkspacesListIcon } from './WorkspacesListIcon';
 import { VisuallyHidden } from '../VisuallyHidden';
 
@@ -24,7 +24,7 @@ type StyleKey =
   | 'button';
 
 type UseStyleInputs = Readonly<{
-  isOnline: boolean;
+  isAvailable: boolean;
 }>;
 
 const useStyles = makeStyles<Theme, UseStyleInputs, StyleKey>(theme => ({
@@ -84,7 +84,7 @@ const useStyles = makeStyles<Theme, UseStyleInputs, StyleKey>(theme => ({
     fontSize: '16px',
   },
 
-  onlineStatusLight: ({ isOnline }) => ({
+  onlineStatusLight: ({ isAvailable }) => ({
     display: 'block',
     width: theme.spacing(1),
     height: theme.spacing(1),
@@ -93,8 +93,10 @@ const useStyles = makeStyles<Theme, UseStyleInputs, StyleKey>(theme => ({
     borderStyle: 'solid',
 
     // Border color helps increase color contrast in light mode
-    borderColor: isOnline ? 'hsl(130deg,100%,40%)' : theme.palette.common.black,
-    backgroundColor: isOnline
+    borderColor: isAvailable
+      ? 'hsl(130deg,100%,40%)'
+      : theme.palette.common.black,
+    backgroundColor: isAvailable
       ? 'hsl(135deg,100%,77%)'
       : theme.palette.common.black,
   }),
@@ -142,8 +144,8 @@ export const WorkspacesListItem = ({
   const { accessUrl } = useCoderAppConfig().deployment;
   const anchorElementRef = useRef<HTMLAnchorElement>(null);
 
-  const isOnline = isWorkspaceOnline(workspace);
-  const styles = useStyles({ isOnline });
+  const availabilityStatus = getAvailabilityStatus(workspace);
+  const styles = useStyles({ isAvailable: availabilityStatus === 'online' });
 
   const { name, owner_name, template_icon } = workspace;
   const onlineStatusId = `${hookId}-online-status`;
@@ -205,7 +207,9 @@ export const WorkspacesListItem = ({
             />
 
             <VisuallyHidden>Workspace is </VisuallyHidden>
-            {isOnline ? 'Online' : 'Offline'}
+            {availabilityStatus === 'offline' && 'Offline'}
+            {availabilityStatus === 'online' && 'Online'}
+            {availabilityStatus === 'deleting' && <>Deleting&hellip;</>}
             <VisuallyHidden>.</VisuallyHidden>
           </span>
         </div>
@@ -225,6 +229,34 @@ export const WorkspacesListItem = ({
     </li>
   );
 };
+
+const unavailableStatuses: Record<
+  'deleting' | 'offline',
+  readonly WorkspaceStatus[]
+> = {
+  deleting: ['deleted', 'deleting'],
+  offline: ['stopped', 'stopping', 'pending'],
+};
+
+type AvailabilityStatus = 'online' | 'offline' | 'deleting';
+
+function getAvailabilityStatus(workspace: Workspace): AvailabilityStatus {
+  const currentStatus = workspace.latest_build.status;
+  if (unavailableStatuses.deleting.includes(currentStatus)) {
+    return 'deleting';
+  }
+
+  if (unavailableStatuses.offline.includes(currentStatus)) {
+    return 'offline';
+  }
+
+  const agentStatuses = getWorkspaceAgentStatuses(workspace);
+  const isGuaranteedAvailable = agentStatuses.every(
+    status => status === 'connected' || status === 'connecting',
+  );
+
+  return isGuaranteedAvailable ? 'online' : 'offline';
+}
 
 function stopClickEventBubbling(event: MouseEvent | KeyboardEvent): void {
   const { nativeEvent } = event;
