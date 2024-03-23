@@ -28,6 +28,7 @@ import {
   AuthContext,
   CoderAppConfigProvider,
   CoderAuthStatus,
+  CoderAuth,
 } from '../components/CoderProvider';
 import {
   getMockSourceControl,
@@ -116,20 +117,31 @@ export function getMockQueryClient(): QueryClient {
 type MockAuthProps = Readonly<
   CoderProviderProps & {
     authStatus?: CoderAuthStatus;
+    registerNewToken?: CoderAuth['registerNewToken'];
+    ejectToken?: CoderAuth['ejectToken'];
   }
 >;
 
 export const CoderProviderWithMockAuth = ({
   children,
   appConfig,
+  registerNewToken,
+  ejectToken,
   queryClient = getMockQueryClient(),
   authStatus = 'authenticated',
 }: MockAuthProps) => {
+  const baseAuth = mockAuthStates[authStatus];
+  const mockAuth = {
+    ...baseAuth,
+    registerNewToken: registerNewToken ?? baseAuth.registerNewToken,
+    ejectToken: ejectToken ?? baseAuth.ejectToken,
+  };
+
   return (
     <CoderErrorBoundary>
       <QueryClientProvider client={queryClient}>
         <CoderAppConfigProvider appConfig={appConfig}>
-          <AuthContext.Provider value={mockAuthStates[authStatus]}>
+          <AuthContext.Provider value={mockAuth}>
             {children}
           </AuthContext.Provider>
         </CoderAppConfigProvider>
