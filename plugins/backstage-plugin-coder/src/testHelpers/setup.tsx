@@ -114,15 +114,15 @@ export function getMockQueryClient(): QueryClient {
 }
 
 type MockAuthProps = Readonly<
-  Required<CoderProviderProps> & {
+  CoderProviderProps & {
     authStatus?: CoderAuthStatus;
   }
 >;
 
 export const CoderProviderWithMockAuth = ({
   children,
-  queryClient,
   appConfig,
+  queryClient = getMockQueryClient(),
   authStatus = 'authenticated',
 }: MockAuthProps) => {
   return (
@@ -230,8 +230,8 @@ export const renderHookAsCoderEntity = async <
 
   const renderHookValue = renderHook(hook, {
     ...delegatedOptions,
-    wrapper: ({ children }) =>
-      wrapInTestApp(
+    wrapper: ({ children }) => {
+      const mainMarkup = (
         <TestApiProvider
           apis={[
             [errorApiRef, mockErrorApi],
@@ -244,12 +244,13 @@ export const renderHookAsCoderEntity = async <
             queryClient={mockQueryClient}
             authStatus={authStatus}
           >
-            <EntityProvider entity={mockEntity}>
-              <>{children}</>
-            </EntityProvider>
+            <EntityProvider entity={mockEntity}>{children}</EntityProvider>
           </CoderProviderWithMockAuth>
-        </TestApiProvider>,
-      ),
+        </TestApiProvider>
+      );
+
+      return wrapInTestApp(mainMarkup) as unknown as typeof mainMarkup;
+    },
   });
 
   await waitFor(() => expect(renderHookValue.result.current).not.toBe(null));
