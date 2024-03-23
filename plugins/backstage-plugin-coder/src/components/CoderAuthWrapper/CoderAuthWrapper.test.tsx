@@ -144,10 +144,26 @@ describe(`${CoderAuthWrapper.name}`, () => {
 
   describe('Token submission form', () => {
     it("Is displayed when the token either doesn't exist or is definitely not valid", async () => {
-      expect.hasAssertions();
-    });
+      const buttonText = "You're not allowed to gaze upon my visage";
+      const tokenFormMatcher = /Please enter a new token/;
+      const statusesForInvalidUser: readonly CoderAuthStatus[] = [
+        'invalid',
+        'tokenMissing',
+      ];
 
-    it("Submitting a new token causes the component's children to appear", async () => {
+      for (const status of statusesForInvalidUser) {
+        const { unmount } = await renderAuthWrapper({
+          authStatus: status,
+          childButtonText: buttonText,
+        });
+
+        await screen.findByText(tokenFormMatcher);
+        const button = screen.queryByRole('button', { name: buttonText });
+        expect(button).not.toBeInTheDocument();
+
+        unmount();
+      }
+
       expect.hasAssertions();
     });
   });
