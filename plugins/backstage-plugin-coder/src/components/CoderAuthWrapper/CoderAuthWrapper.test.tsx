@@ -1,5 +1,6 @@
 import React from 'react';
 import { screen } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
 import { CoderProviderWithMockAuth } from '../../testHelpers/setup';
 import type { CoderAuthStatus } from '../CoderProvider';
 import { mockAppConfig } from '../../testHelpers/mockBackstageData';
@@ -7,11 +8,18 @@ import { CoderAuthWrapper } from './CoderAuthWrapper';
 import { renderInTestApp } from '@backstage/test-utils';
 
 type RenderInputs = Readonly<{
-  dummyButtonText: string;
+  childButtonText: string;
   authStatus: CoderAuthStatus;
+  ejectToken?: jest.Mock;
+  registerNewToken?: jest.Mock;
 }>;
 
-function renderAuthWrapper({ dummyButtonText, authStatus }: RenderInputs) {
+function renderAuthWrapper({
+  authStatus,
+  childButtonText,
+  ejectToken,
+  registerNewToken,
+}: RenderInputs) {
   /**
    * @todo RTL complains about the current environment not being configured to
    * support act. Luckily, it doesn't cause any of our main test cases to kick
@@ -25,9 +33,11 @@ function renderAuthWrapper({ dummyButtonText, authStatus }: RenderInputs) {
     <CoderProviderWithMockAuth
       appConfig={mockAppConfig}
       authStatus={authStatus}
+      ejectToken={ejectToken}
+      registerNewToken={registerNewToken}
     >
       <CoderAuthWrapper type="card">
-        <button>{dummyButtonText}</button>
+        <button>{childButtonText}</button>
       </CoderAuthWrapper>
     </CoderProviderWithMockAuth>,
   );
@@ -39,7 +49,7 @@ describe(`${CoderAuthWrapper.name}`, () => {
       const buttonText = 'I have secret Coder content!';
       renderAuthWrapper({
         authStatus: 'authenticated',
-        dummyButtonText: buttonText,
+        childButtonText: buttonText,
       });
 
       const button = await screen.findByRole('button', { name: buttonText });
@@ -56,7 +66,7 @@ describe(`${CoderAuthWrapper.name}`, () => {
       const buttonText = "You shouldn't be able to see me!";
       renderAuthWrapper({
         authStatus: 'initializing',
-        dummyButtonText: buttonText,
+        childButtonText: buttonText,
       });
 
       await screen.findByText(/Loading/);
@@ -78,7 +88,7 @@ describe(`${CoderAuthWrapper.name}`, () => {
       for (const status of distrustedStatuses) {
         const { unmount } = await renderAuthWrapper({
           authStatus: status,
-          dummyButtonText: buttonText,
+          childButtonText: buttonText,
         });
 
         await screen.findByText(distrustedTextMatcher);
@@ -90,11 +100,45 @@ describe(`${CoderAuthWrapper.name}`, () => {
     });
 
     it('Lets the user eject the current token', async () => {
-      expect.hasAssertions();
+      const ejectToken = jest.fn();
+      renderAuthWrapper({
+        authStatus: 'distrusted',
+        childButtonText: "I don't matter",
+        ejectToken,
+      });
+
+      const user = userEvent.setup();
+      const ejectButton = await screen.findByRole('button', {
+        name: 'Eject token',
+      });
+
+      await user.click(ejectButton);
+      expect(ejectToken).toHaveBeenCalled();
     });
 
     it('Will appear if auth status changes during re-renders', async () => {
-      expect.hasAssertions();
+      const buttonText = "Now you see me, now you don't";
+      const { rerender } = await renderAuthWrapper({
+        authStatus: 'authenticated',
+        childButtonText: buttonText,
+      });
+
+      // Capture button after it first appears on the screen
+      const button = await screen.findByRole('button', { name: buttonText });
+
+      rerender(
+        <CoderProviderWithMockAuth
+          appConfig={mockAppConfig}
+          authStatus="distrusted"
+        >
+          <CoderAuthWrapper type="card">
+            <button>{buttonText}</button>
+          </CoderAuthWrapper>
+        </CoderProviderWithMockAuth>,
+      );
+
+      // Assert that the button is now gone
+      expect(button).not.toBeInTheDocument();
     });
   });
 
