@@ -230,32 +230,35 @@ export const WorkspacesListItem = ({
   );
 };
 
-const unavailableStatuses: Record<
-  'deleting' | 'offline',
-  readonly WorkspaceStatus[]
-> = {
-  deleting: ['deleted', 'deleting'],
-  offline: ['stopped', 'stopping', 'pending'],
-};
+const deletingStatuses: readonly WorkspaceStatus[] = ['deleting', 'deleted'];
+const offlineStatuses: readonly WorkspaceStatus[] = [
+  'stopped',
+  'stopping',
+  'pending',
+];
 
 type AvailabilityStatus = 'online' | 'offline' | 'deleting';
 
 function getAvailabilityStatus(workspace: Workspace): AvailabilityStatus {
   const currentStatus = workspace.latest_build.status;
-  if (unavailableStatuses.deleting.includes(currentStatus)) {
+
+  // When a workspace is being deleted, there is a good chance that the agents
+  // will still show as connected/connecting. If this check isn't done before
+  // looking at the agent statuses, a deleting workspace might show up as online
+  if (deletingStatuses.includes(currentStatus)) {
     return 'deleting';
   }
 
-  if (unavailableStatuses.offline.includes(currentStatus)) {
+  if (offlineStatuses.includes(currentStatus)) {
     return 'offline';
   }
 
   const agentStatuses = getWorkspaceAgentStatuses(workspace);
-  const isGuaranteedAvailable = agentStatuses.every(
+  const showAsAvailable = agentStatuses.every(
     status => status === 'connected' || status === 'connecting',
   );
 
-  return isGuaranteedAvailable ? 'online' : 'offline';
+  return showAsAvailable ? 'online' : 'offline';
 }
 
 function stopClickEventBubbling(event: MouseEvent | KeyboardEvent): void {
