@@ -1,28 +1,18 @@
 /* eslint-disable @backstage/no-undeclared-imports -- For test helpers only */
-import {
-  MockErrorApi,
-  TestApiProvider,
-  wrapInTestApp,
-} from '@backstage/test-utils';
+import { TestApiProvider, wrapInTestApp } from '@backstage/test-utils';
 import {
   type RenderHookOptions,
   type RenderHookResult,
-  render,
   renderHook,
   waitFor,
 } from '@testing-library/react';
 /* eslint-enable @backstage/no-undeclared-imports */
 
-import React, { ReactElement } from 'react';
+import React from 'react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-
 import { scmIntegrationsApiRef } from '@backstage/integration-react';
 import { configApiRef, errorApiRef } from '@backstage/core-plugin-api';
-import {
-  type EntityProviderProps,
-  EntityProvider,
-} from '@backstage/plugin-catalog-react';
-
+import { EntityProvider } from '@backstage/plugin-catalog-react';
 import {
   type CoderProviderProps,
   AuthContext,
@@ -148,76 +138,6 @@ export const CoderProviderWithMockAuth = ({
       </QueryClientProvider>
     </CoderErrorBoundary>
   );
-};
-
-type ChildProps = EntityProviderProps;
-type RenderResultWithErrorApi = ReturnType<typeof render> & {
-  errorApi: MockErrorApi;
-};
-
-export const renderWithEntity = ({ children }: ChildProps) => {
-  const mockSourceControlApi = getMockSourceControl();
-  const mockConfigApi = getMockConfigApi();
-
-  return render(
-    <TestApiProvider
-      apis={[
-        [scmIntegrationsApiRef, mockSourceControlApi],
-        [configApiRef, mockConfigApi],
-      ]}
-    >
-      <EntityProvider entity={mockEntity}>{children}</EntityProvider>
-    </TestApiProvider>,
-  );
-};
-
-export const renderWithCoderProvider = (
-  component: ReactElement,
-): RenderResultWithErrorApi => {
-  const errorApi = getMockErrorApi();
-  const mockQueryClient = getMockQueryClient();
-
-  const result = render(
-    <TestApiProvider apis={[[errorApiRef, errorApi]]}>
-      <CoderProviderWithMockAuth
-        appConfig={mockAppConfig}
-        queryClient={mockQueryClient}
-        authStatus="authenticated"
-      >
-        {component}
-      </CoderProviderWithMockAuth>
-    </TestApiProvider>,
-  );
-
-  return { ...result, errorApi };
-};
-
-export const renderWithCoderEntity = ({
-  children,
-}: ChildProps): RenderResultWithErrorApi => {
-  const mockErrorApi = getMockErrorApi();
-  const mockSourceControl = getMockSourceControl();
-  const mockConfigApi = getMockConfigApi();
-  const mockQueryClient = getMockQueryClient();
-
-  const result = render(
-    <TestApiProvider
-      apis={[
-        [errorApiRef, mockErrorApi],
-        [scmIntegrationsApiRef, mockSourceControl],
-        [configApiRef, mockConfigApi],
-      ]}
-    >
-      <CoderProviderWithMockAuth
-        appConfig={mockAppConfig}
-        queryClient={mockQueryClient}
-      >
-        <EntityProvider entity={mockEntity}>{children}</EntityProvider>
-      </CoderProviderWithMockAuth>
-    </TestApiProvider>,
-  );
-
-  return { ...result, errorApi: mockErrorApi };
 };
 
 type RenderHookAsCoderEntityOptions<TProps extends NonNullable<unknown>> = Omit<
