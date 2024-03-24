@@ -6,6 +6,7 @@ import type { CoderAuth, CoderAuthStatus } from '../CoderProvider';
 import {
   mockAppConfig,
   mockAuthStates,
+  mockCoderAuthToken,
 } from '../../testHelpers/mockBackstageData';
 import { CoderAuthWrapper } from './CoderAuthWrapper';
 import { renderInTestApp } from '@backstage/test-utils';
@@ -168,6 +169,30 @@ describe(`${CoderAuthWrapper.name}`, () => {
       }
 
       expect.hasAssertions();
+    });
+
+    it('Lets the user submit a new token', async () => {
+      const { registerNewToken } = await renderAuthWrapper({
+        authStatus: 'tokenMissing',
+        childButtonText: "I don't matter",
+      });
+
+      /**
+       * Two concerns that make the selection for inputField a little hokey:
+       * 1. The auth input is of type password, which does not have a role
+       *    compatible with Testing Library; can't use getByRole to select it
+       * 2. MUI adds a star to its labels that are required, meaning that any
+       *    attempts at trying to match the string "Auth token" will fail
+       */
+      const inputField = screen.getByLabelText(/Auth token/);
+      const submitButton = screen.getByRole('button', { name: 'Authenticate' });
+
+      const user = userEvent.setup();
+      await user.click(inputField);
+      await user.keyboard(mockCoderAuthToken);
+      await user.click(submitButton);
+
+      expect(registerNewToken).toHaveBeenCalledWith(mockCoderAuthToken);
     });
   });
 });
