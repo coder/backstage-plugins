@@ -192,12 +192,14 @@ export const renderHookAsCoderEntity = async <
 type RenderInCoderEnvironmentInputs = Readonly<{
   children: React.ReactNode;
   appConfig?: CoderAppConfig;
+  queryClient?: QueryClient;
   auth?: CoderAuth;
 }>;
 
 export function renderInCoderEnvironment({
   children,
   auth,
+  queryClient = getMockQueryClient(),
   appConfig = mockAppConfig,
 }: RenderInCoderEnvironmentInputs) {
   /**
@@ -219,7 +221,11 @@ export function renderInCoderEnvironment({
       ]}
     >
       <EntityProvider entity={mockEntity}>
-        <CoderProviderWithMockAuth appConfig={appConfig} auth={auth}>
+        <CoderProviderWithMockAuth
+          appConfig={appConfig}
+          auth={auth}
+          queryClient={queryClient}
+        >
           {children}
         </CoderProviderWithMockAuth>
       </EntityProvider>
