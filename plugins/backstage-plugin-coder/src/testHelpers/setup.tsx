@@ -15,11 +15,12 @@ import { scmIntegrationsApiRef } from '@backstage/integration-react';
 import { configApiRef, errorApiRef } from '@backstage/core-plugin-api';
 import { EntityProvider } from '@backstage/plugin-catalog-react';
 import {
+  type CoderAuth,
+  type CoderAuthStatus,
+  type CoderAppConfig,
   type CoderProviderProps,
   AuthContext,
   CoderAppConfigProvider,
-  CoderAuthStatus,
-  CoderAuth,
 } from '../components/CoderProvider';
 import {
   getMockSourceControl,
@@ -107,32 +108,30 @@ export function getMockQueryClient(): QueryClient {
 
 type MockAuthProps = Readonly<
   CoderProviderProps & {
+    auth?: CoderAuth;
+
+    /**
+     * Shortcut property for injecting an auth object. Can conflict with the
+     * auth property; if both are defined, authStatus is completely ignored
+     */
     authStatus?: CoderAuthStatus;
-    registerNewToken?: CoderAuth['registerNewToken'];
-    ejectToken?: CoderAuth['ejectToken'];
   }
 >;
 
 export const CoderProviderWithMockAuth = ({
   children,
   appConfig,
-  registerNewToken,
-  ejectToken,
+  auth,
   queryClient = getMockQueryClient(),
   authStatus = 'authenticated',
 }: MockAuthProps) => {
-  const baseAuth = mockAuthStates[authStatus];
-  const mockAuth = {
-    ...baseAuth,
-    registerNewToken: registerNewToken ?? baseAuth.registerNewToken,
-    ejectToken: ejectToken ?? baseAuth.ejectToken,
-  };
+  const activeAuth = auth ?? mockAuthStates[authStatus];
 
   return (
     <CoderErrorBoundary>
       <QueryClientProvider client={queryClient}>
         <CoderAppConfigProvider appConfig={appConfig}>
-          <AuthContext.Provider value={mockAuth}>
+          <AuthContext.Provider value={activeAuth}>
             {children}
           </AuthContext.Provider>
         </CoderAppConfigProvider>
@@ -190,7 +189,23 @@ export const renderHookAsCoderEntity = async <
   return renderHookValue;
 };
 
-export function renderInCoderEnvironment(children: React.ReactNode) {
+type RenderInCoderEnvironmentInputs = Readonly<{
+  children: React.ReactNode;
+  appConfig?: CoderAppConfig;
+  auth?: CoderAuth;
+}>;
+
+export function renderInCoderEnvironment({
+  children,
+  auth,
+  appConfig = mockAppConfig,
+}: RenderInCoderEnvironmentInputs) {
+  /**
+   * Tried really hard to get renderInTestApp to work, but for whatever reason,
+   * it kept complaining about some config values not being set up properly.
+   *
+   * Manually setting up the config API to get around that
+   */
   const mockErrorApi = getMockErrorApi();
   const mockSourceControl = getMockSourceControl();
   const mockConfigApi = getMockConfigApi();
@@ -203,9 +218,11 @@ export function renderInCoderEnvironment(children: React.ReactNode) {
         [configApiRef, mockConfigApi],
       ]}
     >
-      <CoderProviderWithMockAuth appConfig={mockAppConfig}>
-        <EntityProvider entity={mockEntity}>{children}</EntityProvider>
-      </CoderProviderWithMockAuth>
+      <EntityProvider entity={mockEntity}>
+        <CoderProviderWithMockAuth appConfig={appConfig} auth={auth}>
+          {children}
+        </CoderProviderWithMockAuth>
+      </EntityProvider>
     </TestApiProvider>
   );
 

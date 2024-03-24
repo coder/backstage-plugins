@@ -7,11 +7,13 @@ import { Root } from './Root';
 import { CreateWorkspaceLink } from './CreateWorkspaceLink';
 
 function render() {
-  return renderInCoderEnvironment(
-    <Root>
-      <CreateWorkspaceLink />
-    </Root>,
-  );
+  return renderInCoderEnvironment({
+    children: (
+      <Root>
+        <CreateWorkspaceLink />
+      </Root>
+    ),
+  });
 }
 
 describe(`${CreateWorkspaceLink.name}`, () => {

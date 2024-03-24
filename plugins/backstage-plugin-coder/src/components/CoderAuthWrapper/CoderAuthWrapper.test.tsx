@@ -2,24 +2,32 @@ import React from 'react';
 import { screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { CoderProviderWithMockAuth } from '../../testHelpers/setup';
-import type { CoderAuthStatus } from '../CoderProvider';
-import { mockAppConfig } from '../../testHelpers/mockBackstageData';
+import type { CoderAuth, CoderAuthStatus } from '../CoderProvider';
+import {
+  mockAppConfig,
+  mockAuthStates,
+} from '../../testHelpers/mockBackstageData';
 import { CoderAuthWrapper } from './CoderAuthWrapper';
 import { renderInTestApp } from '@backstage/test-utils';
 
 type RenderInputs = Readonly<{
   childButtonText: string;
   authStatus: CoderAuthStatus;
-  ejectToken?: jest.Mock;
-  registerNewToken?: jest.Mock;
 }>;
 
-function renderAuthWrapper({
+async function renderAuthWrapper({
   authStatus,
   childButtonText,
-  ejectToken,
-  registerNewToken,
 }: RenderInputs) {
+  const ejectToken = jest.fn();
+  const registerNewToken = jest.fn();
+
+  const auth: CoderAuth = {
+    ...mockAuthStates[authStatus],
+    ejectToken,
+    registerNewToken,
+  };
+
   /**
    * @todo RTL complains about the current environment not being configured to
    * support act. Luckily, it doesn't cause any of our main test cases to kick
@@ -29,18 +37,15 @@ function renderAuthWrapper({
    * migration to React 18. Need to figure out where this issue is coming from,
    * and open an issue upstream if necessary
    */
-  return renderInTestApp(
-    <CoderProviderWithMockAuth
-      appConfig={mockAppConfig}
-      authStatus={authStatus}
-      ejectToken={ejectToken}
-      registerNewToken={registerNewToken}
-    >
+  const renderOutput = await renderInTestApp(
+    <CoderProviderWithMockAuth appConfig={mockAppConfig} auth={auth}>
       <CoderAuthWrapper type="card">
         <button>{childButtonText}</button>
       </CoderAuthWrapper>
     </CoderProviderWithMockAuth>,
   );
+
+  return { ...renderOutput, ejectToken, registerNewToken };
 }
 
 describe(`${CoderAuthWrapper.name}`, () => {
@@ -100,11 +105,9 @@ describe(`${CoderAuthWrapper.name}`, () => {
     });
 
     it('Lets the user eject the current token', async () => {
-      const ejectToken = jest.fn();
-      renderAuthWrapper({
+      const { ejectToken } = await renderAuthWrapper({
         authStatus: 'distrusted',
         childButtonText: "I don't matter",
-        ejectToken,
       });
 
       const user = userEvent.setup();

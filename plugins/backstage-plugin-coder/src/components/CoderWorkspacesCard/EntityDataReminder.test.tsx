@@ -6,11 +6,13 @@ import { Root } from './Root';
 import { EntityDataReminder } from './EntityDataReminder';
 
 function render() {
-  return renderInCoderEnvironment(
-    <Root>
-      <EntityDataReminder />
-    </Root>,
-  );
+  return renderInCoderEnvironment({
+    children: (
+      <Root>
+        <EntityDataReminder />
+      </Root>
+    ),
+  });
 }
 
 describe(`${EntityDataReminder.name}`, () => {
