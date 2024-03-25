@@ -21,8 +21,8 @@ _Note: While this plugin can be used standalone, it has been designed to be a ba
 
 ## Setup
 
-[!WARNING]
-All setup instructions assume you are using a Backstage deployment created with `@backstage/create-app` version `0.5.10` or earlier. Any later versions may or may not use Backstage's New Backend System (described [here](https://backstage.io/docs/backend-system/) and [here](https://backstage.io/docs/plugins/new-backend-system/)). We are currently evaluating how best to support the new system.
+> [!WARNING]
+> All setup instructions assume you are using a Backstage deployment created with `@backstage/create-app` version `0.5.10` or earlier. Any later versions may or may not use Backstage's New Backend System (described [here](https://backstage.io/docs/backend-system/) and [here](https://backstage.io/docs/plugins/new-backend-system/)). We are currently evaluating how best to support the new system.
 
 ### Before you begin
 
