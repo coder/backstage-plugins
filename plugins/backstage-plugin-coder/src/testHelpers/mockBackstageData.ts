@@ -23,17 +23,24 @@ import { API_ROUTE_PREFIX, ASSETS_ROUTE_PREFIX } from '../api';
  * repo URL of the current page. This is not guaranteed to be stable, and can
  * change over time. Do not export this without good reason.
  */
-const ANNOTATION_SOURCE_LOCATION_KEY = 'backstage.io/source-location';
+export const ANNOTATION_SOURCE_LOCATION_KEY = 'backstage.io/source-location';
+
+/**
+ * The name of the repo that should be made available in the majority of
+ * situations
+ */
+export const mockRepoName = 'zombocom';
 
 /**
  * The URL that will be exposed via useCoderWorkspacesConfig. This value must
  * have all additional parts at the end stripped off in order to make sure that
  * the Coder app is correctly able to download a repo for a workspace.
  */
-export const cleanedRepoUrl = 'https://www.github.com/zombo/com';
+export const cleanedRepoUrl = `https://www.github.com/zombocom/${mockRepoName}`;
 
 /**
  * The shape of URL that Backstage will parse from the entity data by default
+ * Pattern shared by the Source Control Managers
  */
 export const rawRepoUrl = `${cleanedRepoUrl}/tree/main/`;
 
