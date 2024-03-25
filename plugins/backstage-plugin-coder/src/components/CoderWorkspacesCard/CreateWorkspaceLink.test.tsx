@@ -18,8 +18,8 @@ function render() {
 
 describe(`${CreateWorkspaceLink.name}`, () => {
   it('Displays a link based on the current entity', async () => {
-    render();
-    const link = await screen.findByRole<HTMLAnchorElement>('link');
+    await render();
+    const link = screen.getByRole<HTMLAnchorElement>('link');
 
     expect(link).not.toBeDisabled();
     expect(link.target).toEqual('_blank');
@@ -29,8 +29,8 @@ describe(`${CreateWorkspaceLink.name}`, () => {
   });
 
   it('Will display a tooltip while hovered over', async () => {
-    render();
-    const link = await screen.findByRole<HTMLAnchorElement>('link');
+    await render();
+    const link = screen.getByRole<HTMLAnchorElement>('link');
     const user = userEvent.setup();
 
     await user.hover(link);

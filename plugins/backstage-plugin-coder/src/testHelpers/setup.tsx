@@ -196,7 +196,7 @@ type RenderInCoderEnvironmentInputs = Readonly<{
   auth?: CoderAuth;
 }>;
 
-export function renderInCoderEnvironment({
+export async function renderInCoderEnvironment({
   children,
   auth,
   queryClient = getMockQueryClient(),
@@ -233,5 +233,11 @@ export function renderInCoderEnvironment({
   );
 
   const wrapped = wrapInTestApp(mainMarkup) as unknown as typeof mainMarkup;
-  return render(wrapped);
+  const renderOutput = render(wrapped);
+  const loadingIndicator = renderOutput.container.querySelector(
+    'div[data-testid="progress"]',
+  );
+
+  await waitFor(() => expect(loadingIndicator).not.toBeInTheDocument());
+  return renderOutput;
 }

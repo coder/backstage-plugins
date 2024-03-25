@@ -17,9 +17,9 @@ function render() {
 
 describe(`${EntityDataReminder.name}`, () => {
   it('Will toggle between showing/hiding the disclosure info when the user clicks it', async () => {
-    render();
+    await render();
     const user = userEvent.setup();
-    const disclosureButton = await screen.findByRole('button', {
+    const disclosureButton = screen.getByRole('button', {
       name: /Why am I seeing all workspaces\?/,
     });
 
