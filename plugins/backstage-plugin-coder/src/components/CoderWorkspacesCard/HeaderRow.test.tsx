@@ -11,11 +11,12 @@ import {
 } from '../../testHelpers/mockBackstageData';
 
 type RenderInputs = Readonly<{
+  readEntityData?: boolean;
   repoUrl?: string;
 }>;
 
 function renderHeaderRow(input?: RenderInputs) {
-  const { repoUrl } = input ?? {};
+  const { repoUrl, readEntityData = false } = input ?? {};
 
   let entity: BackstageEntity = mockEntity;
   if (repoUrl) {
@@ -34,7 +35,7 @@ function renderHeaderRow(input?: RenderInputs) {
   return renderInCoderEnvironment({
     entity,
     children: (
-      <Root readEntityData>
+      <Root readEntityData={readEntityData}>
         <HeaderRow />
       </Root>
     ),
@@ -42,6 +43,8 @@ function renderHeaderRow(input?: RenderInputs) {
 }
 
 describe(`${HeaderRow.name}`, () => {
+  const subheaderTextMatcher = /Results filtered by/i;
+
   it('Has a header with an ID that matches the ID of the parent root container (needed for a11y landmark behavior)', async () => {
     await renderHeaderRow();
     const searchContainer = screen.getByRole('search');
@@ -51,16 +54,28 @@ describe(`${HeaderRow.name}`, () => {
     expect(header.id).toBe(labelledByBinding);
   });
 
+  it('Will hide text about filtering active repos if the Root is not configured to read entity data', async () => {
+    await renderHeaderRow({ readEntityData: false });
+    const subheader = screen.queryByText(subheaderTextMatcher);
+    expect(subheader).not.toBeInTheDocument();
+  });
+
   it.only('Will dynamically show the name of the current repo (when it can be parsed)', async () => {
-    await renderHeaderRow();
-    const subheader = screen.getByText(/Results filtered by/i);
+    await renderHeaderRow({ readEntityData: true });
+    const subheader = screen.getByText(subheaderTextMatcher);
+
     expect(subheader.textContent).toEqual(
       `Results filtered by repo: ${mockRepoName}`,
     );
   });
 
   it("Will show fallback indicator for the repo name if it can't be parsed", async () => {
-    await renderHeaderRow();
-    expect.hasAssertions();
+    await renderHeaderRow({
+      readEntityData: true,
+      repoUrl: 'https://www.blah.com/unknown/repo/format',
+    });
+
+    const subheader = screen.getByText(subheaderTextMatcher);
+    expect(subheader.textContent).toEqual('Results filtered by repo URL');
   });
 });
