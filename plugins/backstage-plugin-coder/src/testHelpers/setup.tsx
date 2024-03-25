@@ -29,6 +29,7 @@ import {
   getMockErrorApi,
   getMockConfigApi,
   mockAuthStates,
+  BackstageEntity,
 } from './mockBackstageData';
 import { CoderErrorBoundary } from '../plugin';
 
@@ -191,6 +192,7 @@ export const renderHookAsCoderEntity = async <
 
 type RenderInCoderEnvironmentInputs = Readonly<{
   children: React.ReactNode;
+  entity?: BackstageEntity;
   appConfig?: CoderAppConfig;
   queryClient?: QueryClient;
   auth?: CoderAuth;
@@ -199,6 +201,7 @@ type RenderInCoderEnvironmentInputs = Readonly<{
 export async function renderInCoderEnvironment({
   children,
   auth,
+  entity = mockEntity,
   queryClient = getMockQueryClient(),
   appConfig = mockAppConfig,
 }: RenderInCoderEnvironmentInputs) {
@@ -220,7 +223,7 @@ export async function renderInCoderEnvironment({
         [configApiRef, mockConfigApi],
       ]}
     >
-      <EntityProvider entity={mockEntity}>
+      <EntityProvider entity={entity}>
         <CoderProviderWithMockAuth
           appConfig={appConfig}
           auth={auth}
