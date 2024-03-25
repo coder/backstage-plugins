@@ -1,3 +1,10 @@
+/**
+ * @file Wires up all the core logic for passing values down to the
+ * sub-components in the same directory.
+ *
+ * Does not need any tests – test functionality covered by integration tests in
+ * CoderWorkspacesCard
+ */
 import React, {
   type HTMLAttributes,
   createContext,
