@@ -2,9 +2,14 @@ import React from 'react';
 import { screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { renderInCoderEnvironment } from '../../testHelpers/setup';
-import { mockAuthStates } from '../../testHelpers/mockBackstageData';
+import {
+  mockAuthStates,
+  mockCoderWorkspacesConfig,
+} from '../../testHelpers/mockBackstageData';
 import type { CoderAuth } from '../CoderProvider';
-import { Root } from './Root';
+import type { UseQueryResult } from '@tanstack/react-query';
+import type { Workspace } from '../../typesConstants';
+import { CardContext, WorkspacesCardContext } from './Root';
 import { ExtraActionsButton } from './ExtraActionsButton';
 
 type RenderInputs = Readonly<{
@@ -15,20 +20,38 @@ async function renderButton({ buttonText }: RenderInputs) {
   const ejectToken = jest.fn();
   const auth: CoderAuth = { ...mockAuthStates.authenticated, ejectToken };
 
+  /**
+   * Pretty sure there has to be a more elegant and fault-tolerant way of
+   * testing the useQuery functionality, but this does the trick for now
+   *
+   * @todo Research how to test dependencies on useQuery
+   */
+  const refetch = jest.fn();
+  const mockWorkspacesQuery = {
+    refetch,
+  } as unknown as UseQueryResult<readonly Workspace[]>;
+  const mockContext: WorkspacesCardContext = {
+    headerId: "Doesn't matter",
+    queryFilter: "Doesn't matter",
+    onFilterChange: jest.fn(),
+    workspacesConfig: mockCoderWorkspacesConfig,
+    workspacesQuery: mockWorkspacesQuery,
+  };
+
   const renderOutput = await renderInCoderEnvironment({
     auth,
     children: (
-      <Root>
+      <CardContext.Provider value={mockContext}>
         <ExtraActionsButton tooltipText={buttonText} />
-      </Root>
+      </CardContext.Provider>
     ),
   });
 
-  const button = screen.getByRole('button', { name: new RegExp(buttonText) });
   return {
     ...renderOutput,
-    button,
+    button: screen.getByRole('button', { name: new RegExp(buttonText) }),
     unlinkCoderAccount: ejectToken,
+    refreshWorkspaces: refetch,
   };
 }
 
@@ -103,15 +126,43 @@ describe(`${ExtraActionsButton.name}`, () => {
     expect(unlinkCoderAccount).toHaveBeenCalled();
   });
 
-  // Ideas that come to mind for testing the refetch functionality:
-  // 1. Export the Context Provider from Root, and wire it up with a mock query
-  //    object value
-  // 2. Figure out a way to mock the API functions
-  it('Can refetch the workspaces data', async () => {
-    expect.hasAssertions();
+  it('Can refresh the workspaces data', async () => {
+    const user = userEvent.setup();
+    const { button, refreshWorkspaces } = await renderButton({
+      buttonText: 'Refresh test',
+    });
+
+    await user.click(button);
+    const refreshItem = await screen.findByRole('menuitem', {
+      name: /Refresh/i,
+    });
+
+    await user.click(refreshItem);
+    expect(refreshWorkspaces).toHaveBeenCalled();
   });
 
-  it('Will throttle repeated called to the refetch functionality', async () => {
-    expect.hasAssertions();
+  it('Will throttle repeated clicks on the Refresh menu item', async () => {
+    const user = userEvent.setup();
+    const refreshMatcher = /Refresh/i;
+    const { button, refreshWorkspaces } = await renderButton({
+      buttonText: 'Throttle test',
+    });
+
+    // The menu is programmed to auto-close every time you choose an option;
+    // have to do a lot of clicks to verify that things are throttled
+    for (let i = 0; i < 10; i++) {
+      await user.click(button);
+
+      // Can't store this in a variable outside the loop, because the item will
+      // keep mounting/unmounting every time the menu opens/closes. The memory
+      // reference will keep changing
+      const refreshItem = screen.getByRole('menuitem', {
+        name: refreshMatcher,
+      });
+
+      await user.click(refreshItem);
+    }
+
+    expect(refreshWorkspaces).toHaveBeenCalledTimes(1);
   });
 });

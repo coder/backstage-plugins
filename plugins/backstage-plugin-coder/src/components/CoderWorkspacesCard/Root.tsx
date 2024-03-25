@@ -17,7 +17,7 @@ import { Card } from '../Card';
 import { CoderAuthWrapper } from '../CoderAuthWrapper';
 import { EntityDataReminder } from './EntityDataReminder';
 
-type WorkspacesCardContext = Readonly<{
+export type WorkspacesCardContext = Readonly<{
   queryFilter: string;
   onFilterChange: (newFilter: string) => void;
   workspacesQuery: UseQueryResult<readonly Workspace[]>;
@@ -25,7 +25,9 @@ type WorkspacesCardContext = Readonly<{
   headerId: string;
 }>;
 
-const CardContext = createContext<WorkspacesCardContext | null>(null);
+// Only exported to simplify setting up dependency injection for tests. Should
+// not be consumed directly in application code
+export const CardContext = createContext<WorkspacesCardContext | null>(null);
 
 export type WorkspacesCardProps = Readonly<
   Omit<HTMLAttributes<HTMLDivElement>, 'role' | 'aria-labelledby'> & {
