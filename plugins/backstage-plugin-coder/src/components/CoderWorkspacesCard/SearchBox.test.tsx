@@ -29,17 +29,14 @@ async function renderSearchBox() {
 describe(`${SearchBox.name}`, () => {
   /**
    * Functionality to test:
-   * 1. Clicking anywhere in the searchbox area (aside from the clear button)
-   *    will cause the main input to receive focus
-   * 2. Clicking the clear button will:
-   *    1. Cancel any pending debounced calls
-   *    2. Immediately clear out the input
-   *    3. Immediately clear out the query callback passed via root
-   * 3. Typing behavior
-   *    1. Typing immediately updates the input
-   *    2. Typing does not immediately dispatch any updates to the Root callback
-   *       (update is eventually resolved via debouncing)
-   *    3. Clearing out the input field via keyboard is functionally equivalent
-   *       to clicking the clear button
+   * 1. Typing will immediately update the input
+   * 2. Typing does not immediately dispatch any updates to the Root callback
+   *    (update is eventually resolved via debouncing)
+   * 3. Clicking the clear button will:
+   *    1. Immediately clear out the visible input
+   *    2. Immediately clear out the query callback passed via root
+   *    3. Cancel any pending debounced calls
+   * 4. Clearing out the input field via keyboard is functionally equivalent
+   *    to clicking the clear button
    */
 });
