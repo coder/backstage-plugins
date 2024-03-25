@@ -24,10 +24,7 @@ async function renderButton({ buttonText }: RenderInputs) {
     ),
   });
 
-  const button = screen.getByRole('button', {
-    name: new RegExp(buttonText),
-  });
-
+  const button = screen.getByRole('button', { name: new RegExp(buttonText) });
   return {
     ...renderOutput,
     button,
@@ -80,12 +77,30 @@ describe(`${ExtraActionsButton.name}`, () => {
     expect(unlinkCoderAccount).toHaveBeenCalled();
   });
 
-  it.only('Lets users trigger actions entirely through the keyboard', async () => {
+  it('Lets users trigger actions entirely through the keyboard', async () => {
+    const tooltipText = 'Keyboard test';
     const { button, unlinkCoderAccount } = await renderButton({
-      buttonText: 'Keyboard test',
+      buttonText: tooltipText,
     });
 
-    expect.hasAssertions();
+    const user = userEvent.setup();
+    await user.keyboard('[Tab]');
+    expect(button).toHaveFocus();
+
+    await user.keyboard('[Enter]');
+    const tooltip = await screen.findByText(tooltipText);
+    expect(tooltip).toBeInTheDocument();
+
+    const unlinkItem = screen.getByRole('menuitem', {
+      name: /Unlink Coder account/i,
+    });
+
+    while (document.activeElement !== unlinkItem) {
+      await user.keyboard('[ArrowDown]');
+    }
+
+    await user.keyboard('[Enter]');
+    expect(unlinkCoderAccount).toHaveBeenCalled();
   });
 
   // Ideas that come to mind for testing the refetch functionality:
