@@ -75,7 +75,7 @@ export const mockEntity: BackstageEntity = {
   metadata: {
     name: 'metadata',
     annotations: {
-      [ANNOTATION_SOURCE_LOCATION_KEY]: `url:${cleanedRepoUrl}`,
+      [ANNOTATION_SOURCE_LOCATION_KEY]: `url:${rawRepoUrl}`,
     },
   },
   spec: {

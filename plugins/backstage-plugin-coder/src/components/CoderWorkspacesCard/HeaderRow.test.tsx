@@ -60,7 +60,7 @@ describe(`${HeaderRow.name}`, () => {
     expect(subheader).not.toBeInTheDocument();
   });
 
-  it.only('Will dynamically show the name of the current repo (when it can be parsed)', async () => {
+  it('Will dynamically show the name of the current repo (when it can be parsed)', async () => {
     await renderHeaderRow({ readEntityData: true });
     const subheader = screen.getByText(subheaderTextMatcher);
 
