@@ -7,8 +7,6 @@ import {
   mockCoderWorkspacesConfig,
 } from '../../testHelpers/mockBackstageData';
 import type { CoderAuth } from '../CoderProvider';
-import type { UseQueryResult } from '@tanstack/react-query';
-import type { Workspace } from '../../typesConstants';
 import { CardContext, WorkspacesCardContext } from './Root';
 import { ExtraActionsButton } from './ExtraActionsButton';
 
@@ -29,7 +27,7 @@ async function renderButton({ buttonText }: RenderInputs) {
   const refetch = jest.fn();
   const mockWorkspacesQuery = {
     refetch,
-  } as unknown as UseQueryResult<readonly Workspace[]>;
+  } as unknown as WorkspacesCardContext['workspacesQuery'];
   const mockContext: WorkspacesCardContext = {
     headerId: "Doesn't matter",
     queryFilter: "Doesn't matter",
