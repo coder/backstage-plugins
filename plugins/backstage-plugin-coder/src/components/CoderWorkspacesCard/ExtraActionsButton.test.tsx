@@ -88,8 +88,8 @@ describe(`${ExtraActionsButton.name}`, () => {
     expect(button).toHaveFocus();
 
     await user.keyboard('[Enter]');
-    const tooltip = await screen.findByText(tooltipText);
-    expect(tooltip).toBeInTheDocument();
+    const menuItems = await screen.findAllByRole('menuitem');
+    expect(menuItems[0]).toHaveFocus();
 
     const unlinkItem = screen.getByRole('menuitem', {
       name: /Unlink Coder account/i,
