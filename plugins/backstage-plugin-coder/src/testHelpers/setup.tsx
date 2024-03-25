@@ -206,8 +206,9 @@ export async function renderInCoderEnvironment({
   appConfig = mockAppConfig,
 }: RenderInCoderEnvironmentInputs) {
   /**
-   * Tried really hard to get renderInTestApp to work, but for whatever reason,
-   * it kept complaining about some config values not being set up properly.
+   * Tried really hard to get renderInTestApp to work, but I couldn't figure out
+   * how to get it set up with custom config values (mainly for testing the
+   * backend endpoints).
    *
    * Manually setting up the config API to get around that
    */
