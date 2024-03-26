@@ -10,6 +10,20 @@ import type { CoderAuth } from '../CoderProvider';
 import { CardContext, WorkspacesCardContext } from './Root';
 import { ExtraActionsButton } from './ExtraActionsButton';
 
+beforeAll(() => {
+  jest.useFakeTimers();
+});
+
+afterAll(() => {
+  jest.useRealTimers();
+});
+
+function getUser() {
+  return userEvent.setup({
+    advanceTimers: jest.advanceTimersByTime,
+  });
+}
+
 type RenderInputs = Readonly<{
   buttonText: string;
 }>;
@@ -57,7 +71,7 @@ describe(`${ExtraActionsButton.name}`, () => {
   // Can include onClick prop test in this test case, too
   it('Will open a menu of actions when the main button is clicked', async () => {
     const { button } = await renderButton({ buttonText: 'Button' });
-    const user = userEvent.setup();
+    const user = getUser();
 
     await user.click(button);
     expect(() => {
@@ -73,7 +87,7 @@ describe(`${ExtraActionsButton.name}`, () => {
 
   it('Displays a tooltip when the user hovers over it', async () => {
     const tooltipText = 'Hover test';
-    const user = userEvent.setup();
+    const user = getUser();
     const { button } = await renderButton({
       buttonText: 'Hover test',
     });
@@ -84,7 +98,7 @@ describe(`${ExtraActionsButton.name}`, () => {
   });
 
   it('Can unlink the current Coder session token', async () => {
-    const user = userEvent.setup();
+    const user = getUser();
     const { button, unlinkCoderAccount } = await renderButton({
       buttonText: 'Unlink test',
     });
@@ -104,7 +118,7 @@ describe(`${ExtraActionsButton.name}`, () => {
       buttonText: tooltipText,
     });
 
-    const user = userEvent.setup();
+    const user = getUser();
     await user.keyboard('[Tab]');
     expect(button).toHaveFocus();
 
@@ -125,7 +139,7 @@ describe(`${ExtraActionsButton.name}`, () => {
   });
 
   it('Can refresh the workspaces data', async () => {
-    const user = userEvent.setup();
+    const user = getUser();
     const { button, refreshWorkspaces } = await renderButton({
       buttonText: 'Refresh test',
     });
@@ -140,7 +154,7 @@ describe(`${ExtraActionsButton.name}`, () => {
   });
 
   it('Will throttle repeated clicks on the Refresh menu item', async () => {
-    const user = userEvent.setup();
+    const user = getUser();
     const refreshMatcher = /Refresh/i;
     const { button, refreshWorkspaces } = await renderButton({
       buttonText: 'Throttle test',
@@ -161,6 +175,7 @@ describe(`${ExtraActionsButton.name}`, () => {
       await user.click(refreshItem);
     }
 
+    await jest.advanceTimersByTimeAsync(10_000);
     expect(refreshWorkspaces).toHaveBeenCalledTimes(1);
   });
 });
