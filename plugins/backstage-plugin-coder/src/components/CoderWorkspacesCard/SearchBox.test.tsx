@@ -6,6 +6,20 @@ import { mockCoderWorkspacesConfig } from '../../testHelpers/mockBackstageData';
 import { screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 
+beforeAll(() => {
+  jest.useFakeTimers();
+});
+
+afterAll(() => {
+  jest.useRealTimers();
+});
+
+function getUser() {
+  return userEvent.setup({
+    advanceTimers: jest.advanceTimersByTime,
+  });
+}
+
 type RenderInputs = Readonly<{
   queryFilter?: string;
 }>;
@@ -44,18 +58,17 @@ describe(`${SearchBox.name}`, () => {
 
     it('Will update the input immediately in response to the user typing', async () => {
       const { inputField } = await renderSearchBox();
-      const user = userEvent.setup();
+      const user = getUser();
 
       // Using triple-click to simulate highlighting all the text in the input
       await user.tripleClick(inputField);
       await user.keyboard(`[Backspace]${sampleInputText}`);
-
       expect(inputField.value).toBe(sampleInputText);
     });
 
     it('Will debounce calls to the parent provider as the user types more characters', async () => {
       const { inputField, onFilterChange } = await renderSearchBox();
-      const user = userEvent.setup();
+      const user = getUser();
 
       await user.click(inputField);
       await user.keyboard(sampleInputText);
@@ -77,7 +90,7 @@ describe(`${SearchBox.name}`, () => {
    */
   describe('Text-clearing functionality', () => {
     it('Lets the user clear the text via the Clear button', async () => {
-      const user = userEvent.setup();
+      const user = getUser();
       const { inputField, onFilterChange } = await renderSearchBox({
         queryFilter: '',
       });
@@ -96,10 +109,13 @@ describe(`${SearchBox.name}`, () => {
       expect(inputField.value).toBe('');
       expect(onFilterChange).toHaveBeenCalledTimes(1);
       expect(onFilterChange).toHaveBeenCalledWith('');
+
+      await jest.advanceTimersByTimeAsync(10_000);
+      expect(onFilterChange).toHaveBeenCalledTimes(1);
     });
 
     it('Lets the user trigger clear behavior by hitting Backspace', async () => {
-      const user = userEvent.setup();
+      const user = getUser();
       const { inputField, onFilterChange } = await renderSearchBox({
         queryFilter: 'H',
       });
@@ -113,6 +129,9 @@ describe(`${SearchBox.name}`, () => {
       expect(inputField.value).toBe('');
       expect(onFilterChange).toHaveBeenCalledTimes(1);
       expect(onFilterChange).toHaveBeenCalledWith('');
+
+      await jest.advanceTimersByTimeAsync(10_000);
+      expect(onFilterChange).toHaveBeenCalledTimes(1);
     });
   });
 });
