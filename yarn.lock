@@ -3744,19 +3744,19 @@
     "@backstage/plugin-search-backend-node" "^1.2.13"
     "@backstage/plugin-search-common" "^1.2.10"
 
-"@backstage/plugin-search-backend-module-pg@^0.5.22":
-  version "0.5.22"
-  resolved "https://registry.yarnpkg.com/@backstage/plugin-search-backend-module-pg/-/plugin-search-backend-module-pg-0.5.22.tgz#cd095c7dad00c594d4e58bc148a81c377ca93a0c"
-  integrity sha512-UXg4hCC+zblyNvuiqPlVi8kwabnAxUPzTZn9nB9mNoa9II1bwPFs51tlyy10MyH0U+vNuark1K/Auj3qORrpzw==
+"@backstage/plugin-search-backend-module-pg@^0.5.24":
+  version "0.5.24"
+  resolved "https://registry.yarnpkg.com/@backstage/plugin-search-backend-module-pg/-/plugin-search-backend-module-pg-0.5.24.tgz#1ad5f4be95283a499391b627aa73012631025581"
+  integrity sha512-q8ex5OCJvOZPzvKgCfwZFPvJeRhx64o0/B21fx9URFYPUfBIntyURpXT7Eql5/l+HKHIUj04vySikwPOpN2orA==
   dependencies:
-    "@backstage/backend-common" "^0.21.3"
-    "@backstage/backend-plugin-api" "^0.6.13"
-    "@backstage/config" "^1.1.1"
-    "@backstage/plugin-search-backend-node" "^1.2.17"
-    "@backstage/plugin-search-common" "^1.2.10"
+    "@backstage/backend-common" "^0.21.5"
+    "@backstage/backend-plugin-api" "^0.6.15"
+    "@backstage/config" "^1.2.0"
+    "@backstage/plugin-search-backend-node" "^1.2.19"
+    "@backstage/plugin-search-common" "^1.2.11"
     knex "^3.0.0"
     lodash "^4.17.21"
-    uuid "^8.3.2"
+    uuid "^9.0.0"
     winston "^3.2.1"
 
 "@backstage/plugin-search-backend-module-techdocs@^0.1.13", "@backstage/plugin-search-backend-module-techdocs@^0.1.17":
@@ -3781,23 +3781,23 @@
     p-limit "^3.1.0"
     winston "^3.2.1"
 
-"@backstage/plugin-search-backend-node@^1.2.13", "@backstage/plugin-search-backend-node@^1.2.17":
-  version "1.2.17"
-  resolved "https://registry.yarnpkg.com/@backstage/plugin-search-backend-node/-/plugin-search-backend-node-1.2.17.tgz#896bfc1f524bc6c0892e4ce8e08b0bde86159693"
-  integrity sha512-3Uq3qlv14gLpDspksuCAL5jQHhnavFNQq03Ub+o2RZhcXBrBf2U+IdF/4p7lpbUdff0SkcUj4O48wLBN+JPayg==
+"@backstage/plugin-search-backend-node@^1.2.13", "@backstage/plugin-search-backend-node@^1.2.17", "@backstage/plugin-search-backend-node@^1.2.19":
+  version "1.2.19"
+  resolved "https://registry.yarnpkg.com/@backstage/plugin-search-backend-node/-/plugin-search-backend-node-1.2.19.tgz#0d10acd6d40a7308ca4ab44b42d02ec6b8ff955f"
+  integrity sha512-osbSILue84z7R/HBFOFYB4buOv/Jmk141o/GANWbxFfZjtyGaOe3obfStrqIXrn2irJ32TrU7IO99NyFCEPBeg==
   dependencies:
-    "@backstage/backend-common" "^0.21.3"
-    "@backstage/backend-plugin-api" "^0.6.13"
-    "@backstage/backend-tasks" "^0.5.18"
-    "@backstage/config" "^1.1.1"
-    "@backstage/errors" "^1.2.3"
-    "@backstage/plugin-permission-common" "^0.7.12"
-    "@backstage/plugin-search-common" "^1.2.10"
+    "@backstage/backend-common" "^0.21.5"
+    "@backstage/backend-plugin-api" "^0.6.15"
+    "@backstage/backend-tasks" "^0.5.20"
+    "@backstage/config" "^1.2.0"
+    "@backstage/errors" "^1.2.4"
+    "@backstage/plugin-permission-common" "^0.7.13"
+    "@backstage/plugin-search-common" "^1.2.11"
     "@types/lunr" "^2.3.3"
     lodash "^4.17.21"
     lunr "^2.3.9"
     ndjson "^2.0.0"
-    uuid "^8.3.2"
+    uuid "^9.0.0"
     winston "^3.2.1"
 
 "@backstage/plugin-search-backend@^1.4.9":
@@ -3825,15 +3825,7 @@
     yn "^4.0.0"
     zod "^3.22.4"
 
-"@backstage/plugin-search-common@^1.2.10":
-  version "1.2.10"
-  resolved "https://registry.yarnpkg.com/@backstage/plugin-search-common/-/plugin-search-common-1.2.10.tgz#c9a8294e546a124ff1eca50dbb6d04bbb2143e37"
-  integrity sha512-yn18Beo+oXocDLfbOoCwFd8p8n7veGyDxKN/8rL6EZjMjNL13ZFvUIAOSrhg7wcx/avLKGwpYoFxMde2LxD/cA==
-  dependencies:
-    "@backstage/plugin-permission-common" "^0.7.12"
-    "@backstage/types" "^1.1.1"
-
-"@backstage/plugin-search-common@^1.2.11":
+"@backstage/plugin-search-common@^1.2.10", "@backstage/plugin-search-common@^1.2.11":
   version "1.2.11"
   resolved "https://registry.yarnpkg.com/@backstage/plugin-search-common/-/plugin-search-common-1.2.11.tgz#5563f9b7b5ff915d1fe0e0e213c9536029dac91c"
   integrity sha512-b2gmurxNdgY6LQ4E+BzITVUFF5jCewjlkI4/oppFTsk1IH+VfQyRDoGb8u2wuYKGCwvgVPgP3qUBEo25oGTZfg==
@@ -9005,9 +8997,9 @@
     "@types/react" "*"
 
 "@types/react@*", "@types/react@^16.13.1 || ^17.0.0", "@types/react@^16.13.1 || ^17.0.0 || ^18.0.0", "@types/react@^18":
-  version "18.2.70"
-  resolved "https://registry.yarnpkg.com/@types/react/-/react-18.2.70.tgz#89a37f9e0a6a4931f4259c598f40fd44dd6abf71"
-  integrity sha512-hjlM2hho2vqklPhopNkXkdkeq6Lv8WSZTpr7956zY+3WS5cfYUewtCzsJLsbW5dEv3lfSeQ4W14ZFeKC437JRQ==
+  version "18.2.71"
+  resolved "https://registry.yarnpkg.com/@types/react/-/react-18.2.71.tgz#77c3b97b02014bf351b21b684f80273a3a343f96"
+  integrity sha512-PxEsB9OjmQeYGffoWnYAd/r5FiJuUw2niFQHPc2v2idwh8wGPkkYzOHuinNJJY6NZqfoTCiOIizDOz38gYNsyw==
   dependencies:
     "@types/prop-types" "*"
     "@types/scheduler" "*"
