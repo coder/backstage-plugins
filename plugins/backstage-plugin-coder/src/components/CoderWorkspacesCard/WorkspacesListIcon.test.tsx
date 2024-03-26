@@ -1,40 +1,31 @@
 import React from 'react';
-import { screen } from '@testing-library/react';
-import { rest } from 'msw';
-import { server } from '../../testHelpers/server';
+import { fireEvent, screen } from '@testing-library/react';
 import { renderInCoderEnvironment } from '../../testHelpers/setup';
 import { mockBackstageProxyEndpoint } from '../../testHelpers/mockBackstageData';
-import { Root } from './Root';
 import { WorkspacesListIcon } from './WorkspacesListIcon';
 
 describe(`${WorkspacesListIcon.name}`, () => {
-  afterEach(() => {
-    server.resetHandlers();
-  });
-
   it('Should display a fallback UI element instead of a broken image when the image fails to load', async () => {
-    const workspaceName = 'Blah';
-    const imgPath = `${mockBackstageProxyEndpoint}/wrongUrlBuddy.png`;
-
-    server.use(
-      rest.get(imgPath, (_, res, ctx) => {
-        console.log('Hit?');
-        return res(ctx.status(404));
-      }),
-    );
+    const workspaceName = 'blah';
+    const imgPath = `${mockBackstageProxyEndpoint}/wrongUrlPal.png`;
 
     await renderInCoderEnvironment({
       children: (
-        <Root>
-          <WorkspacesListIcon src={imgPath} workspaceName={workspaceName} />
-        </Root>
+        <WorkspacesListIcon src={imgPath} workspaceName={workspaceName} />
       ),
     });
 
-    const fallbackGraphic = await screen.findByTestId('icon-fallback');
-    expect(fallbackGraphic.textContent).toBe(workspaceName[0]);
-
+    // Have to use test ID because the icon image itself has role "none" (it's
+    // decorative only and shouldn't be exposed to screen readers)
     const imageIcon = screen.getByTestId('icon-image');
+
+    // Simulate the image automatically making a network request, but for
+    // whatever reason, the load fails (error code 404/500, proxy issues, etc.)
+    fireEvent.error(imageIcon);
+
+    const fallbackGraphic = await screen.findByTestId('icon-fallback');
+    const formattedName = workspaceName.slice(0, 1).toUpperCase();
+    expect(fallbackGraphic.textContent).toBe(formattedName);
     expect(imageIcon).not.toBeInTheDocument();
   });
 });
