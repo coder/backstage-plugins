@@ -1,21 +1,19 @@
 import { ValiError } from 'valibot';
-
 import { renderHookAsCoderEntity } from '../testHelpers/setup';
-import { type CoderWorkspaceConfig } from '../components/CoderProvider';
-
 import {
   mockYamlConfig,
   mockAppConfig,
-  mockWorkspaceConfig,
   cleanedRepoUrl,
   rawRepoUrl,
+  mockCoderWorkspacesConfig,
 } from '../testHelpers/mockBackstageData';
 import {
-  CoderEntityConfig,
+  CoderWorkspacesConfig,
   compileCoderConfig,
-  useCoderEntityConfig,
+  useCoderWorkspacesConfig,
   type YamlConfig,
-} from './useCoderEntityConfig';
+} from './useCoderWorkspacesConfig';
+import { CoderAppConfig } from '../plugin';
 
 describe(`${compileCoderConfig.name}`, () => {
   it('Throws a Valibot ValiError when YAML config is invalid', () => {
@@ -45,20 +43,20 @@ describe(`${compileCoderConfig.name}`, () => {
 
     for (const input of [...wrongStructure, ...wrongTypes]) {
       expect(() => {
-        compileCoderConfig(mockWorkspaceConfig, input, cleanedRepoUrl);
+        compileCoderConfig(mockAppConfig, input, cleanedRepoUrl);
       }).toThrow(ValiError);
     }
   });
 
   it('Defers to YAML keys if YAML and baseline params have key conflicts', () => {
     const result = compileCoderConfig(
-      mockWorkspaceConfig,
+      mockAppConfig,
       mockYamlConfig,
       'https://www.github.com/coder/coder',
     );
 
     expect(result).toEqual(
-      expect.objectContaining<Partial<CoderEntityConfig>>({
+      expect.objectContaining<Partial<CoderWorkspacesConfig>>({
         templateName: mockYamlConfig.templateName,
         mode: mockYamlConfig.mode,
         params: expect.objectContaining({
@@ -72,20 +70,19 @@ describe(`${compileCoderConfig.name}`, () => {
     const url = 'https://www.github.com/google2/the-sequel-to-google';
     const urlKeys = ['one', 'nothing', 'wrong', 'with', 'me'] as const;
 
-    const baselineParams = Object.fromEntries(urlKeys.map(key => [key, '']));
-    const baseline: CoderWorkspaceConfig = {
-      ...mockWorkspaceConfig,
-      repoUrlParamKeys: urlKeys,
-      params: baselineParams,
+    const baselineAppConfig: CoderAppConfig = {
+      ...mockAppConfig,
+      workspaces: {
+        ...mockAppConfig.workspaces,
+        repoUrlParamKeys: urlKeys,
+        params: Object.fromEntries(urlKeys.map(key => [key, ''])),
+      },
     };
 
     const yamlParams = Object.fromEntries(urlKeys.map(key => [key, 'blah']));
-    const yaml: YamlConfig = {
-      ...mockYamlConfig,
-      params: yamlParams,
-    };
+    const yaml: YamlConfig = { ...mockYamlConfig, params: yamlParams };
 
-    const result = compileCoderConfig(baseline, yaml, url);
+    const result = compileCoderConfig(baselineAppConfig, yaml, url);
     expect(result.repoUrlParamKeys).toEqual(urlKeys);
 
     const finalParams = Object.fromEntries(urlKeys.map(key => [key, url]));
@@ -94,36 +91,38 @@ describe(`${compileCoderConfig.name}`, () => {
 
   it('Removes additional URL paths if they are present at the end of the raw URL', () => {
     const result = compileCoderConfig(
-      mockWorkspaceConfig,
+      mockAppConfig,
       mockYamlConfig,
       rawRepoUrl,
     );
 
     expect(result).toEqual(
-      expect.objectContaining<Partial<CoderEntityConfig>>({
+      expect.objectContaining<Partial<CoderWorkspacesConfig>>({
         repoUrl: cleanedRepoUrl,
       }),
     );
   });
 });
 
-describe(`${useCoderEntityConfig.name}`, () => {
+describe(`${useCoderWorkspacesConfig.name}`, () => {
   it('Reads relevant data from CoderProvider, entity, and source control API', async () => {
-    const { result } = await renderHookAsCoderEntity(useCoderEntityConfig);
-
-    expect(result.current).toEqual(
-      expect.objectContaining<Partial<CoderEntityConfig>>({
-        repoUrl: cleanedRepoUrl,
-        templateName: mockYamlConfig.templateName,
-        mode: 'auto',
-        repoUrlParamKeys: mockAppConfig.workspaces.repoUrlParamKeys,
-        params: {
-          ...mockAppConfig.workspaces.params,
-          region: mockYamlConfig.params?.region ?? '',
-          custom_repo: cleanedRepoUrl,
-          repo_url: cleanedRepoUrl,
-        },
-      }),
+    const { result } = await renderHookAsCoderEntity(() =>
+      useCoderWorkspacesConfig({ readEntityData: true }),
     );
+
+    expect(result.current).toEqual<CoderWorkspacesConfig>({
+      mode: mockYamlConfig.mode,
+      repoUrl: cleanedRepoUrl,
+      creationUrl: mockCoderWorkspacesConfig.creationUrl,
+      templateName: mockYamlConfig.templateName,
+      repoUrlParamKeys: mockAppConfig.workspaces.repoUrlParamKeys,
+
+      params: {
+        ...mockAppConfig.workspaces.params,
+        region: mockYamlConfig.params?.region,
+        custom_repo: cleanedRepoUrl,
+        repo_url: cleanedRepoUrl,
+      },
+    });
   });
 });

@@ -4,25 +4,22 @@ import React, {
   useContext,
 } from 'react';
 
-import type { YamlConfig } from '../../hooks/useCoderEntityConfig';
-
-export type CoderWorkspaceConfig = Readonly<
-  Exclude<YamlConfig, undefined> & {
-    // Only specified explicitly to make templateName required
-    templateName: string;
-
-    // Defined like this to ensure array always has at least one element
-    repoUrlParamKeys: readonly [string, ...string[]];
-  }
->;
-
-export type CoderDeploymentConfig = Readonly<{
-  accessUrl: string;
-}>;
+import type { YamlConfig } from '../../hooks/useCoderWorkspacesConfig';
 
 export type CoderAppConfig = Readonly<{
-  workspaces: CoderWorkspaceConfig;
-  deployment: CoderDeploymentConfig;
+  deployment: Readonly<{
+    accessUrl: string;
+  }>;
+
+  workspaces: Readonly<
+    Exclude<YamlConfig, undefined> & {
+      // Only specified explicitly to make templateName required
+      templateName: string;
+
+      // Defined like this to ensure array always has at least one element
+      repoUrlParamKeys: readonly [string, ...string[]];
+    }
+  >;
 }>;
 
 const AppConfigContext = createContext<CoderAppConfig | null>(null);

@@ -38,8 +38,11 @@ declare function CoderAuthWrapper(props: Props): JSX.Element;
 ```tsx
 function YourComponent() {
   // This query requires authentication
-  const query = useCoderWorkspaces('owner:lil-brudder');
-  return <p>{query.isLoading ? 'Loading' : 'Not loading'}</p>;
+  const queryState = useCoderWorkspacesQuery({
+    coderQuery: 'owner:lil-brudder',
+  });
+
+  return <p>{queryState.isLoading ? 'Loading' : 'Not loading'}</p>;
 }
 
 <CoderProvider appConfig={yourAppConfig}>
@@ -79,7 +82,7 @@ declare function CoderErrorBoundary(props: Props): JSX.Element;
 function YourComponent() {
   // Pretend that there is an issue with this hook, and that it will always
   // throw an error
-  const config = useCoderEntityConfig();
+  const config = useCoderWorkspacesConfig();
   return <p>Will never reach this code</p>;
 }
 
@@ -123,10 +126,13 @@ The type of `QueryClient` comes from [Tanstack Router v4](https://tanstack.com/q
 
 ```tsx
 function YourComponent() {
-  const query = useCoderWorkspaces('owner:brennan-lee-mulligan');
+  const queryState = useCoderWorkspacesQuery({
+    coderQuery: 'owner:brennan-lee-mulligan',
+  });
+
   return (
     <ul>
-      {query.data?.map(workspace => (
+      {queryState.data?.map(workspace => (
         <li key={workspace.id}>{workspace.owner_name}</li>
       ))}
     </ul>
@@ -396,8 +402,8 @@ type WorkspacesCardContext = {
   queryFilter: string;
   onFilterChange: (newFilter: string) => void;
   workspacesQuery: UseQueryResult<readonly Workspace[]>;
+  workspacesConfig: CoderWorkspacesConfig;
   headerId: string;
-  entityConfig: CoderEntityConfig | undefined;
 };
 
 declare function Root(props: Props): JSX.Element;
