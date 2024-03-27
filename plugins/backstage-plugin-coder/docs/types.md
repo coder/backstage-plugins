@@ -6,12 +6,12 @@
 
   ```tsx
   // Type intersection
-  type CustomType = CoderEntityConfig & {
+  type CustomType = CoderWorkspacesConfig & {
     customProperty: boolean;
   };
 
   // Interface extension - new interface must have a different name
-  interface CustomInterface extends CoderEntityConfig {
+  interface CustomInterface extends CoderWorkspacesConfig {
     customProperty: string;
   }
   ```
@@ -57,11 +57,11 @@ See example for [`CoderProvider`](./components.md#coderprovider)
 - `templateName` refers to the name of the Coder template that you wish to use as default for creating workspaces
 - If `mode` is not specified, the plugin will default to a value of `manual`
 - `repoUrlParamKeys` is defined as a non-empty array – there must be at least one element inside it.
-- For more info on how this type is used within the plugin, see [`CoderEntityConfig`](./types.md#coderentityconfig) and [`useCoderEntityConfig`](./hooks.md#usecoderentityconfig)
+- For more info on how this type is used within the plugin, see [`CoderWorkspacesConfig`](./types.md#coderworkspacesconfig) and [`useCoderWorkspacesConfig`](./hooks.md#usecoderworkspacesconfig)
 
 ## `CoderWorkspacesConfig`
 
-Represents the result of compiling Coder plugin configuration data. All data will be compiled from the following sources:
+Represents the result of compiling Coder plugin configuration data. The main source for this type is [`useCoderWorkspacesConfig`](./hooks.md#usecoderworkspacesconfig). All data will be compiled from the following sources:
 
 1. The [`CoderAppConfig`](#coderappconfig) passed to [`CoderProvider`](./components.md#coderprovider). This acts as the "baseline" set of values.
 2. The entity-specific fields for a given repo's `catalog-info.yaml` file

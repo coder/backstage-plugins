@@ -38,8 +38,11 @@ declare function CoderAuthWrapper(props: Props): JSX.Element;
 ```tsx
 function YourComponent() {
   // This query requires authentication
-  const query = useCoderWorkspaces('owner:lil-brudder');
-  return <p>{query.isLoading ? 'Loading' : 'Not loading'}</p>;
+  const queryState = useCoderWorkspacesQuery({
+    coderQuery: 'owner:lil-brudder',
+  });
+
+  return <p>{queryState.isLoading ? 'Loading' : 'Not loading'}</p>;
 }
 
 <CoderProvider appConfig={yourAppConfig}>
@@ -123,10 +126,13 @@ The type of `QueryClient` comes from [Tanstack Router v4](https://tanstack.com/q
 
 ```tsx
 function YourComponent() {
-  const query = useCoderWorkspaces('owner:brennan-lee-mulligan');
+  const queryState = useCoderWorkspacesQuery({
+    coderQuery: 'owner:brennan-lee-mulligan',
+  });
+
   return (
     <ul>
-      {query.data?.map(workspace => (
+      {queryState.data?.map(workspace => (
         <li key={workspace.id}>{workspace.owner_name}</li>
       ))}
     </ul>
