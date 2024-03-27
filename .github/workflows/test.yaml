@@ -36,7 +36,7 @@ jobs:
               - ".github/workflows/test.yaml"
               - "plugins/backstage-plugin-devcontainers-backend/**"
             devcontainers-react:
-              - ".github/workflows/build.yaml"
+              - ".github/workflows/test.yaml"
               - "plugins/backstage-plugin-devcontainers-react/**"
   plugin:
     needs: changes
