@@ -1,3 +1,10 @@
+/**
+ * @file This file covers functionality that is specific to the Root component
+ * when used by itself.
+ *
+ * For full integration tests (and test cases for the vast majority of
+ * meaningful functionality), see CoderWorkspacesCard.test.tsx
+ */
 import React, { type ReactNode } from 'react';
 import { renderInCoderEnvironment } from '../../testHelpers/setup';
 import { Root } from './Root';
