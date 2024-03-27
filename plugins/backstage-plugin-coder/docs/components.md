@@ -82,7 +82,7 @@ declare function CoderErrorBoundary(props: Props): JSX.Element;
 function YourComponent() {
   // Pretend that there is an issue with this hook, and that it will always
   // throw an error
-  const config = useCoderEntityConfig();
+  const config = useCoderWorkspacesConfig();
   return <p>Will never reach this code</p>;
 }
 
@@ -402,8 +402,8 @@ type WorkspacesCardContext = {
   queryFilter: string;
   onFilterChange: (newFilter: string) => void;
   workspacesQuery: UseQueryResult<readonly Workspace[]>;
+  workspacesConfig: CoderWorkspacesConfig;
   headerId: string;
-  entityConfig: CoderEntityConfig | undefined;
 };
 
 declare function Root(props: Props): JSX.Element;
