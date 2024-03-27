@@ -21,12 +21,15 @@ _Note: While this plugin can be used standalone, it has been designed to be a ba
 
 ## Setup
 
+> [!WARNING]
+> All setup instructions assume you are using a Backstage deployment created with `@backstage/create-app` version `0.5.10` or earlier. Any later versions may or may not use Backstage's New Backend System (described [here](https://backstage.io/docs/backend-system/) and [here](https://backstage.io/docs/plugins/new-backend-system/)). We are currently evaluating how best to support the new system.
+
 ### Before you begin
 
 Ensure that you have the following ready to go:
 
 - A Backstage deployment that you can modify
-- A GitHub/GitLab/Bitbucket repository that contains a `devcontainers.json` metadata file. [VS Code has a quick-start guide for adding devcontainers to a repo](https://code.visualstudio.com/docs/devcontainers/create-dev-container).
+- A GitHub/GitLab/Bitbucket repository that contains a `devcontainers.json` metadata file. [VS Code has a quick-start guide for adding Dev Containers to a repo](https://code.visualstudio.com/docs/devcontainers/create-dev-container).
 
 _Note: While this plugin has been developed and published by Coder, no Coder installations are required._
 
@@ -36,7 +39,7 @@ _Note: While this plugin has been developed and published by Coder, no Coder ins
    ```shell
    yarn --cwd packages/backend add @coder/backstage-plugin-devcontainers-backend
    ```
-2. Navigate to the `backend` directory's `catalog.ts` file
+2. Navigate to the `backend/src/plugins/catalog.ts` file (this file should automatically be created for you through `@backstage/create-app`)
 3. Import your source control manager provider of choice (Backstage has built-in support for GitHub, GitLab, and Bitbucket)
 
    ```ts
@@ -105,7 +108,10 @@ export default async function createPlugin(
     }),
   );
 
+  // ScaffolderEntitiesProcessor is one of the processors automatically
+  // added to a newly-scaffolded application
   builder.addProcessor(new ScaffolderEntitiesProcessor());
+
   builder.addProcessor(
     DevcontainersProcessor.fromConfig(env.config, {
       logger: env.logger,
