@@ -2777,13 +2777,13 @@
     "@types/react" "^16.13.1 || ^17.0.0"
     react-use "^17.2.4"
 
-"@backstage/e2e-test-utils@^0.1.0":
-  version "0.1.0"
-  resolved "https://registry.yarnpkg.com/@backstage/e2e-test-utils/-/e2e-test-utils-0.1.0.tgz#6be33f581b4493d568e9fd7674a9a5804f354482"
-  integrity sha512-GCsIexoqPpkawvy7fmuzlscKMyOwLEgFuLBYwULIrQsmUAmk0kVccWZTa4l/isoIvXg7L0TSo9kjR95rDsNGEg==
+"@backstage/e2e-test-utils@^0.1.1":
+  version "0.1.1"
+  resolved "https://registry.yarnpkg.com/@backstage/e2e-test-utils/-/e2e-test-utils-0.1.1.tgz#309164a5006593da711f55f430dc4d11a3036514"
+  integrity sha512-g5knWOQT/vEv3RwMtN3sCz7m43r+jFoO35y7FBuruhGJfzJY4Q4qK+wSGwJ/hSZ7Uj6WBNRsyw8oauMPKiRA5A==
   dependencies:
     "@manypkg/get-packages" "^1.1.3"
-    fs-extra "^10.1.0"
+    fs-extra "^11.0.0"
 
 "@backstage/errors@^1.2.3", "@backstage/errors@^1.2.4":
   version "1.2.4"
@@ -14108,7 +14108,7 @@ fs-constants@^1.0.0:
   resolved "https://registry.yarnpkg.com/fs-constants/-/fs-constants-1.0.0.tgz#6be0de9be998ce16af8afc24497b9ee9b7ccd9ad"
   integrity sha512-y6OAwoSIf7FyjMIv94u+b5rdheZEjzR63GTyZJm5qh4Bi+2YgwLCcI/fPFZkL5PSixOt6ZNKm+w+Hfp/Bciwow==
 
-fs-extra@10.1.0, fs-extra@^10.0.0, fs-extra@^10.1.0:
+fs-extra@10.1.0, fs-extra@^10.0.0:
   version "10.1.0"
   resolved "https://registry.yarnpkg.com/fs-extra/-/fs-extra-10.1.0.tgz#02873cfbc4084dde127eaa5f9905eef2325d1abf"
   integrity sha512-oRXApq54ETRj4eMiFzGnHWGy+zo5raudjuxN0b8H7s/RU2oW0Wvsx9O0ACRN/kRq9E8Vu/ReskGB5o3ji+FzHQ==
