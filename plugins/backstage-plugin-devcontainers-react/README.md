@@ -44,6 +44,9 @@ _Note: While this plugin has been developed and published by Coder, no Coder ins
 3. Add the `DevcontainersProvider` component, as well as any inputs:
 
    ```tsx
+   // This example modifies the EntityPage.tsx file provided by the
+   // Backstage scaffolder
+
    import {
      type DevcontainersConfig,
      DevcontainersProvider,
@@ -60,19 +63,14 @@ _Note: While this plugin has been developed and published by Coder, no Coder ins
    const overviewContent = (
      <Grid container spacing={3} alignItems="stretch">
        {entityWarningContent}
-       <Grid item md={6}>
-         <EntityAboutCard variant="gridItem" />
-       </Grid>
 
        <Grid item md={6} xs={12}>
          <DevcontainersProvider config={devcontainersConfig}>
-           {/* Content that uses Dev Containers goes here */}
+           {/* Other content that uses Dev Containers goes here */}
          </DevcontainersProvider>
        </Grid>
 
-       <Grid item md={6} xs={12}>
-         <CoderWorkspacesCard readEntityData />
-       </Grid>
+       {/* Other grid content omitted */}
      </Grid>
    );
    ```
@@ -87,33 +85,49 @@ _Note: While this plugin has been developed and published by Coder, no Coder ins
      ExampleDevcontainersComponent,
    } from '@coder/backstage-plugin-devcontainers-react';
 
-   // ExampleDevcontainers must be inside DevcontainersProvider,
-   // but it does not need to be a direct child
-   <DevcontainersProvider config={devcontainersConfig}>
-     <YourCustomWrapperComponent>
-       <ExampleDevcontainersComponent />
-     </YourCustomWrapperComponent>
-   </DevcontainersProvider>;
+   // The value of tagName must match the tag value that
+   // backstage-plugin-devcontainers-backend is configured with
+   const devcontainersConfig: DevcontainersConfig = {
+     tagName: 'devcontainers',
+   };
+
+   // Example usage - you can place the component in other page
+   // views as well
+   const overviewContent = (
+     <Grid container spacing={3} alignItems="stretch">
+       {entityWarningContent}
+
+       <Grid item md={6} xs={12}>
+         <DevcontainersProvider config={devcontainersConfig}>
+           <ExampleDevcontainersComponent />
+         </DevcontainersProvider>
+       </Grid>
+
+       {/* Other grid content omitted */}
+     </Grid>
+   );
    ```
 
 5. If you are looking to create your own components, you can import the `useDevcontainers` custom hook.
 
    ```tsx
    // Inside your custom component's file
+   import React from 'react';
    import { useDevcontainers } from '@coder/backstage-plugin-devcontainers-react';
 
    export const YourComponent = () => {
      const state = useDevcontainers();
-
      return (
-       {state.hasUrl ? (
-         <>
-           <p>Your entity supports Dev Containers!</p>
-           <a href={state.vsCodeUrl}>Click here to launch VS Code</a>
-         </>
-       ) : (
-         <p>No Dev Containers plugin tag detected</p>
-       )}
+       <>
+         {state.hasUrl ? (
+           <>
+             <p>Your entity supports Dev Containers!</p>
+             <a href={state.vsCodeUrl}>Click here to launch VS Code</a>
+           </>
+         ) : (
+           <p>No Dev Containers plugin tag detected</p>
+         )}
+       </>
      );
    };
 
