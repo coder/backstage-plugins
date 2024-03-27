@@ -40,6 +40,7 @@ jobs:
               - "plugins/backstage-plugin-devcontainers-react/**"
   plugin:
     needs: changes
+    if: ${{ needs.changes.outputs.plugins != '' && toJson(fromJson(needs.changes.outputs.plugins)) != '[]' }}
     runs-on: ubuntu-latest
     strategy:
       matrix:
