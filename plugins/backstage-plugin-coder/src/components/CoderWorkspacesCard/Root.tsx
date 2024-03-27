@@ -24,10 +24,12 @@ import { Card } from '../Card';
 import { CoderAuthWrapper } from '../CoderAuthWrapper';
 import { EntityDataReminder } from './EntityDataReminder';
 
+export type WorkspacesQuery = UseQueryResult<readonly Workspace[]>;
+
 export type WorkspacesCardContext = Readonly<{
   queryFilter: string;
   onFilterChange: (newFilter: string) => void;
-  workspacesQuery: UseQueryResult<readonly Workspace[]>;
+  workspacesQuery: WorkspacesQuery;
   workspacesConfig: CoderWorkspacesConfig;
   headerId: string;
 }>;
