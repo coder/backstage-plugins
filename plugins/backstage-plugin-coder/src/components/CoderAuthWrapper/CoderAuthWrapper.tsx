@@ -70,7 +70,7 @@ export const CoderAuthWrapper = ({ children, type }: WrapperProps) => {
           case 'authenticated':
           case 'distrustedWithGracePeriod': {
             throw new Error(
-              'This code should be unreachable because of the auth check near the start of the component',
+              'Tried to process authenticated user after main content should already be shown',
             );
           }
 

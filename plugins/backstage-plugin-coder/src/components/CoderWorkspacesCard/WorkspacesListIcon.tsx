@@ -69,13 +69,16 @@ export const WorkspacesListIcon = ({
       {...delegatedProps}
     >
       {hasError ? (
-        <span role="none">{getFirstLetter(workspaceName)}</span>
+        <span role="none" data-testid="icon-fallback">
+          {getFirstLetter(workspaceName)}
+        </span>
       ) : (
         <img
           ref={imageRef}
+          data-testid="icon-image"
           role="none"
           src={src}
-          alt="" // Empty because icon should purely decorative
+          alt="" // Empty because icon should be purely decorative
           onError={() => setHasError(true)}
           className={`${styles.image} ${imageClassName ?? ''}`}
         />
