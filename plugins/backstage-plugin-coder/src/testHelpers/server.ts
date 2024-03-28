@@ -11,16 +11,27 @@ import {
   mockCoderAuthToken,
   mockBackstageProxyEndpoint as root,
 } from './mockBackstageData';
-import type { WorkspacesResponse } from '../typesConstants';
+import type { Workspace, WorkspacesResponse } from '../typesConstants';
 import { CODER_AUTH_HEADER_KEY } from '../api';
 
 const handlers: readonly RestHandler[] = [
-  rest.get(`${root}/workspaces`, (_, res, ctx) => {
+  rest.get(`${root}/workspaces`, (req, res, ctx) => {
+    const queryText = String(req.url.searchParams.get('q'));
+
+    let returnedWorkspaces: Workspace[];
+    if (queryText === 'owner:me') {
+      returnedWorkspaces = mockWorkspacesList;
+    } else {
+      returnedWorkspaces = mockWorkspacesList.filter(ws =>
+        ws.name.includes(queryText),
+      );
+    }
+
     return res(
       ctx.status(200),
       ctx.json<WorkspacesResponse>({
-        workspaces: mockWorkspacesList,
-        count: mockWorkspacesList.length,
+        workspaces: returnedWorkspaces,
+        count: returnedWorkspaces.length,
       }),
     );
   }),

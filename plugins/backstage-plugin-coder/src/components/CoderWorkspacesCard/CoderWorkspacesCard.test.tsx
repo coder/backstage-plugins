@@ -6,9 +6,13 @@ import React from 'react';
 import { screen, waitFor } from '@testing-library/react';
 import { renderInCoderEnvironment } from '../../testHelpers/setup';
 import { mockAuthStates } from '../../testHelpers/mockBackstageData';
-import { mockWorkspacesList } from '../../testHelpers/mockCoderAppData';
+import {
+  mockWorkspaceNoParameters,
+  mockWorkspacesList,
+} from '../../testHelpers/mockCoderAppData';
 import { type CoderAuthStatus } from '../CoderProvider';
 import { CoderWorkspacesCard } from './CoderWorkspacesCard';
+import userEvent from '@testing-library/user-event';
 
 type RenderInputs = Readonly<{
   authStatus?: CoderAuthStatus;
@@ -54,7 +58,7 @@ describe(`${CoderWorkspacesCard.name}`, () => {
   });
 
   describe('With readEntityData set to false', () => {
-    it.only('Will NOT filter any workspaces by the current repo', async () => {
+    it('Will NOT filter any workspaces by the current repo', async () => {
       await renderWorkspacesCard({
         authStatus: 'authenticated',
         readEntityData: false,
@@ -64,7 +68,25 @@ describe(`${CoderWorkspacesCard.name}`, () => {
       expect(workspaceItems.length).toEqual(mockWorkspacesList.length);
     });
 
-    it('Lets the user filter the workspaces by their query text', async () => {});
+    it.only('Lets the user filter the workspaces by their query text', async () => {
+      await renderWorkspacesCard({
+        authStatus: 'authenticated',
+        readEntityData: false,
+      });
+
+      const inputField = await screen.findByRole('searchbox', {
+        name: /Search your Coder workspaces/i,
+      });
+
+      const user = userEvent.setup();
+      await user.tripleClick(inputField);
+      await user.keyboard(mockWorkspaceNoParameters.name);
+
+      // If more than one workspace matches, that throws an error
+      const onlyWorkspace = await screen.findByRole('listitem');
+      expect(onlyWorkspace).toHaveTextContent(mockWorkspaceNoParameters.name);
+    });
+
     it('Shows all workspaces when query text is empty', async () => {});
   });
 
