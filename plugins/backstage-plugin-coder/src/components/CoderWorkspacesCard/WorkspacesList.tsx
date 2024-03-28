@@ -76,10 +76,10 @@ export const WorkspacesList = ({
   fullBleedLayout = true,
   ...delegatedProps
 }: WorkspacesListProps) => {
-  const { workspacesQuery, entityConfig } = useWorkspacesCardContext();
+  const { workspacesQuery, workspacesConfig } = useWorkspacesCardContext();
   const styles = useWorkspacesListStyles({ fullBleedLayout });
 
-  const repoUrl = entityConfig?.repoUrl ?? '';
+  const repoUrl = workspacesConfig.repoUrl ?? '';
   const ListItemContainer = ordered ? 'ol' : 'ul';
 
   return (

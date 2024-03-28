@@ -1,7 +1,7 @@
 import { parse } from 'valibot';
 import { type UseQueryOptions } from '@tanstack/react-query';
 
-import { CoderEntityConfig } from './hooks/useCoderEntityConfig';
+import { CoderWorkspacesConfig } from './hooks/useCoderWorkspacesConfig';
 import {
   type Workspace,
   workspaceBuildParametersSchema,
@@ -144,7 +144,7 @@ async function getWorkspaceBuildParameters(inputs: BuildParamsFetchInputs) {
 
 type WorkspacesByRepoFetchInputs = Readonly<
   WorkspacesFetchInputs & {
-    repoConfig: CoderEntityConfig;
+    workspacesConfig: CoderWorkspacesConfig;
   }
 >;
 
@@ -162,7 +162,7 @@ export async function getWorkspacesByRepo(
     ),
   );
 
-  const { repoConfig } = inputs;
+  const { workspacesConfig } = inputs;
   const matchedWorkspaces: Workspace[] = [];
 
   for (const [index, res] of paramResults.entries()) {
@@ -172,8 +172,8 @@ export async function getWorkspacesByRepo(
 
     for (const param of res.value) {
       const include =
-        repoConfig.repoUrlParamKeys.includes(param.name) &&
-        param.value === repoConfig.repoUrl;
+        workspacesConfig.repoUrlParamKeys.includes(param.name) &&
+        param.value === workspacesConfig.repoUrl;
 
       if (include) {
         // Doing type assertion just in case noUncheckedIndexedAccess compiler
