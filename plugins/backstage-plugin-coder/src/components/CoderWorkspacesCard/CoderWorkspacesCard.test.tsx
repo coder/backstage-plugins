@@ -8,6 +8,7 @@ import { renderInCoderEnvironment } from '../../testHelpers/setup';
 import { mockAuthStates } from '../../testHelpers/mockBackstageData';
 import {
   mockWorkspaceNoParameters,
+  mockWorkspaceWithMatch2,
   mockWorkspacesList,
 } from '../../testHelpers/mockCoderAppData';
 import { type CoderAuthStatus } from '../CoderProvider';
@@ -43,9 +44,7 @@ describe(`${CoderWorkspacesCard.name}`, () => {
     });
 
     it('Shows the workspaces list when the user is authenticated (exposed as an accessible search landmark)', async () => {
-      await renderWorkspacesCard({
-        authStatus: 'authenticated',
-      });
+      await renderWorkspacesCard();
 
       await waitFor(() => {
         expect(() => {
@@ -59,21 +58,13 @@ describe(`${CoderWorkspacesCard.name}`, () => {
 
   describe('With readEntityData set to false', () => {
     it('Will NOT filter any workspaces by the current repo', async () => {
-      await renderWorkspacesCard({
-        authStatus: 'authenticated',
-        readEntityData: false,
-      });
-
+      await renderWorkspacesCard({ readEntityData: false });
       const workspaceItems = await screen.findAllByRole('listitem');
       expect(workspaceItems.length).toEqual(mockWorkspacesList.length);
     });
 
-    it.only('Lets the user filter the workspaces by their query text', async () => {
-      await renderWorkspacesCard({
-        authStatus: 'authenticated',
-        readEntityData: false,
-      });
-
+    it('Lets the user filter the workspaces by their query text', async () => {
+      await renderWorkspacesCard({ readEntityData: false });
       const inputField = await screen.findByRole('searchbox', {
         name: /Search your Coder workspaces/i,
       });
@@ -87,12 +78,49 @@ describe(`${CoderWorkspacesCard.name}`, () => {
       expect(onlyWorkspace).toHaveTextContent(mockWorkspaceNoParameters.name);
     });
 
-    it('Shows all workspaces when query text is empty', async () => {});
+    it('Shows all workspaces when query text is empty', async () => {
+      await renderWorkspacesCard({ readEntityData: false });
+      const inputField = await screen.findByRole('searchbox', {
+        name: /Search your Coder workspaces/i,
+      });
+
+      const user = userEvent.setup();
+      await user.tripleClick(inputField);
+      await user.keyboard('[Backspace]');
+
+      const allWorkspaces = await screen.findAllByRole('listitem');
+      expect(allWorkspaces.length).toEqual(mockWorkspacesList.length);
+    });
   });
 
   describe('With readEntityData set to true', () => {
-    it('Will show only the workspaces that match the current repo', async () => {});
-    it('Lets the user filter the workspaces by their query text (on top of filtering from readEntityData)', async () => {});
+    it('Will show only the workspaces that match the current repo', async () => {
+      await renderWorkspacesCard({ readEntityData: true });
+      const workspaceItems = await screen.findAllByRole('listitem');
+      expect(workspaceItems.length).toEqual(1);
+    });
+
+    it('Lets the user filter the workspaces by their query text (on top of filtering from readEntityData)', async () => {
+      await renderWorkspacesCard({ readEntityData: true });
+
+      await waitFor(() => {
+        const workspaceItems = screen.getAllByRole('listitem');
+        expect(workspaceItems.length).toBe(2);
+      });
+
+      const user = userEvent.setup();
+      const inputField = await screen.findByRole('searchbox', {
+        name: /Search your Coder workspaces/i,
+      });
+
+      await user.tripleClick(inputField);
+      await user.keyboard(mockWorkspaceWithMatch2.name);
+
+      await waitFor(() => {
+        const newWorkspaceItems = screen.getAllByRole('listitem');
+        expect(newWorkspaceItems.length).toBe(1);
+      });
+    });
 
     /**
      * 2024-03-28 - MES - This is a test case to account for a previous
@@ -102,6 +130,8 @@ describe(`${CoderWorkspacesCard.name}`, () => {
      * rest of the codebase is updated to support the new API endpoint for
      * searching by build parameter
      */
-    it('Will not show any workspaces at all when the query text is empty', async () => {});
+    it.only('Will not show any workspaces at all when the query text is empty', async () => {
+      expect.hasAssertions();
+    });
   });
 });

@@ -21,6 +21,27 @@ export const mockWorkspaceWithMatch: Workspace = {
   },
 };
 
+export const mockWorkspaceWithMatch2: Workspace = {
+  id: 'workspace-with-match-2',
+  name: 'Another-Test',
+  template_icon: '/emojis/z.svg',
+  owner_name: 'Coach Z',
+  latest_build: {
+    id: 'workspace-with-match-2-build',
+    status: 'running',
+    resources: [
+      {
+        id: 'workspace-with-match-2-resource',
+        agents: [{ id: 'test-workspace-agent', status: 'connected' }],
+      },
+    ],
+  },
+};
+
+/**
+ * Mock for a workspace that has a repo URL, but the URL doesn't match the mock
+ * repo URL
+ */
 export const mockWorkspaceNoMatch: Workspace = {
   id: 'workspace-no-match',
   name: 'No-match',
@@ -41,6 +62,9 @@ export const mockWorkspaceNoMatch: Workspace = {
   },
 };
 
+/**
+ * A workspace with no build parameters whatsoever
+ */
 export const mockWorkspaceNoParameters: Workspace = {
   id: 'workspace-no-parameters',
   name: 'No-parameters',
@@ -63,6 +87,7 @@ export const mockWorkspaceNoParameters: Workspace = {
  */
 export const mockWorkspacesList: Workspace[] = [
   mockWorkspaceWithMatch,
+  mockWorkspaceWithMatch2,
   mockWorkspaceNoMatch,
   mockWorkspaceNoParameters,
 ];
@@ -74,11 +99,17 @@ export const mockWorkspaceBuildParameters: Record<
   [mockWorkspaceWithMatch.latest_build.id]: [
     { name: 'repo_url', value: cleanedRepoUrl },
   ],
+
+  [mockWorkspaceWithMatch2.latest_build.id]: [
+    { name: 'repo_url', value: cleanedRepoUrl },
+  ],
+
   [mockWorkspaceNoMatch.latest_build.id]: [
     { name: 'repo_url', value: 'https://www.github.com/wombo/zom' },
   ],
+
   [mockWorkspaceNoParameters.latest_build.id]: [
-    // Purposefully kept empty
+    // Intentionally kept empty
   ],
 };
 
