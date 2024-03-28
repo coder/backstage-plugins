@@ -3,11 +3,12 @@
  * CoderWorkspacesCard directory.
  */
 import React from 'react';
-import { mockAuthStates } from '../../testHelpers/mockBackstageData';
+import { screen, waitFor } from '@testing-library/react';
 import { renderInCoderEnvironment } from '../../testHelpers/setup';
+import { mockAuthStates } from '../../testHelpers/mockBackstageData';
+import { mockWorkspacesList } from '../../testHelpers/mockCoderAppData';
 import { type CoderAuthStatus } from '../CoderProvider';
 import { CoderWorkspacesCard } from './CoderWorkspacesCard';
-import { screen } from '@testing-library/react';
 
 type RenderInputs = Readonly<{
   authStatus?: CoderAuthStatus;
@@ -25,7 +26,7 @@ function renderWorkspacesCard(input?: RenderInputs) {
 
 describe(`${CoderWorkspacesCard.name}`, () => {
   describe('General behavior', () => {
-    it.only('Shows the authentication form when the user is not authenticated', async () => {
+    it('Shows the authentication form when the user is not authenticated', async () => {
       await renderWorkspacesCard({
         authStatus: 'tokenMissing',
       });
@@ -37,12 +38,32 @@ describe(`${CoderWorkspacesCard.name}`, () => {
       }).not.toThrow();
     });
 
-    it('Shows the workspaces list when the user is authenticated', async () => {});
-    it('Is exposed as an accessible search landmark when the workspaces card is visible', async () => {});
+    it('Shows the workspaces list when the user is authenticated (exposed as an accessible search landmark)', async () => {
+      await renderWorkspacesCard({
+        authStatus: 'authenticated',
+      });
+
+      await waitFor(() => {
+        expect(() => {
+          screen.getByRole('search', {
+            name: /Coder Workspaces/i,
+          });
+        }).not.toThrow();
+      });
+    });
   });
 
   describe('With readEntityData set to false', () => {
-    it('Will NOT filter any workspaces by current repo', async () => {});
+    it.only('Will NOT filter any workspaces by the current repo', async () => {
+      await renderWorkspacesCard({
+        authStatus: 'authenticated',
+        readEntityData: false,
+      });
+
+      const workspaceItems = await screen.findAllByRole('listitem');
+      expect(workspaceItems.length).toEqual(mockWorkspacesList.length);
+    });
+
     it('Lets the user filter the workspaces by their query text', async () => {});
     it('Shows all workspaces when query text is empty', async () => {});
   });
