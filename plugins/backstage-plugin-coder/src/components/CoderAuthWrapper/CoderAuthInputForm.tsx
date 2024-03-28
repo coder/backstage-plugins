@@ -128,8 +128,8 @@ export const CoderAuthInputForm = () => {
           // won't connect the label and input together, which breaks
           // accessibility for screen readers. Need to wire up extra IDs, sadly.
           label="Auth token"
-          id={authTokenInputId}
           InputLabelProps={{ htmlFor: authTokenInputId }}
+          InputProps={{ id: authTokenInputId }}
           required
           name="authToken"
           type="password"

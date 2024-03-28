@@ -100,9 +100,13 @@ export const HeaderRow = ({
   );
 };
 
-// Temporary stopgap until we can figure out how to grab the repo name via one
-// of the Backstage APIs
-const repoNameRe = /^(?:https?:\/\/)?github\.com\/.*?\/(.+?)(?:\/.*)?$/i;
+/**
+ * Parses the repo name from GitHub/GitLab/Bitbucket, which should be the last
+ * segment of the URL after it's been cleaned by the CoderConfig
+ */
+const repoNameRe =
+  /^(?:https?:\/\/)?(?:www\.)?(?:github|gitlab|bitbucket)\.com\/.*?\/(.+)?$/i;
+
 function extractRepoName(repoUrl: string): string {
   const [, repoName] = repoNameRe.exec(repoUrl) ?? [];
   return repoName ? `repo: ${repoName}` : 'repo URL';

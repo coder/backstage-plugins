@@ -12,7 +12,7 @@ type RenderListItemInput = Readonly<{
   workspaces: readonly Workspace[];
 }>;
 
-type WorkspacesListProps = Readonly<
+export type WorkspacesListProps = Readonly<
   Omit<HTMLAttributes<HTMLDivElement>, 'children'> & {
     emptyState?: ReactNode;
     ordered?: boolean;
@@ -96,9 +96,7 @@ export const WorkspacesList = ({
 
       {workspacesQuery.data?.length === 0 && (
         <>
-          {emptyState !== undefined ? (
-            emptyState
-          ) : (
+          {emptyState ?? (
             <Placeholder displayCta>
               {repoUrl ? (
                 <div style={{ textAlign: 'center' }}>

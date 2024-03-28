@@ -1,33 +1,26 @@
 /* eslint-disable @backstage/no-undeclared-imports -- For test helpers only */
-import {
-  MockErrorApi,
-  TestApiProvider,
-  wrapInTestApp,
-} from '@backstage/test-utils';
+import { TestApiProvider, wrapInTestApp } from '@backstage/test-utils';
 import {
   type RenderHookOptions,
   type RenderHookResult,
-  render,
   renderHook,
   waitFor,
+  render,
 } from '@testing-library/react';
 /* eslint-enable @backstage/no-undeclared-imports */
 
-import React, { ReactElement } from 'react';
+import React from 'react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-
 import { scmIntegrationsApiRef } from '@backstage/integration-react';
 import { configApiRef, errorApiRef } from '@backstage/core-plugin-api';
+import { EntityProvider } from '@backstage/plugin-catalog-react';
 import {
-  type EntityProviderProps,
-  EntityProvider,
-} from '@backstage/plugin-catalog-react';
-
-import {
+  type CoderAuth,
+  type CoderAuthStatus,
+  type CoderAppConfig,
   type CoderProviderProps,
   AuthContext,
   CoderAppConfigProvider,
-  CoderAuthStatus,
 } from '../components/CoderProvider';
 import {
   getMockSourceControl,
@@ -36,6 +29,7 @@ import {
   getMockErrorApi,
   getMockConfigApi,
   mockAuthStates,
+  BackstageEntity,
 } from './mockBackstageData';
 import { CoderErrorBoundary } from '../plugin';
 
@@ -114,98 +108,37 @@ export function getMockQueryClient(): QueryClient {
 }
 
 type MockAuthProps = Readonly<
-  Required<CoderProviderProps> & {
+  CoderProviderProps & {
+    auth?: CoderAuth;
+
+    /**
+     * Shortcut property for injecting an auth object. Can conflict with the
+     * auth property; if both are defined, authStatus is completely ignored
+     */
     authStatus?: CoderAuthStatus;
   }
 >;
 
 export const CoderProviderWithMockAuth = ({
   children,
-  queryClient,
   appConfig,
+  auth,
+  queryClient = getMockQueryClient(),
   authStatus = 'authenticated',
 }: MockAuthProps) => {
+  const activeAuth = auth ?? mockAuthStates[authStatus];
+
   return (
     <CoderErrorBoundary>
       <QueryClientProvider client={queryClient}>
         <CoderAppConfigProvider appConfig={appConfig}>
-          <AuthContext.Provider value={mockAuthStates[authStatus]}>
+          <AuthContext.Provider value={activeAuth}>
             {children}
           </AuthContext.Provider>
         </CoderAppConfigProvider>
       </QueryClientProvider>
     </CoderErrorBoundary>
   );
-};
-
-type ChildProps = EntityProviderProps;
-type RenderResultWithErrorApi = ReturnType<typeof render> & {
-  errorApi: MockErrorApi;
-};
-
-export const renderWithEntity = ({ children }: ChildProps) => {
-  const mockSourceControlApi = getMockSourceControl();
-  const mockConfigApi = getMockConfigApi();
-
-  return render(
-    <TestApiProvider
-      apis={[
-        [scmIntegrationsApiRef, mockSourceControlApi],
-        [configApiRef, mockConfigApi],
-      ]}
-    >
-      <EntityProvider entity={mockEntity}>{children}</EntityProvider>
-    </TestApiProvider>,
-  );
-};
-
-export const renderWithCoderProvider = (
-  component: ReactElement,
-): RenderResultWithErrorApi => {
-  const errorApi = getMockErrorApi();
-  const mockQueryClient = getMockQueryClient();
-
-  const result = render(
-    <TestApiProvider apis={[[errorApiRef, errorApi]]}>
-      <CoderProviderWithMockAuth
-        appConfig={mockAppConfig}
-        queryClient={mockQueryClient}
-        authStatus="authenticated"
-      >
-        {component}
-      </CoderProviderWithMockAuth>
-    </TestApiProvider>,
-  );
-
-  return { ...result, errorApi };
-};
-
-export const renderWithCoderEntity = ({
-  children,
-}: ChildProps): RenderResultWithErrorApi => {
-  const mockErrorApi = getMockErrorApi();
-  const mockSourceControl = getMockSourceControl();
-  const mockConfigApi = getMockConfigApi();
-  const mockQueryClient = getMockQueryClient();
-
-  const result = render(
-    <TestApiProvider
-      apis={[
-        [errorApiRef, mockErrorApi],
-        [scmIntegrationsApiRef, mockSourceControl],
-        [configApiRef, mockConfigApi],
-      ]}
-    >
-      <CoderProviderWithMockAuth
-        appConfig={mockAppConfig}
-        queryClient={mockQueryClient}
-      >
-        <EntityProvider entity={mockEntity}>{children}</EntityProvider>
-      </CoderProviderWithMockAuth>
-    </TestApiProvider>,
-  );
-
-  return { ...result, errorApi: mockErrorApi };
 };
 
 type RenderHookAsCoderEntityOptions<TProps extends NonNullable<unknown>> = Omit<
@@ -230,8 +163,8 @@ export const renderHookAsCoderEntity = async <
 
   const renderHookValue = renderHook(hook, {
     ...delegatedOptions,
-    wrapper: ({ children }) =>
-      wrapInTestApp(
+    wrapper: ({ children }) => {
+      const mainMarkup = (
         <TestApiProvider
           apis={[
             [errorApiRef, mockErrorApi],
@@ -244,14 +177,71 @@ export const renderHookAsCoderEntity = async <
             queryClient={mockQueryClient}
             authStatus={authStatus}
           >
-            <EntityProvider entity={mockEntity}>
-              <>{children}</>
-            </EntityProvider>
+            <EntityProvider entity={mockEntity}>{children}</EntityProvider>
           </CoderProviderWithMockAuth>
-        </TestApiProvider>,
-      ),
+        </TestApiProvider>
+      );
+
+      return wrapInTestApp(mainMarkup) as unknown as typeof mainMarkup;
+    },
   });
 
   await waitFor(() => expect(renderHookValue.result.current).not.toBe(null));
   return renderHookValue;
 };
+
+type RenderInCoderEnvironmentInputs = Readonly<{
+  children: React.ReactNode;
+  entity?: BackstageEntity;
+  appConfig?: CoderAppConfig;
+  queryClient?: QueryClient;
+  auth?: CoderAuth;
+}>;
+
+export async function renderInCoderEnvironment({
+  children,
+  auth,
+  entity = mockEntity,
+  queryClient = getMockQueryClient(),
+  appConfig = mockAppConfig,
+}: RenderInCoderEnvironmentInputs) {
+  /**
+   * Tried really hard to get renderInTestApp to work, but I couldn't figure out
+   * how to get it set up with custom config values (mainly for testing the
+   * backend endpoints).
+   *
+   * Manually setting up the config API to get around that
+   */
+  const mockErrorApi = getMockErrorApi();
+  const mockSourceControl = getMockSourceControl();
+  const mockConfigApi = getMockConfigApi();
+
+  const mainMarkup = (
+    <TestApiProvider
+      apis={[
+        [errorApiRef, mockErrorApi],
+        [scmIntegrationsApiRef, mockSourceControl],
+        [configApiRef, mockConfigApi],
+      ]}
+    >
+      <EntityProvider entity={entity}>
+        <CoderProviderWithMockAuth
+          appConfig={appConfig}
+          auth={auth}
+          queryClient={queryClient}
+        >
+          {children}
+        </CoderProviderWithMockAuth>
+      </EntityProvider>
+    </TestApiProvider>
+  );
+
+  const wrapped = wrapInTestApp(mainMarkup) as unknown as typeof mainMarkup;
+  const renderOutput = render(wrapped);
+  const loadingIndicator = renderOutput.container.querySelector(
+    'div[data-testid="progress"]',
+  );
+
+  await waitFor(() => expect(loadingIndicator).not.toBeInTheDocument());
+  return renderOutput;
+}

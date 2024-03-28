@@ -1,3 +1,10 @@
+/**
+ * @file Wires up all the core logic for passing values down to the
+ * sub-components in the same directory.
+ *
+ * Does not need any tests – test functionality covered by integration tests in
+ * CoderWorkspacesCard
+ */
 import React, {
   type HTMLAttributes,
   createContext,
@@ -17,15 +24,19 @@ import { Card } from '../Card';
 import { CoderAuthWrapper } from '../CoderAuthWrapper';
 import { EntityDataReminder } from './EntityDataReminder';
 
-type WorkspacesCardContext = Readonly<{
+export type WorkspacesQuery = UseQueryResult<readonly Workspace[]>;
+
+export type WorkspacesCardContext = Readonly<{
   queryFilter: string;
   onFilterChange: (newFilter: string) => void;
-  workspacesQuery: UseQueryResult<readonly Workspace[]>;
+  workspacesQuery: WorkspacesQuery;
   workspacesConfig: CoderWorkspacesConfig;
   headerId: string;
 }>;
 
-const CardContext = createContext<WorkspacesCardContext | null>(null);
+// Only exported to simplify setting up dependency injection for tests. Should
+// not be consumed directly in application code
+export const CardContext = createContext<WorkspacesCardContext | null>(null);
 
 export type WorkspacesCardProps = Readonly<
   Omit<HTMLAttributes<HTMLDivElement>, 'role' | 'aria-labelledby'> & {
