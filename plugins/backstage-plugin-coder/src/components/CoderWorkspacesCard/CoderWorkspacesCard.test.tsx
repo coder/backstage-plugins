@@ -131,7 +131,18 @@ describe(`${CoderWorkspacesCard.name}`, () => {
      * searching by build parameter
      */
     it.only('Will not show any workspaces at all when the query text is empty', async () => {
-      expect.hasAssertions();
+      await renderWorkspacesCard({ readEntityData: true });
+
+      const user = userEvent.setup();
+      const inputField = await screen.findByRole('searchbox', {
+        name: /Search your Coder workspaces/i,
+      });
+
+      await user.tripleClick(inputField);
+      await user.keyboard('[Backspace]');
+
+      const empty = await screen.findByText(/No workspaces found for repo/);
+      expect(empty).toBeInTheDocument();
     });
   });
 });
