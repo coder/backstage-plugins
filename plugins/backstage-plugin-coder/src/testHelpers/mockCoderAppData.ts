@@ -2,7 +2,7 @@ import type { Workspace, WorkspaceBuildParameter } from '../typesConstants';
 import { cleanedRepoUrl } from './mockBackstageData';
 
 /**
- * Mock for a workspace that matches the mock repo URL
+ * The main mock for a workspace that matches the mock repo URL
  */
 export const mockWorkspaceWithMatch: Workspace = {
   id: 'workspace-with-match',
@@ -21,6 +21,9 @@ export const mockWorkspaceWithMatch: Workspace = {
   },
 };
 
+/**
+ * A secondary mock for a workspace that matches the mock repo URL
+ */
 export const mockWorkspaceWithMatch2: Workspace = {
   id: 'workspace-with-match-2',
   name: 'Another-Test',
