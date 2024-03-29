@@ -9,9 +9,9 @@ import { type Theme, makeStyles } from '@material-ui/core';
 import { useId } from '../../hooks/hookPolyfills';
 
 import { useCoderAppConfig } from '../CoderProvider';
-import { isWorkspaceOnline } from '../../api';
+import { getWorkspaceAgentStatuses } from '../../api';
 
-import type { Workspace } from '../../typesConstants';
+import type { Workspace, WorkspaceStatus } from '../../typesConstants';
 import { WorkspacesListIcon } from './WorkspacesListIcon';
 import { VisuallyHidden } from '../VisuallyHidden';
 
@@ -24,7 +24,7 @@ type StyleKey =
   | 'button';
 
 type UseStyleInputs = Readonly<{
-  isOnline: boolean;
+  isAvailable: boolean;
 }>;
 
 const useStyles = makeStyles<Theme, UseStyleInputs, StyleKey>(theme => ({
@@ -84,7 +84,7 @@ const useStyles = makeStyles<Theme, UseStyleInputs, StyleKey>(theme => ({
     fontSize: '16px',
   },
 
-  onlineStatusLight: ({ isOnline }) => ({
+  onlineStatusLight: ({ isAvailable }) => ({
     display: 'block',
     width: theme.spacing(1),
     height: theme.spacing(1),
@@ -93,8 +93,10 @@ const useStyles = makeStyles<Theme, UseStyleInputs, StyleKey>(theme => ({
     borderStyle: 'solid',
 
     // Border color helps increase color contrast in light mode
-    borderColor: isOnline ? 'hsl(130deg,100%,40%)' : theme.palette.common.black,
-    backgroundColor: isOnline
+    borderColor: isAvailable
+      ? 'hsl(130deg,100%,40%)'
+      : theme.palette.common.black,
+    backgroundColor: isAvailable
       ? 'hsl(135deg,100%,77%)'
       : theme.palette.common.black,
   }),
@@ -142,8 +144,11 @@ export const WorkspacesListItem = ({
   const { accessUrl } = useCoderAppConfig().deployment;
   const anchorElementRef = useRef<HTMLAnchorElement>(null);
 
-  const isOnline = isWorkspaceOnline(workspace);
-  const styles = useStyles({ isOnline });
+  const availabilityStatus = getAvailabilityStatus(workspace);
+  const styles = useStyles({
+    isAvailable:
+      availabilityStatus === 'online' || availabilityStatus === 'pending',
+  });
 
   const { name, owner_name, template_icon } = workspace;
   const onlineStatusId = `${hookId}-online-status`;
@@ -205,8 +210,15 @@ export const WorkspacesListItem = ({
             />
 
             <VisuallyHidden>Workspace is </VisuallyHidden>
-            {isOnline ? 'Online' : 'Offline'}
-            <VisuallyHidden>.</VisuallyHidden>
+            {availabilityStatus === 'deleting' ||
+            availabilityStatus === 'pending' ? (
+              <>{toUppercase(availabilityStatus)}&hellip;</>
+            ) : (
+              <>
+                {toUppercase(availabilityStatus)}
+                <VisuallyHidden>.</VisuallyHidden>
+              </>
+            )}
           </span>
         </div>
 
@@ -226,6 +238,55 @@ export const WorkspacesListItem = ({
   );
 };
 
+const deletingStatuses: readonly WorkspaceStatus[] = ['deleting', 'deleted'];
+const offlineStatuses: readonly WorkspaceStatus[] = [
+  'stopped',
+  'stopping',
+  'pending',
+  'canceling',
+  'canceled',
+];
+
+type AvailabilityStatus =
+  | 'online'
+  | 'offline'
+  | 'pending'
+  | 'failed'
+  | 'deleting';
+
+function getAvailabilityStatus(workspace: Workspace): AvailabilityStatus {
+  const currentStatus = workspace.latest_build.status;
+
+  if (currentStatus === 'failed') {
+    return 'failed';
+  }
+
+  // When a workspace is being deleted, there is a good chance that the agents
+  // will still show as connected/connecting. If this check isn't done before
+  // looking at the agent statuses, a deleting workspace might show up as online
+  if (deletingStatuses.includes(currentStatus)) {
+    return 'deleting';
+  }
+
+  if (offlineStatuses.includes(currentStatus)) {
+    return 'offline';
+  }
+
+  const uniqueStatuses = getWorkspaceAgentStatuses(workspace);
+  const isPending =
+    currentStatus === 'starting' ||
+    uniqueStatuses.some(status => status === 'connecting');
+
+  if (isPending) {
+    return 'pending';
+  }
+
+  // .every will still make workspaces with no agents show as online
+  return uniqueStatuses.every(status => status === 'connected')
+    ? 'online'
+    : 'offline';
+}
+
 function stopClickEventBubbling(event: MouseEvent | KeyboardEvent): void {
   const { nativeEvent } = event;
   const shouldStopBubbling =
@@ -235,4 +296,8 @@ function stopClickEventBubbling(event: MouseEvent | KeyboardEvent): void {
   if (shouldStopBubbling) {
     event.stopPropagation();
   }
+}
+
+function toUppercase(s: string): string {
+  return s.slice(0, 1).toUpperCase() + s.slice(1).toLowerCase();
 }
