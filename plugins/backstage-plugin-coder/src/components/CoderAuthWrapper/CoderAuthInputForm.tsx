@@ -49,8 +49,7 @@ export const CoderAuthInputForm = () => {
   const hookId = useId();
   const styles = useStyles();
   const appConfig = useCoderAppConfig();
-  const { status: og, registerNewToken } = useCoderAuth();
-  const status: typeof og = 'authenticating';
+  const { status, registerNewToken } = useCoderAuth();
 
   const onSubmit = (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -159,7 +158,7 @@ const useInvalidStatusStyles = makeStyles(theme => ({
 
   syncIcon: {
     color: theme.palette.text.primary,
-    opacity: 0.75,
+    opacity: 0.6,
   },
 
   errorIcon: {
@@ -170,7 +169,7 @@ const useInvalidStatusStyles = makeStyles(theme => ({
   dismissButton: {
     border: 'none',
     alignSelf: 'stretch',
-    padding: `0 ${theme.spacing(2)}px`,
+    padding: `0 ${theme.spacing(1.5)}px 0 ${theme.spacing(2)}px`,
     color: theme.palette.text.primary,
     backgroundColor: 'inherit',
     lineHeight: 1,
@@ -178,6 +177,12 @@ const useInvalidStatusStyles = makeStyles(theme => ({
 
     '&:hover': {
       backgroundColor: theme.palette.action.hover,
+    },
+  },
+
+  '@keyframes spin': {
+    '100%': {
+      transform: 'rotate(360deg)',
     },
   },
 }));
@@ -203,6 +208,7 @@ function InvalidStatusNotifier({ authStatus, bannerId }: InvalidStatusProps) {
             <>
               <SyncIcon
                 className={`${styles.icon} ${styles.syncIcon}`}
+                // Needed to make MUI v4 icons respect sizing values
                 fontSize="inherit"
               />
               Authenticating&hellip;
