@@ -145,7 +145,10 @@ export const WorkspacesListItem = ({
   const anchorElementRef = useRef<HTMLAnchorElement>(null);
 
   const availabilityStatus = getAvailabilityStatus(workspace);
-  const styles = useStyles({ isAvailable: availabilityStatus === 'online' });
+  const styles = useStyles({
+    isAvailable:
+      availabilityStatus === 'online' || availabilityStatus === 'pending',
+  });
 
   const { name, owner_name, template_icon } = workspace;
   const onlineStatusId = `${hookId}-online-status`;
@@ -207,7 +210,8 @@ export const WorkspacesListItem = ({
             />
 
             <VisuallyHidden>Workspace is </VisuallyHidden>
-            {availabilityStatus === 'deleting' ? (
+            {availabilityStatus === 'deleting' ||
+            availabilityStatus === 'pending' ? (
               <>{toUppercase(availabilityStatus)}&hellip;</>
             ) : (
               <>
@@ -235,16 +239,32 @@ export const WorkspacesListItem = ({
 };
 
 const deletingStatuses: readonly WorkspaceStatus[] = ['deleting', 'deleted'];
+
 const offlineStatuses: readonly WorkspaceStatus[] = [
   'stopped',
   'stopping',
   'pending',
+  'canceling',
+  'canceled',
 ];
 
-type AvailabilityStatus = 'online' | 'offline' | 'deleting';
+type AvailabilityStatus =
+  | 'online'
+  | 'offline'
+  | 'pending'
+  | 'failed'
+  | 'deleting';
 
 function getAvailabilityStatus(workspace: Workspace): AvailabilityStatus {
   const currentStatus = workspace.latest_build.status;
+
+  if (currentStatus === 'starting') {
+    return 'pending';
+  }
+
+  if (currentStatus === 'failed') {
+    return 'failed';
+  }
 
   // When a workspace is being deleted, there is a good chance that the agents
   // will still show as connected/connecting. If this check isn't done before
