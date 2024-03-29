@@ -4,27 +4,33 @@ This is the main documentation page for the Coder plugin's React hooks.
 
 ## Hook list
 
-- [`useCoderEntityConfig`](#useCoderEntityConfig)
-- [`useCoderWorkspaces`](#useCoderWorkspaces)
+- [`useCoderWorkspacesConfig`](#useCoderWorkspacesConfig)
+- [`useCoderWorkspacesQuery`](#useCoderWorkspacesquery)
 - [`useWorkspacesCardContext`](#useWorkspacesCardContext)
 
-## `useCoderEntityConfig`
+## `useCoderWorkspacesConfig`
 
-This hook gives you access to compiled [`CoderEntityConfig`](./types.md#coderentityconfig) data.
+This hook gives you access to compiled [`CoderWorkspacesConfig`](./types.md#coderworkspacesconfig) data.
 
 ### Type signature
 
 ```tsx
-declare function useCoderEntityConfig(): CoderEntityConfig;
+type UseCoderWorkspacesConfigOptions = Readonly<{
+  readEntityData?: boolean;
+}>;
+
+declare function useCoderWorkspacesConfig(
+  options: UseCoderWorkspacesConfigOptions,
+): CoderWorkspacesConfig;
 ```
 
-[Type definition for `CoderEntityConfig`](./types.md#coderentityconfig)
+[Type definition for `CoderWorkspacesConfig`](./types.md#coderWorkspacesconfig)
 
 ### Example usage
 
 ```tsx
 function YourComponent() {
-  const config = useCoderEntityConfig();
+  const config = useCoderWorkspacesConfig();
   return <p>Your repo URL is {config.repoUrl}</p>;
 }
 
@@ -52,30 +58,29 @@ const serviceEntityPage = (
 ### Throws
 
 - Will throw an error if called outside a React component
-- Will throw an error if called outside an `EntityLayout` (or any other Backstage component that exposes `Entity` data via React Context)
+- Will throw if the value of the `readEntityData` property input changes across re-renders
 
 ### Notes
 
-- The type definition for `CoderEntityConfig` [can be found here](./types.md#coderentityconfig). That section also includes info on the heuristic used for compiling the data
+- The type definition for `CoderWorkspacesConfig` [can be found here](./types.md#coderworkspacesconfig). That section also includes info on the heuristic used for compiling the data
+- The value of `readEntityData` determines the "mode" that the workspace operates in. If the value is `false`/`undefined`, the component will act as a general list of workspaces that isn't aware of Backstage APIs. If the value is `true`, the hook will also read Backstage data during the compilation step.
 - The hook tries to ensure that the returned value maintains a stable memory reference as much as possible, if you ever need to use that value in other React hooks that use dependency arrays (e.g., `useEffect`, `useCallback`)
 
-## `useCoderWorkspaces`
+## `useCoderWorkspacesQuery`
 
 This hook gives you access to all workspaces that match a given query string. If
-[`repoConfig`](#usecoderentityconfig) is defined via `options`, the workspaces returned will be filtered down further to only those that match the the repo.
+[`workspacesConfig`](#usecoderworkspacesconfig) is defined via `options`, and that config has a defined `repoUrl`, the workspaces returned will be filtered down further to only those that match the the repo.
 
 ### Type signature
 
 ```ts
-type UseCoderWorkspacesOptions = Readonly<
-  Partial<{
-    repoConfig: CoderEntityConfig;
-  }>
->;
+type UseCoderWorkspacesQueryOptions = Readonly<{
+  coderQuery: string;
+  workspacesConfig?: CoderWorkspacesConfig;
+}>;
 
-declare function useCoderEntityConfig(
-  coderQuery: string,
-  options?: UseCoderWorkspacesOptions,
+declare function useCoderWorkspacesConfig(
+  options: UseCoderWorkspacesQueryOptions,
 ): UseQueryResult<readonly Workspace[]>;
 ```
 
@@ -83,19 +88,16 @@ declare function useCoderEntityConfig(
 
 ```tsx
 function YourComponent() {
-  const entityConfig = useCoderEntityConfig();
   const [filter, setFilter] = useState('owner:me');
-
-  const query = useCoderWorkspaces(filter, {
-    repoConfig: entityConfig,
-  });
+  const workspacesConfig = useCoderWorkspacesConfig({ readEntityData: true });
+  const queryState = useCoderWorkspacesQuery({ filter, workspacesConfig });
 
   return (
     <>
-      {query.isLoading && <YourLoadingIndicator />}
-      {query.isError && <YourErrorDisplay />}
+      {queryState.isLoading && <YourLoadingIndicator />}
+      {queryState.isError && <YourErrorDisplay />}
 
-      {query.data?.map(workspace => (
+      {queryState.data?.map(workspace => (
         <ol>
           <li key={workspace.key}>{workspace.name}</li>
         </ol>
@@ -127,7 +129,8 @@ const coderAppConfig: CoderAppConfig = {
 - The underlying query will not be enabled if:
   1.  The user is not currently authenticated (We recommend wrapping your component inside [`CoderAuthWrapper`](./components.md#coderauthwrapper) to make these checks easier)
   2.  If `repoConfig` is passed in via `options`: when the value of `coderQuery` is an empty string
-- `CoderEntityConfig` is the return type of [`useCoderEntityConfig`](#usecoderentityconfig)
+- The `workspacesConfig` property is the return type of [`useCoderWorkspacesConfig`](#usecoderworkspacesconfig)
+  - The only way to get automatically-filtered results is by (1) passing in a workspaces config value, and (2) ensuring that config has a `repoUrl` property of type string (it can sometimes be `undefined`, depending on built-in Backstage APIs).
 
 ## `useWorkspacesCardContext`
 
@@ -140,8 +143,8 @@ type WorkspacesCardContext = Readonly<{
   queryFilter: string;
   onFilterChange: (newFilter: string) => void;
   workspacesQuery: UseQueryResult<readonly Workspace[]>;
+  workspacesConfig: CoderWorkspacesConfig;
   headerId: string;
-  entityConfig: CoderEntityConfig | undefined;
 }>;
 
 declare function useWorkspacesCardContext(): WorkspacesCardContext;

@@ -137,11 +137,11 @@ export const ExtraActionsButton = ({
       </p>
 
       {/* Warning: all direct children of Menu must be MenuItem components, or
-            else the auto-focus behavior will break. Even a custom component that
-            returns out nothing but a MenuItem will break it. (Guessing that MUI
-            uses something like cloneElement under the hood, and that they're
-            interacting with the raw JSX metadata objects before they're turned
-            into new UI.) */}
+          else the auto-focus behavior will break. Even a custom component that
+          returns out nothing but a MenuItem will break it. (Guessing that MUI
+          uses something like cloneElement under the hood, and that they're
+          interacting with the raw JSX metadata objects before they're turned
+          into new UI.) */}
       <Menu
         // Necessary to set getContentAnchorEl to null in order to make sure
         // that anchorOrigin.vertical can be set. MUI will complain in the

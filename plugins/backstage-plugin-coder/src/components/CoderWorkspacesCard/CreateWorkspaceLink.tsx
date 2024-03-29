@@ -46,14 +46,14 @@ export const CreateWorkspaceLink = ({
   ...delegatedProps
 }: CreateButtonLinkProps) => {
   const styles = useStyles();
-  const { workspaceCreationLink } = useWorkspacesCardContext();
+  const { workspacesConfig } = useWorkspacesCardContext();
 
   return (
     <Tooltip ref={tooltipRef} title={tooltipText} {...tooltipProps}>
       <a
         target={target}
         className={`${styles.root} ${className ?? ''}`}
-        href={workspaceCreationLink}
+        href={workspacesConfig.creationUrl}
         {...delegatedProps}
       >
         {children ?? <AddIcon />}

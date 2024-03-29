@@ -31,15 +31,19 @@ jobs:
           filters: |
             coder:
               - ".github/workflows/test.yaml"
+              - "yarn.lock"
               - "plugins/backstage-plugin-coder/**"
             devcontainers-backend:
               - ".github/workflows/test.yaml"
+              - "yarn.lock"
               - "plugins/backstage-plugin-devcontainers-backend/**"
             devcontainers-react:
-              - ".github/workflows/build.yaml"
+              - ".github/workflows/test.yaml"
+              - "yarn.lock"
               - "plugins/backstage-plugin-devcontainers-react/**"
   plugin:
     needs: changes
+    if: ${{ needs.changes.outputs.plugins != '' && toJson(fromJson(needs.changes.outputs.plugins)) != '[]' }}
     runs-on: ubuntu-latest
     strategy:
       matrix:

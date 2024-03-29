@@ -6,12 +6,12 @@
 
   ```tsx
   // Type intersection
-  type CustomType = CoderEntityConfig & {
+  type CustomType = CoderWorkspacesConfig & {
     customProperty: boolean;
   };
 
   // Interface extension - new interface must have a different name
-  interface CustomInterface extends CoderEntityConfig {
+  interface CustomInterface extends CoderWorkspacesConfig {
     customProperty: string;
   }
   ```
@@ -19,7 +19,7 @@
 ## Types directory
 
 - [`CoderAppConfig`](#coderappconfig)
-- [`CoderEntityConfig`](#coderentityconfig)
+- [`CoderWorkspacesConfig`](#coderworkspacesconfig)
 - [`Workspace`](#workspace)
 - [`WorkspaceResponse`](#workspaceresponse)
 
@@ -57,22 +57,23 @@ See example for [`CoderProvider`](./components.md#coderprovider)
 - `templateName` refers to the name of the Coder template that you wish to use as default for creating workspaces
 - If `mode` is not specified, the plugin will default to a value of `manual`
 - `repoUrlParamKeys` is defined as a non-empty array – there must be at least one element inside it.
-- For more info on how this type is used within the plugin, see [`CoderEntityConfig`](./types.md#coderentityconfig) and [`useCoderEntityConfig`](./hooks.md#usecoderentityconfig)
+- For more info on how this type is used within the plugin, see [`CoderWorkspacesConfig`](./types.md#coderworkspacesconfig) and [`useCoderWorkspacesConfig`](./hooks.md#usecoderworkspacesconfig)
 
-## `CoderEntityConfig`
+## `CoderWorkspacesConfig`
 
-Represents the result of compiling Coder plugin configuration data. All data will be compiled from the following sources:
+Represents the result of compiling Coder plugin configuration data. The main source for this type is [`useCoderWorkspacesConfig`](./hooks.md#usecoderworkspacesconfig). All data will be compiled from the following sources:
 
-1. The [`CoderAppConfig`](#coderappconfig) passed to [`CoderProvider`](./components.md#coderprovider)
+1. The [`CoderAppConfig`](#coderappconfig) passed to [`CoderProvider`](./components.md#coderprovider). This acts as the "baseline" set of values.
 2. The entity-specific fields for a given repo's `catalog-info.yaml` file
 3. The entity's location metadata (corresponding to the repo)
 
 ### Type definition
 
 ```tsx
-type CoderEntityConfig = Readonly<{
+type CoderWorkspacesConfig = Readonly<{
   mode: 'manual' | 'auto';
   params: Record<string, string | undefined>;
+  creationUrl: string;
   repoUrl: string | undefined;
   repoUrlParamKeys: [string, ...string[]][];
   templateName: string;
@@ -90,7 +91,7 @@ const appConfig: CoderAppConfig = {
   },
 
   workspaces: {
-    templateName: 'devcontainers',
+    templateName: 'devcontainers-a',
     mode: 'manual',
     repoUrlParamKeys: ['custom_repo', 'repo_url'],
     params: {
@@ -112,7 +113,7 @@ spec:
   lifecycle: unknown
   owner: pms
   coder:
-    templateName: 'devcontainers'
+    templateName: 'devcontainers-b'
     mode: 'auto'
     params:
       repo: 'custom'
@@ -122,7 +123,7 @@ spec:
 Your output will look like this:
 
 ```tsx
-const config: CoderEntityConfig = {
+const config: CoderWorkspacesConfig = {
   mode: 'auto',
   params: {
     repo: 'custom',
@@ -130,9 +131,14 @@ const config: CoderEntityConfig = {
     custom_repo: 'https://github.com/Parkreiner/python-project/',
     repo_url: 'https://github.com/Parkreiner/python-project/',
   },
-  repoUrl: 'https://github.com/Parkreiner/python-project/',
   repoUrlParamKeys: ['custom_repo', 'repo_url'],
   templateName: 'devcontainers',
+  repoUrl: 'https://github.com/Parkreiner/python-project/',
+
+  // Other URL parameters will be included in real code
+  // but were stripped out for this example
+  creationUrl:
+    'https://dev.coder.com/templates/devcontainers-b/workspace?mode=auto',
 };
 ```
 
@@ -146,6 +152,7 @@ const config: CoderEntityConfig = {
   3. Go through all properties parsed from `catalog-info.yaml` and inject those. If the properties are already defined, overwrite them
   4. Grab the repo URL from the entity's location fields.
   5. For each key in `CoderAppConfig`'s `workspaces.repoUrlParamKeys` property, take that key, and inject it as a key-value pair, using the URL as the value. If the key already exists, always override it with the URL
+  6. Use the Coder access URL and the properties defined during the previous steps to create the URL for creating new workspaces, and then inject that.
 
 ## `Workspace`
 

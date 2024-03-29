@@ -162,7 +162,8 @@ export const SearchBox = ({
 
   return (
     // Have to use aria-labelledby even though <legend>s normally provide
-    // accessible names automatically - "hidden" blocks the default behavior
+    // accessible names automatically - the hidden prop on the legend blocks the
+    // default behavior
     <fieldset
       aria-labelledby={legendId}
       className={`${styles.root} ${className ?? ''}`}

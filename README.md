@@ -44,3 +44,11 @@ git push origin coder/v0.0.0
 This will kick off an action that will create a draft release for the plugin.
 Once you have reviewed the release you can publish it and another action will
 publish the plugin to NPM.
+
+## Support
+
+Feel free to [open an issue](https://github.com/coder/backstage-plugins/issues/new) if you have questions, run into bugs, or have a feature request.
+
+[Join our Discord](https://discord.gg/coder) to provide feedback on in-progress features, and chat with the community!
+
+As always, you can also join the official [Backstage Discord](https://discord.gg/backstage-687207715902193673) to stay involved in their wonderful community.

@@ -95,12 +95,21 @@ export const CoderAuthInputForm = () => {
     registerNewToken(newToken);
   };
 
+  const formHeaderId = `${hookId}-form-header`;
   const legendId = `${hookId}-legend`;
   const authTokenInputId = `${hookId}-auth-token`;
   const warningBannerId = `${hookId}-warning-banner`;
 
   return (
-    <form className={styles.formContainer} onSubmit={onSubmit}>
+    <form
+      aria-labelledby={formHeaderId}
+      className={styles.formContainer}
+      onSubmit={onSubmit}
+    >
+      <h3 hidden id={formHeaderId}>
+        Authenticate with Coder
+      </h3>
+
       <div>
         <CoderLogo className={styles.coderLogo} />
         <p>
@@ -128,8 +137,8 @@ export const CoderAuthInputForm = () => {
           // won't connect the label and input together, which breaks
           // accessibility for screen readers. Need to wire up extra IDs, sadly.
           label="Auth token"
-          id={authTokenInputId}
           InputLabelProps={{ htmlFor: authTokenInputId }}
+          InputProps={{ id: authTokenInputId }}
           required
           name="authToken"
           type="password"
