@@ -1,4 +1,4 @@
-import React, { type FormEvent } from 'react';
+import React, { useState, type FormEvent } from 'react';
 import { useId } from '../../hooks/hookPolyfills';
 import {
   type CoderAuthStatus,
@@ -6,12 +6,12 @@ import {
   useCoderAuth,
 } from '../CoderProvider';
 
-import { makeStyles, useTheme } from '@material-ui/core';
-import TextField from '@material-ui/core/TextField';
 import { CoderLogo } from '../CoderLogo';
 import { Link, LinkButton } from '@backstage/core-components';
 import { VisuallyHidden } from '../VisuallyHidden';
-import CloseIcon from '@material-ui/icons/Close';
+import { makeStyles, useTheme } from '@material-ui/core';
+import TextField from '@material-ui/core/TextField';
+import ErrorIcon from '@material-ui/icons/ErrorOutline';
 
 const useStyles = makeStyles(theme => ({
   formContainer: {
@@ -48,8 +48,7 @@ export const CoderAuthInputForm = () => {
   const hookId = useId();
   const styles = useStyles();
   const appConfig = useCoderAppConfig();
-
-  const { status: og, registerNewToken, ejectToken } = useCoderAuth();
+  const { status: og, registerNewToken } = useCoderAuth();
   const status: typeof og = 'invalid';
 
   const onSubmit = (event: FormEvent<HTMLFormElement>) => {
@@ -118,73 +117,93 @@ export const CoderAuthInputForm = () => {
       </fieldset>
 
       {(status === 'invalid' || status === 'authenticating') && (
-        <InvalidStatusNotifier
-          authStatus={status}
-          ejectToken={ejectToken}
-          bannerId={warningBannerId}
-        />
+        <InvalidStatusNotifier authStatus={status} bannerId={warningBannerId} />
       )}
     </form>
   );
 };
 
-type InvalidStatusNotifierProps = Readonly<{
-  authStatus: CoderAuthStatus;
-  bannerId: string;
-  ejectToken: () => void;
-}>;
-
 const useInvalidStatusStyles = makeStyles(theme => ({
-  warningBannerContainer: {
-    paddingTop: theme.spacing(4),
-  },
-
-  warningButton: {
-    border: 'none',
-    padding: 'none',
-    color: theme.palette.text.primary,
-    backgroundColor: 'inherit',
+  warningBannerSpacer: {
+    paddingTop: theme.spacing(2),
   },
 
   warningBanner: {
+    display: 'flex',
+    flexFlow: 'row nowrap',
+    alignItems: 'center',
     color: theme.palette.text.primary,
     backgroundColor: theme.palette.background.default,
     borderRadius: theme.shape.borderRadius,
-    textAlign: 'center',
-    paddingTop: theme.spacing(0.5),
-    paddingBottom: theme.spacing(0.5),
+    padding: 'none',
   },
 
-  dismissIcon: {
-    strokeWidth: '20px',
+  errorContent: {
+    display: 'flex',
+    flexFlow: 'row nowrap',
+    alignItems: 'center',
+    columnGap: theme.spacing(1),
+    marginRight: 'auto',
+
+    paddingTop: theme.spacing(0.5),
+    paddingBottom: theme.spacing(0.5),
+    paddingLeft: theme.spacing(2),
+    paddingRight: 0,
+  },
+
+  errorIcon: {
+    color: theme.palette.error.main,
+    fontSize: '16px',
+  },
+
+  dismissButton: {
+    border: 'none',
+    padding: `${theme.spacing(0.5)}px ${theme.spacing(2)}px`,
+    color: theme.palette.text.primary,
+    backgroundColor: 'blue', // 'inherit',
+    lineHeight: 1,
+    cursor: 'pointer',
+    height: '100%',
+
+    '&:hover': {
+      backgroundColor: 'pink', // theme.palette.action.hover,
+    },
   },
 }));
 
-function InvalidStatusNotifier({
-  authStatus,
-  bannerId,
-  ejectToken,
-}: InvalidStatusNotifierProps) {
+type InvalidStatusProps = Readonly<{
+  authStatus: CoderAuthStatus;
+  bannerId: string;
+}>;
+
+function InvalidStatusNotifier({ authStatus, bannerId }: InvalidStatusProps) {
+  const [showNotification, setShowNotification] = useState(true);
   const styles = useInvalidStatusStyles();
-  const debugShow = true;
+
+  if (!showNotification) {
+    return null;
+  }
 
   return (
-    <div className={styles.warningBannerContainer}>
+    <div className={styles.warningBannerSpacer}>
       <div id={bannerId} className={styles.warningBanner}>
-        {authStatus === 'authenticating' && <>Authenticating&hellip;</>}
+        <span className={styles.errorContent}>
+          {authStatus === 'authenticating' && <>Authenticating&hellip;</>}
+          {authStatus === 'invalid' && (
+            <>
+              <ErrorIcon className={styles.errorIcon} fontSize="inherit" />
+              Invalid token
+            </>
+          )}
+        </span>
 
-        {authStatus === 'invalid' && (
-          <>
-            Invalid token
-            <button className={styles.warningButton} onClick={ejectToken}>
-              <CloseIcon />
-              <VisuallyHidden>Dismiss notification</VisuallyHidden>
-            </button>
-          </>
-        )}
+        <button
+          className={styles.dismissButton}
+          onClick={() => setShowNotification(false)}
+        >
+          Dismiss
+        </button>
       </div>
-
-      <TempDebugComponent show={debugShow} />
     </div>
   );
 }
