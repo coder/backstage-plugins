@@ -3,6 +3,10 @@ import { useCoderWorkspacesQuery } from './useCoderWorkspacesQuery';
 
 import { renderHookAsCoderEntity } from '../testHelpers/setup';
 import { mockCoderWorkspacesConfig } from '../testHelpers/mockBackstageData';
+import {
+  mockWorkspaceNoParameters,
+  mockWorkspacesList,
+} from '../testHelpers/mockCoderAppData';
 
 beforeAll(() => {
   jest.useFakeTimers();
@@ -38,12 +42,22 @@ describe(`${useCoderWorkspacesQuery.name}`, () => {
     await jest.advanceTimersByTimeAsync(10_000);
   });
 
-  /* eslint-disable-next-line jest/no-disabled-tests --
-     Putting this off for the moment, because figuring out how to mock this out
-     without making the code fragile/flaky will probably take some time
-  */
-  it.skip('Will filter workspaces by search criteria when it is provided', async () => {
-    expect.hasAssertions();
+  it('Will filter workspaces by search criteria when it is provided', async () => {
+    const { result, rerender } = await renderHookAsCoderEntity(
+      ({ coderQuery }) => useCoderWorkspacesQuery({ coderQuery }),
+      { initialProps: { coderQuery: 'owner:me' } },
+    );
+
+    await waitFor(() => {
+      expect(result.current.data?.length).toEqual(mockWorkspacesList.length);
+    });
+
+    rerender({ coderQuery: mockWorkspaceNoParameters.name });
+
+    await waitFor(() => {
+      const firstItemName = result.current.data?.[0]?.name;
+      expect(firstItemName).toBe(mockWorkspaceNoParameters.name);
+    });
   });
 
   it('Will only return workspaces for a given repo when a repoConfig is provided', async () => {
@@ -54,12 +68,7 @@ describe(`${useCoderWorkspacesQuery.name}`, () => {
       });
     });
 
-    // This query takes a little bit longer to run and process; waitFor will
-    // almost always give up too early if a longer timeout isn't specified
-    await waitFor(() => expect(result.current.status).toBe('success'), {
-      timeout: 3_000,
-    });
-
-    expect(result.current.data?.length).toBe(1);
+    await waitFor(() => expect(result.current.status).toBe('success'));
+    expect(result.current.data?.length).toBe(2);
   });
 });
