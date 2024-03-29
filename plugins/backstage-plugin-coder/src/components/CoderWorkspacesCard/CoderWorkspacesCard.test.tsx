@@ -76,10 +76,9 @@ describe(`${CoderWorkspacesCard.name}`, () => {
         await user.keyboard('I can do it - I can do it nine times');
 
         await waitFor(() => {
-          // getAllByRole would normally give us an array of all nodes, but it
-          // throws unless it finds at least one node. Have to assert that the
-          // selection fails instead
-          expect(() => screen.getByRole('listitem')).toThrow();
+          // getAllByRole will throw if there isn't at least one node matched
+          const listItems = screen.queryAllByRole('listitem');
+          expect(listItems.length).toBe(0);
         });
 
         unmount();
@@ -173,7 +172,6 @@ describe(`${CoderWorkspacesCard.name}`, () => {
       await user.keyboard('[Backspace]');
 
       const emptyState = await screen.findByText(matchers.emptyState);
-
       expect(emptyState).toBeInTheDocument();
     });
   });
