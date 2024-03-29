@@ -141,11 +141,11 @@ describe(`${CoderWorkspacesCard.name}`, () => {
       await user.tripleClick(inputField);
       await user.keyboard('[Backspace]');
 
-      const empty = await screen.findByText(
+      const emptyState = await screen.findByText(
         /Use the search bar to find matching Coder workspaces/,
       );
 
-      expect(empty).toBeInTheDocument();
+      expect(emptyState).toBeInTheDocument();
     });
   });
 });
