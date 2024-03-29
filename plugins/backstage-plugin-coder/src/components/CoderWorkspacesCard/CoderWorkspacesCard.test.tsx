@@ -130,7 +130,7 @@ describe(`${CoderWorkspacesCard.name}`, () => {
      * rest of the codebase is updated to support the new API endpoint for
      * searching by build parameter
      */
-    it.only('Will not show any workspaces at all when the query text is empty', async () => {
+    it('Will not show any workspaces at all when the query text is empty', async () => {
       await renderWorkspacesCard({ readEntityData: true });
 
       const user = userEvent.setup();
@@ -141,7 +141,10 @@ describe(`${CoderWorkspacesCard.name}`, () => {
       await user.tripleClick(inputField);
       await user.keyboard('[Backspace]');
 
-      const empty = await screen.findByText(/No workspaces found for repo/);
+      const empty = await screen.findByText(
+        /Use the search bar to find matching Coder workspaces/,
+      );
+
       expect(empty).toBeInTheDocument();
     });
   });
