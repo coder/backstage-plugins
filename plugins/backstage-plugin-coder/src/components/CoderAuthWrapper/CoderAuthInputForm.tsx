@@ -1,4 +1,4 @@
-import React, { FormEvent } from 'react';
+import React, { type FormEvent } from 'react';
 import { useId } from '../../hooks/hookPolyfills';
 import {
   type CoderAuthStatus,
@@ -6,22 +6,14 @@ import {
   useCoderAuth,
 } from '../CoderProvider';
 
-import { Theme, makeStyles } from '@material-ui/core';
+import { makeStyles, useTheme } from '@material-ui/core';
 import TextField from '@material-ui/core/TextField';
 import { CoderLogo } from '../CoderLogo';
 import { Link, LinkButton } from '@backstage/core-components';
 import { VisuallyHidden } from '../VisuallyHidden';
+import CloseIcon from '@material-ui/icons/Close';
 
-type UseStyleInput = Readonly<{ status: CoderAuthStatus }>;
-type StyleKeys =
-  | 'formContainer'
-  | 'authInputFieldset'
-  | 'coderLogo'
-  | 'authButton'
-  | 'warningBanner'
-  | 'warningBannerContainer';
-
-const useStyles = makeStyles<Theme, UseStyleInput, StyleKeys>(theme => ({
+const useStyles = makeStyles(theme => ({
   formContainer: {
     maxWidth: '30em',
     marginLeft: 'auto',
@@ -50,41 +42,15 @@ const useStyles = makeStyles<Theme, UseStyleInput, StyleKeys>(theme => ({
     marginLeft: 'auto',
     marginRight: 'auto',
   },
-
-  warningBannerContainer: {
-    paddingTop: theme.spacing(4),
-    paddingLeft: theme.spacing(6),
-    paddingRight: theme.spacing(6),
-  },
-
-  warningBanner: ({ status }) => {
-    let color: string;
-    let backgroundColor: string;
-
-    if (status === 'invalid') {
-      color = theme.palette.error.contrastText;
-      backgroundColor = theme.palette.banner.error;
-    } else {
-      color = theme.palette.text.primary;
-      backgroundColor = theme.palette.background.default;
-    }
-
-    return {
-      color,
-      backgroundColor,
-      borderRadius: theme.shape.borderRadius,
-      textAlign: 'center',
-      paddingTop: theme.spacing(0.5),
-      paddingBottom: theme.spacing(0.5),
-    };
-  },
 }));
 
 export const CoderAuthInputForm = () => {
   const hookId = useId();
+  const styles = useStyles();
   const appConfig = useCoderAppConfig();
-  const { status, registerNewToken } = useCoderAuth();
-  const styles = useStyles({ status });
+
+  const { status: og, registerNewToken, ejectToken } = useCoderAuth();
+  const status: typeof og = 'invalid';
 
   const onSubmit = (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -152,13 +118,137 @@ export const CoderAuthInputForm = () => {
       </fieldset>
 
       {(status === 'invalid' || status === 'authenticating') && (
-        <div className={styles.warningBannerContainer}>
-          <div id={warningBannerId} className={styles.warningBanner}>
-            {status === 'invalid' && 'Invalid token'}
-            {status === 'authenticating' && <>Authenticating&hellip;</>}
-          </div>
-        </div>
+        <InvalidStatusNotifier
+          authStatus={status}
+          ejectToken={ejectToken}
+          bannerId={warningBannerId}
+        />
       )}
     </form>
   );
 };
+
+type InvalidStatusNotifierProps = Readonly<{
+  authStatus: CoderAuthStatus;
+  bannerId: string;
+  ejectToken: () => void;
+}>;
+
+const useInvalidStatusStyles = makeStyles(theme => ({
+  warningBannerContainer: {
+    paddingTop: theme.spacing(4),
+  },
+
+  warningButton: {
+    border: 'none',
+    padding: 'none',
+    color: theme.palette.text.primary,
+    backgroundColor: 'inherit',
+  },
+
+  warningBanner: {
+    color: theme.palette.text.primary,
+    backgroundColor: theme.palette.background.default,
+    borderRadius: theme.shape.borderRadius,
+    textAlign: 'center',
+    paddingTop: theme.spacing(0.5),
+    paddingBottom: theme.spacing(0.5),
+  },
+
+  dismissIcon: {
+    strokeWidth: '20px',
+  },
+}));
+
+function InvalidStatusNotifier({
+  authStatus,
+  bannerId,
+  ejectToken,
+}: InvalidStatusNotifierProps) {
+  const styles = useInvalidStatusStyles();
+  const debugShow = true;
+
+  return (
+    <div className={styles.warningBannerContainer}>
+      <div id={bannerId} className={styles.warningBanner}>
+        {authStatus === 'authenticating' && <>Authenticating&hellip;</>}
+
+        {authStatus === 'invalid' && (
+          <>
+            Invalid token
+            <button className={styles.warningButton} onClick={ejectToken}>
+              <CloseIcon />
+              <VisuallyHidden>Dismiss notification</VisuallyHidden>
+            </button>
+          </>
+        )}
+      </div>
+
+      <TempDebugComponent show={debugShow} />
+    </div>
+  );
+}
+
+type TempProps = Readonly<{ show: boolean }>;
+function TempDebugComponent({ show }: TempProps) {
+  const palette = useTheme().palette;
+  if (!show) {
+    return null;
+  }
+
+  const colorVisualizer = (() => {
+    const visualizerEntries: [string, string][] = [];
+    const pathStack: string[] = [];
+
+    const traversePaletteValues = (current: NonNullable<unknown>): void => {
+      for (const rawKey in current) {
+        if (!current.hasOwnProperty(rawKey)) {
+          continue;
+        }
+
+        const key = rawKey as keyof typeof current;
+        const prop = current[key];
+
+        if (typeof prop === 'string') {
+          const pathValue =
+            pathStack.length === 0
+              ? `base/${key}`
+              : `${pathStack.join('/')}/${key}`;
+
+          visualizerEntries.push([pathValue, prop]);
+          continue;
+        }
+
+        if (prop === null || typeof prop !== 'object') {
+          continue;
+        }
+
+        pathStack.push(key);
+        traversePaletteValues(prop);
+        pathStack.pop();
+      }
+    };
+
+    traversePaletteValues(palette);
+    return visualizerEntries;
+  })();
+
+  return (
+    <>
+      {colorVisualizer.map(([path, color], i) => (
+        <div key={i} style={{ paddingTop: '1rem' }}>
+          <span
+            key={i}
+            style={{
+              display: 'inline-block',
+              width: '20px',
+              height: '20px',
+              backgroundColor: color,
+            }}
+          />
+          <span style={{ paddingLeft: '0.5rem' }}>{path}</span>
+        </div>
+      ))}
+    </>
+  );
+}
