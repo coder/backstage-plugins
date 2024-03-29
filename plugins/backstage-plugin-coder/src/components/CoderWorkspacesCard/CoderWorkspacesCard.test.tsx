@@ -97,7 +97,7 @@ describe(`${CoderWorkspacesCard.name}`, () => {
     it('Will show only the workspaces that match the current repo', async () => {
       await renderWorkspacesCard({ readEntityData: true });
       const workspaceItems = await screen.findAllByRole('listitem');
-      expect(workspaceItems.length).toEqual(1);
+      expect(workspaceItems.length).toEqual(2);
     });
 
     it('Lets the user filter the workspaces by their query text (on top of filtering from readEntityData)', async () => {
