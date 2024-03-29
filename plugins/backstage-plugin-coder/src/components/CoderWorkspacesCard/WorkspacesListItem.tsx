@@ -239,7 +239,6 @@ export const WorkspacesListItem = ({
 };
 
 const deletingStatuses: readonly WorkspaceStatus[] = ['deleting', 'deleted'];
-
 const offlineStatuses: readonly WorkspaceStatus[] = [
   'stopped',
   'stopping',
@@ -258,10 +257,6 @@ type AvailabilityStatus =
 function getAvailabilityStatus(workspace: Workspace): AvailabilityStatus {
   const currentStatus = workspace.latest_build.status;
 
-  if (currentStatus === 'starting') {
-    return 'pending';
-  }
-
   if (currentStatus === 'failed') {
     return 'failed';
   }
@@ -277,12 +272,19 @@ function getAvailabilityStatus(workspace: Workspace): AvailabilityStatus {
     return 'offline';
   }
 
-  const agentStatuses = getWorkspaceAgentStatuses(workspace);
-  const showAsAvailable = agentStatuses.every(
-    status => status === 'connected' || status === 'connecting',
-  );
+  const uniqueStatuses = getWorkspaceAgentStatuses(workspace);
+  const isPending =
+    currentStatus === 'starting' ||
+    uniqueStatuses.some(status => status === 'connecting');
 
-  return showAsAvailable ? 'online' : 'offline';
+  if (isPending) {
+    return 'pending';
+  }
+
+  // .every will still make workspaces with no agents show as online
+  return uniqueStatuses.every(status => status === 'connected')
+    ? 'online'
+    : 'offline';
 }
 
 function stopClickEventBubbling(event: MouseEvent | KeyboardEvent): void {
