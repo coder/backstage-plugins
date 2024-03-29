@@ -1,4 +1,4 @@
-import React, { useState, type FormEvent } from 'react';
+import React, { type FormEvent, useState } from 'react';
 import { useId } from '../../hooks/hookPolyfills';
 import {
   type CoderAuthStatus,
@@ -9,9 +9,10 @@ import {
 import { CoderLogo } from '../CoderLogo';
 import { Link, LinkButton } from '@backstage/core-components';
 import { VisuallyHidden } from '../VisuallyHidden';
-import { makeStyles, useTheme } from '@material-ui/core';
+import { makeStyles } from '@material-ui/core';
 import TextField from '@material-ui/core/TextField';
 import ErrorIcon from '@material-ui/icons/ErrorOutline';
+import SyncIcon from '@material-ui/icons/Sync';
 
 const useStyles = makeStyles(theme => ({
   formContainer: {
@@ -49,7 +50,7 @@ export const CoderAuthInputForm = () => {
   const styles = useStyles();
   const appConfig = useCoderAppConfig();
   const { status: og, registerNewToken } = useCoderAuth();
-  const status: typeof og = 'invalid';
+  const status: typeof og = 'authenticating';
 
   const onSubmit = (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -135,7 +136,8 @@ const useInvalidStatusStyles = makeStyles(theme => ({
     color: theme.palette.text.primary,
     backgroundColor: theme.palette.background.default,
     borderRadius: theme.shape.borderRadius,
-    padding: 'none',
+    border: `1.5px solid ${theme.palette.background.default}`,
+    padding: 0,
   },
 
   errorContent: {
@@ -151,6 +153,15 @@ const useInvalidStatusStyles = makeStyles(theme => ({
     paddingRight: 0,
   },
 
+  icon: {
+    fontSize: '16px',
+  },
+
+  syncIcon: {
+    color: theme.palette.text.primary,
+    opacity: 0.75,
+  },
+
   errorIcon: {
     color: theme.palette.error.main,
     fontSize: '16px',
@@ -158,15 +169,15 @@ const useInvalidStatusStyles = makeStyles(theme => ({
 
   dismissButton: {
     border: 'none',
-    padding: `${theme.spacing(0.5)}px ${theme.spacing(2)}px`,
+    alignSelf: 'stretch',
+    padding: `0 ${theme.spacing(2)}px`,
     color: theme.palette.text.primary,
-    backgroundColor: 'blue', // 'inherit',
+    backgroundColor: 'inherit',
     lineHeight: 1,
     cursor: 'pointer',
-    height: '100%',
 
     '&:hover': {
-      backgroundColor: 'pink', // theme.palette.action.hover,
+      backgroundColor: theme.palette.action.hover,
     },
   },
 }));
@@ -188,10 +199,22 @@ function InvalidStatusNotifier({ authStatus, bannerId }: InvalidStatusProps) {
     <div className={styles.warningBannerSpacer}>
       <div id={bannerId} className={styles.warningBanner}>
         <span className={styles.errorContent}>
-          {authStatus === 'authenticating' && <>Authenticating&hellip;</>}
+          {authStatus === 'authenticating' && (
+            <>
+              <SyncIcon
+                className={`${styles.icon} ${styles.syncIcon}`}
+                fontSize="inherit"
+              />
+              Authenticating&hellip;
+            </>
+          )}
+
           {authStatus === 'invalid' && (
             <>
-              <ErrorIcon className={styles.errorIcon} fontSize="inherit" />
+              <ErrorIcon
+                className={`${styles.icon} ${styles.errorIcon}`}
+                fontSize="inherit"
+              />
               Invalid token
             </>
           )}
@@ -205,69 +228,5 @@ function InvalidStatusNotifier({ authStatus, bannerId }: InvalidStatusProps) {
         </button>
       </div>
     </div>
-  );
-}
-
-type TempProps = Readonly<{ show: boolean }>;
-function TempDebugComponent({ show }: TempProps) {
-  const palette = useTheme().palette;
-  if (!show) {
-    return null;
-  }
-
-  const colorVisualizer = (() => {
-    const visualizerEntries: [string, string][] = [];
-    const pathStack: string[] = [];
-
-    const traversePaletteValues = (current: NonNullable<unknown>): void => {
-      for (const rawKey in current) {
-        if (!current.hasOwnProperty(rawKey)) {
-          continue;
-        }
-
-        const key = rawKey as keyof typeof current;
-        const prop = current[key];
-
-        if (typeof prop === 'string') {
-          const pathValue =
-            pathStack.length === 0
-              ? `base/${key}`
-              : `${pathStack.join('/')}/${key}`;
-
-          visualizerEntries.push([pathValue, prop]);
-          continue;
-        }
-
-        if (prop === null || typeof prop !== 'object') {
-          continue;
-        }
-
-        pathStack.push(key);
-        traversePaletteValues(prop);
-        pathStack.pop();
-      }
-    };
-
-    traversePaletteValues(palette);
-    return visualizerEntries;
-  })();
-
-  return (
-    <>
-      {colorVisualizer.map(([path, color], i) => (
-        <div key={i} style={{ paddingTop: '1rem' }}>
-          <span
-            key={i}
-            style={{
-              display: 'inline-block',
-              width: '20px',
-              height: '20px',
-              backgroundColor: color,
-            }}
-          />
-          <span style={{ paddingLeft: '0.5rem' }}>{path}</span>
-        </div>
-      ))}
-    </>
   );
 }
