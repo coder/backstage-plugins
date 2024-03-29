@@ -1,4 +1,4 @@
-import React, { FormEvent } from 'react';
+import React, { type FormEvent, useState } from 'react';
 import { useId } from '../../hooks/hookPolyfills';
 import {
   type CoderAuthStatus,
@@ -6,22 +6,15 @@ import {
   useCoderAuth,
 } from '../CoderProvider';
 
-import { Theme, makeStyles } from '@material-ui/core';
-import TextField from '@material-ui/core/TextField';
 import { CoderLogo } from '../CoderLogo';
 import { Link, LinkButton } from '@backstage/core-components';
 import { VisuallyHidden } from '../VisuallyHidden';
+import { makeStyles } from '@material-ui/core';
+import TextField from '@material-ui/core/TextField';
+import ErrorIcon from '@material-ui/icons/ErrorOutline';
+import SyncIcon from '@material-ui/icons/Sync';
 
-type UseStyleInput = Readonly<{ status: CoderAuthStatus }>;
-type StyleKeys =
-  | 'formContainer'
-  | 'authInputFieldset'
-  | 'coderLogo'
-  | 'authButton'
-  | 'warningBanner'
-  | 'warningBannerContainer';
-
-const useStyles = makeStyles<Theme, UseStyleInput, StyleKeys>(theme => ({
+const useStyles = makeStyles(theme => ({
   formContainer: {
     maxWidth: '30em',
     marginLeft: 'auto',
@@ -50,41 +43,13 @@ const useStyles = makeStyles<Theme, UseStyleInput, StyleKeys>(theme => ({
     marginLeft: 'auto',
     marginRight: 'auto',
   },
-
-  warningBannerContainer: {
-    paddingTop: theme.spacing(4),
-    paddingLeft: theme.spacing(6),
-    paddingRight: theme.spacing(6),
-  },
-
-  warningBanner: ({ status }) => {
-    let color: string;
-    let backgroundColor: string;
-
-    if (status === 'invalid') {
-      color = theme.palette.error.contrastText;
-      backgroundColor = theme.palette.banner.error;
-    } else {
-      color = theme.palette.text.primary;
-      backgroundColor = theme.palette.background.default;
-    }
-
-    return {
-      color,
-      backgroundColor,
-      borderRadius: theme.shape.borderRadius,
-      textAlign: 'center',
-      paddingTop: theme.spacing(0.5),
-      paddingBottom: theme.spacing(0.5),
-    };
-  },
 }));
 
 export const CoderAuthInputForm = () => {
   const hookId = useId();
+  const styles = useStyles();
   const appConfig = useCoderAppConfig();
   const { status, registerNewToken } = useCoderAuth();
-  const styles = useStyles({ status });
 
   const onSubmit = (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -161,13 +126,122 @@ export const CoderAuthInputForm = () => {
       </fieldset>
 
       {(status === 'invalid' || status === 'authenticating') && (
-        <div className={styles.warningBannerContainer}>
-          <div id={warningBannerId} className={styles.warningBanner}>
-            {status === 'invalid' && 'Invalid token'}
-            {status === 'authenticating' && <>Authenticating&hellip;</>}
-          </div>
-        </div>
+        <InvalidStatusNotifier authStatus={status} bannerId={warningBannerId} />
       )}
     </form>
   );
 };
+
+const useInvalidStatusStyles = makeStyles(theme => ({
+  warningBannerSpacer: {
+    paddingTop: theme.spacing(2),
+  },
+
+  warningBanner: {
+    display: 'flex',
+    flexFlow: 'row nowrap',
+    alignItems: 'center',
+    color: theme.palette.text.primary,
+    backgroundColor: theme.palette.background.default,
+    borderRadius: theme.shape.borderRadius,
+    border: `1.5px solid ${theme.palette.background.default}`,
+    padding: 0,
+  },
+
+  errorContent: {
+    display: 'flex',
+    flexFlow: 'row nowrap',
+    alignItems: 'center',
+    columnGap: theme.spacing(1),
+    marginRight: 'auto',
+
+    paddingTop: theme.spacing(0.5),
+    paddingBottom: theme.spacing(0.5),
+    paddingLeft: theme.spacing(2),
+    paddingRight: 0,
+  },
+
+  icon: {
+    fontSize: '16px',
+  },
+
+  syncIcon: {
+    color: theme.palette.text.primary,
+    opacity: 0.6,
+  },
+
+  errorIcon: {
+    color: theme.palette.error.main,
+    fontSize: '16px',
+  },
+
+  dismissButton: {
+    border: 'none',
+    alignSelf: 'stretch',
+    padding: `0 ${theme.spacing(1.5)}px 0 ${theme.spacing(2)}px`,
+    color: theme.palette.text.primary,
+    backgroundColor: 'inherit',
+    lineHeight: 1,
+    cursor: 'pointer',
+
+    '&:hover': {
+      backgroundColor: theme.palette.action.hover,
+    },
+  },
+
+  '@keyframes spin': {
+    '100%': {
+      transform: 'rotate(360deg)',
+    },
+  },
+}));
+
+type InvalidStatusProps = Readonly<{
+  authStatus: CoderAuthStatus;
+  bannerId: string;
+}>;
+
+function InvalidStatusNotifier({ authStatus, bannerId }: InvalidStatusProps) {
+  const [showNotification, setShowNotification] = useState(true);
+  const styles = useInvalidStatusStyles();
+
+  if (!showNotification) {
+    return null;
+  }
+
+  return (
+    <div className={styles.warningBannerSpacer}>
+      <div id={bannerId} className={styles.warningBanner}>
+        <span className={styles.errorContent}>
+          {authStatus === 'authenticating' && (
+            <>
+              <SyncIcon
+                className={`${styles.icon} ${styles.syncIcon}`}
+                // Needed to make MUI v4 icons respect sizing values
+                fontSize="inherit"
+              />
+              Authenticating&hellip;
+            </>
+          )}
+
+          {authStatus === 'invalid' && (
+            <>
+              <ErrorIcon
+                className={`${styles.icon} ${styles.errorIcon}`}
+                fontSize="inherit"
+              />
+              Invalid token
+            </>
+          )}
+        </span>
+
+        <button
+          className={styles.dismissButton}
+          onClick={() => setShowNotification(false)}
+        >
+          Dismiss
+        </button>
+      </div>
+    </div>
+  );
+}

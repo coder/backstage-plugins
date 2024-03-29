@@ -1,5 +1,5 @@
 import React from 'react';
-import { screen } from '@testing-library/react';
+import { screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { CoderProviderWithMockAuth } from '../../testHelpers/setup';
 import type { CoderAuth, CoderAuthStatus } from '../CoderProvider';
@@ -12,13 +12,13 @@ import { CoderAuthWrapper } from './CoderAuthWrapper';
 import { renderInTestApp } from '@backstage/test-utils';
 
 type RenderInputs = Readonly<{
-  childButtonText: string;
   authStatus: CoderAuthStatus;
+  childButtonText?: string;
 }>;
 
 async function renderAuthWrapper({
   authStatus,
-  childButtonText,
+  childButtonText = 'Default button text',
 }: RenderInputs) {
   const ejectToken = jest.fn();
   const registerNewToken = jest.fn();
@@ -108,7 +108,6 @@ describe(`${CoderAuthWrapper.name}`, () => {
     it('Lets the user eject the current token', async () => {
       const { ejectToken } = await renderAuthWrapper({
         authStatus: 'distrusted',
-        childButtonText: "I don't matter",
       });
 
       const user = userEvent.setup();
@@ -174,7 +173,6 @@ describe(`${CoderAuthWrapper.name}`, () => {
     it('Lets the user submit a new token', async () => {
       const { registerNewToken } = await renderAuthWrapper({
         authStatus: 'tokenMissing',
-        childButtonText: "I don't matter",
       });
 
       /**
@@ -193,6 +191,25 @@ describe(`${CoderAuthWrapper.name}`, () => {
       await user.click(submitButton);
 
       expect(registerNewToken).toHaveBeenCalledWith(mockCoderAuthToken);
+    });
+
+    it('Lets the user dismiss any notifications for invalid/authenticating states', async () => {
+      const authStatuses: readonly CoderAuthStatus[] = [
+        'invalid',
+        'authenticating',
+      ];
+
+      const user = userEvent.setup();
+      for (const authStatus of authStatuses) {
+        const { unmount } = await renderAuthWrapper({ authStatus });
+        const dismissButton = await screen.findByRole('button', {
+          name: 'Dismiss',
+        });
+
+        await user.click(dismissButton);
+        await waitFor(() => expect(dismissButton).not.toBeInTheDocument());
+        unmount();
+      }
     });
   });
 });
