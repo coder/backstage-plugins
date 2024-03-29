@@ -29,6 +29,13 @@ function renderWorkspacesCard(input?: RenderInputs) {
   });
 }
 
+const matchers = {
+  authenticationForm: /Authenticate with Coder/i,
+  searchTitle: /Coder Workspaces/i,
+  searchbox: /Search your Coder workspaces/i,
+  emptyState: /Use the search bar to find matching Coder workspaces/i,
+} as const satisfies Record<string, RegExp>;
+
 describe(`${CoderWorkspacesCard.name}`, () => {
   describe('General behavior', () => {
     it('Shows the authentication form when the user is not authenticated', async () => {
@@ -37,9 +44,7 @@ describe(`${CoderWorkspacesCard.name}`, () => {
       });
 
       expect(() => {
-        screen.getByRole('form', {
-          name: /Authenticate with Coder/i,
-        });
+        screen.getByRole('form', { name: matchers.authenticationForm });
       }).not.toThrow();
     });
 
@@ -48,9 +53,7 @@ describe(`${CoderWorkspacesCard.name}`, () => {
 
       await waitFor(() => {
         expect(() => {
-          screen.getByRole('search', {
-            name: /Coder Workspaces/i,
-          });
+          screen.getByRole('search', { name: matchers.searchTitle });
         }).not.toThrow();
       });
     });
@@ -64,11 +67,11 @@ describe(`${CoderWorkspacesCard.name}`, () => {
           readEntityData: value,
         });
 
-        const inputField = await screen.findByRole('searchbox', {
-          name: /Search your Coder workspaces/i,
+        const searchbox = await screen.findByRole('searchbox', {
+          name: matchers.searchbox,
         });
 
-        await user.tripleClick(inputField);
+        await user.tripleClick(searchbox);
         await user.keyboard('[Backspace]');
         await user.keyboard('I can do it - I can do it nine times');
 
@@ -93,12 +96,12 @@ describe(`${CoderWorkspacesCard.name}`, () => {
 
     it('Lets the user filter the workspaces by their query text', async () => {
       await renderWorkspacesCard({ readEntityData: false });
-      const inputField = await screen.findByRole('searchbox', {
-        name: /Search your Coder workspaces/i,
+      const searchbox = await screen.findByRole('searchbox', {
+        name: matchers.searchbox,
       });
 
       const user = userEvent.setup();
-      await user.tripleClick(inputField);
+      await user.tripleClick(searchbox);
       await user.keyboard(mockWorkspaceNoParameters.name);
 
       // If more than one workspace matches, that throws an error
@@ -108,12 +111,12 @@ describe(`${CoderWorkspacesCard.name}`, () => {
 
     it('Shows all workspaces when query text is empty', async () => {
       await renderWorkspacesCard({ readEntityData: false });
-      const inputField = await screen.findByRole('searchbox', {
-        name: /Search your Coder workspaces/i,
+      const searchbox = await screen.findByRole('searchbox', {
+        name: matchers.searchbox,
       });
 
       const user = userEvent.setup();
-      await user.tripleClick(inputField);
+      await user.tripleClick(searchbox);
       await user.keyboard('[Backspace]');
 
       const allWorkspaces = await screen.findAllByRole('listitem');
@@ -137,11 +140,11 @@ describe(`${CoderWorkspacesCard.name}`, () => {
       });
 
       const user = userEvent.setup();
-      const inputField = await screen.findByRole('searchbox', {
-        name: /Search your Coder workspaces/i,
+      const searchbox = await screen.findByRole('searchbox', {
+        name: matchers.searchbox,
       });
 
-      await user.tripleClick(inputField);
+      await user.tripleClick(searchbox);
       await user.keyboard(mockWorkspaceWithMatch2.name);
 
       await waitFor(() => {
@@ -162,16 +165,14 @@ describe(`${CoderWorkspacesCard.name}`, () => {
       await renderWorkspacesCard({ readEntityData: true });
 
       const user = userEvent.setup();
-      const inputField = await screen.findByRole('searchbox', {
-        name: /Search your Coder workspaces/i,
+      const searchbox = await screen.findByRole('searchbox', {
+        name: matchers.searchbox,
       });
 
-      await user.tripleClick(inputField);
+      await user.tripleClick(searchbox);
       await user.keyboard('[Backspace]');
 
-      const emptyState = await screen.findByText(
-        /Use the search bar to find matching Coder workspaces/,
-      );
+      const emptyState = await screen.findByText(matchers.emptyState);
 
       expect(emptyState).toBeInTheDocument();
     });
