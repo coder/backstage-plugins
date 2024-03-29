@@ -3,7 +3,7 @@ import { type WorkspacesListProps, WorkspacesList } from './WorkspacesList';
 import { renderInCoderEnvironment } from '../../testHelpers/setup';
 import { CardContext, WorkspacesCardContext, WorkspacesQuery } from './Root';
 import { mockCoderWorkspacesConfig } from '../../testHelpers/mockBackstageData';
-import { mockWorkspace } from '../../testHelpers/mockCoderAppData';
+import { mockWorkspaceWithMatch } from '../../testHelpers/mockCoderAppData';
 import { Workspace } from '../../typesConstants';
 import { screen } from '@testing-library/react';
 
@@ -42,9 +42,9 @@ describe(`${WorkspacesList.name}`, () => {
     await renderWorkspacesList({
       workspacesQuery: {
         data: workspaceNames.map<Workspace>((name, index) => ({
-          ...mockWorkspace,
+          ...mockWorkspaceWithMatch,
           name,
-          id: `${mockWorkspace.id}-${index}`,
+          id: `${mockWorkspaceWithMatch.id}-${index}`,
         })),
       },
 

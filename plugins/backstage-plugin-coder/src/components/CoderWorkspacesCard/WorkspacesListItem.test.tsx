@@ -1,7 +1,7 @@
 import React from 'react';
 import { screen } from '@testing-library/react';
 import { renderInCoderEnvironment } from '../../testHelpers/setup';
-import { mockWorkspace } from '../../testHelpers/mockCoderAppData';
+import { mockWorkspaceWithMatch } from '../../testHelpers/mockCoderAppData';
 import type { Workspace } from '../../typesConstants';
 import { WorkspacesListItem } from './WorkspacesListItem';
 
@@ -13,9 +13,9 @@ async function renderListItem(inputs?: RenderInput) {
   const { isOnline = true } = inputs ?? {};
 
   const workspace: Workspace = {
-    ...mockWorkspace,
+    ...mockWorkspaceWithMatch,
     latest_build: {
-      ...mockWorkspace.latest_build,
+      ...mockWorkspaceWithMatch.latest_build,
       status: isOnline ? 'running' : 'stopped',
       resources: [
         {

@@ -4,47 +4,34 @@ import { setupServer } from 'msw/node';
 /* eslint-enable @backstage/no-undeclared-imports */
 
 import {
-  mockWorkspace,
-  mockWorkspaceBuild,
-  mockWorkspaceBuildParameter,
+  mockWorkspacesList,
+  mockWorkspaceBuildParameters,
 } from './mockCoderAppData';
 import {
-  cleanedRepoUrl,
   mockCoderAuthToken,
   mockBackstageProxyEndpoint as root,
 } from './mockBackstageData';
-import {
-  WorkspaceBuildParameter,
-  type Workspace,
-  WorkspacesResponse,
-} from '../typesConstants';
+import type { Workspace, WorkspacesResponse } from '../typesConstants';
 import { CODER_AUTH_HEADER_KEY } from '../api';
 
-const repoBuildParamId = 'mock-repo';
-
 const handlers: readonly RestHandler[] = [
-  rest.get(`${root}/workspaces`, (_, res, ctx) => {
-    const sampleWorkspaces = new Array<Workspace>(5)
-      .fill(mockWorkspace)
-      .map<Workspace>((ws, i) => {
-        const oneIndexed = i + 1;
+  rest.get(`${root}/workspaces`, (req, res, ctx) => {
+    const queryText = String(req.url.searchParams.get('q'));
 
-        return {
-          ...ws,
-          id: `${ws.id}-${oneIndexed}`,
-          name: `${ws.name}-${oneIndexed}`,
-          latest_build: {
-            ...mockWorkspaceBuild,
-            id: i === 0 ? repoBuildParamId : `${ws.name}-${oneIndexed}`,
-          },
-        };
-      });
+    let returnedWorkspaces: Workspace[];
+    if (queryText === 'owner:me') {
+      returnedWorkspaces = mockWorkspacesList;
+    } else {
+      returnedWorkspaces = mockWorkspacesList.filter(ws =>
+        ws.name.includes(queryText),
+      );
+    }
 
     return res(
       ctx.status(200),
       ctx.json<WorkspacesResponse>({
-        workspaces: sampleWorkspaces,
-        count: sampleWorkspaces.length,
+        workspaces: returnedWorkspaces,
+        count: returnedWorkspaces.length,
       }),
     );
   }),
@@ -52,25 +39,14 @@ const handlers: readonly RestHandler[] = [
   rest.get(
     `${root}/workspacebuilds/:workspaceBuildId/parameters`,
     (req, res, ctx) => {
-      const workspaceBuildId = (req.params.workspaceBuildId ?? '') as string;
+      const buildId = String(req.params.workspaceBuildId);
+      const selectedParams = mockWorkspaceBuildParameters[buildId];
 
-      const sampleBuildParams = new Array<WorkspaceBuildParameter>(5)
-        .fill(mockWorkspaceBuildParameter)
-        .map<WorkspaceBuildParameter>((wbp, i) => {
-          const oneIndexed = i + 1;
-          const useRepoName = i === 0 && workspaceBuildId === repoBuildParamId;
+      if (selectedParams !== undefined) {
+        return res(ctx.status(200), ctx.json(selectedParams));
+      }
 
-          return {
-            ...wbp,
-            name: useRepoName ? 'repo_url' : `${wbp.value}-${oneIndexed}`,
-            value: useRepoName ? cleanedRepoUrl : `${wbp.value}-${oneIndexed}`,
-          };
-        });
-
-      return res(
-        ctx.status(200),
-        ctx.json<readonly WorkspaceBuildParameter[]>(sampleBuildParams),
-      );
+      return res(ctx.status(404));
     },
   ),
 
