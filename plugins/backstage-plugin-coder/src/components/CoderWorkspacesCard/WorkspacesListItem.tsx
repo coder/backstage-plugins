@@ -207,10 +207,14 @@ export const WorkspacesListItem = ({
             />
 
             <VisuallyHidden>Workspace is </VisuallyHidden>
-            {availabilityStatus === 'offline' && 'Offline'}
-            {availabilityStatus === 'online' && 'Online'}
-            {availabilityStatus === 'deleting' && <>Deleting&hellip;</>}
-            <VisuallyHidden>.</VisuallyHidden>
+            {availabilityStatus === 'deleting' ? (
+              <>{toUppercase(availabilityStatus)}&hellip;</>
+            ) : (
+              <>
+                {toUppercase(availabilityStatus)}
+                <VisuallyHidden>.</VisuallyHidden>
+              </>
+            )}
           </span>
         </div>
 
@@ -270,4 +274,8 @@ function stopClickEventBubbling(event: MouseEvent | KeyboardEvent): void {
   if (shouldStopBubbling) {
     event.stopPropagation();
   }
+}
+
+function toUppercase(s: string): string {
+  return s.slice(0, 1).toUpperCase() + s.slice(1).toLowerCase();
 }
