@@ -2,7 +2,7 @@ import type { Workspace, WorkspaceBuildParameter } from '../typesConstants';
 import { cleanedRepoUrl } from './mockBackstageData';
 
 /**
- * The main mock for a workspace that matches the mock repo URL
+ * The main mock for a workspace whose repo URL matches cleanedRepoUrl
  */
 export const mockWorkspaceWithMatch: Workspace = {
   id: 'workspace-with-match',
@@ -22,7 +22,10 @@ export const mockWorkspaceWithMatch: Workspace = {
 };
 
 /**
- * A secondary mock for a workspace that matches the mock repo URL
+ * A secondary mock for a workspace whose repo URL matches cleanedRepoUrl.
+ *
+ * Mainly here for asserting that things like search functionality are able to
+ * return multiple values back
  */
 export const mockWorkspaceWithMatch2: Workspace = {
   id: 'workspace-with-match-2',
@@ -42,8 +45,8 @@ export const mockWorkspaceWithMatch2: Workspace = {
 };
 
 /**
- * Mock for a workspace that has a repo URL, but the URL doesn't match the mock
- * repo URL
+ * Mock for a workspace that has a repo URL, but the URL doesn't match
+ * cleanedRepoUrl
  */
 export const mockWorkspaceNoMatch: Workspace = {
   id: 'workspace-no-match',
@@ -114,9 +117,4 @@ export const mockWorkspaceBuildParameters: Record<
   [mockWorkspaceNoParameters.latest_build.id]: [
     // Intentionally kept empty
   ],
-};
-
-export const mockWorkspaceBuildParameter: WorkspaceBuildParameter = {
-  name: 'goofy',
-  value: 'a-hyuck',
 };

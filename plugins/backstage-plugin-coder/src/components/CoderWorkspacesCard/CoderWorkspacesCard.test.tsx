@@ -54,6 +54,34 @@ describe(`${CoderWorkspacesCard.name}`, () => {
         }).not.toThrow();
       });
     });
+
+    it('Shows zero workspaces when the query text matches nothing', async () => {
+      const entityValues = [true, false] as const;
+      const user = userEvent.setup();
+
+      for (const value of entityValues) {
+        const { unmount } = await renderWorkspacesCard({
+          readEntityData: value,
+        });
+
+        const inputField = await screen.findByRole('searchbox', {
+          name: /Search your Coder workspaces/i,
+        });
+
+        await user.tripleClick(inputField);
+        await user.keyboard('[Backspace]');
+        await user.keyboard('I can do it - I can do it nine times');
+
+        await waitFor(() => {
+          // getAllByRole would normally give us an array of all nodes, but it
+          // throws unless it finds at least one node. Have to assert that the
+          // selection fails instead
+          expect(() => screen.getByRole('listitem')).toThrow();
+        });
+
+        unmount();
+      }
+    });
   });
 
   describe('With readEntityData set to false', () => {
