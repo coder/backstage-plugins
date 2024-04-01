@@ -70,8 +70,9 @@ export const CreateWorkspaceLink = ({
     >
       {/* eslint-disable-next-line jsx-a11y/no-redundant-roles --
           Some browsers will render out <a> elements as having no role when the
-          href value is undefined. Need to make sure that the link role is
-          always defined, no matter what. The ESLint rule is wrong here. */}
+          href value is undefined or an empty string. Need to make sure that the
+          link role is always defined, no matter what. The ESLint rule is wrong
+          here. */}
       <a
         role="link"
         target={target}
