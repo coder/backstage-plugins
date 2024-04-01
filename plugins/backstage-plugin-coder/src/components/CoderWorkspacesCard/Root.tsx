@@ -26,7 +26,7 @@ import { CoderAuthWrapper } from '../CoderAuthWrapper';
 export type WorkspacesQuery = UseQueryResult<readonly Workspace[]>;
 
 export type WorkspacesCardContext = Readonly<{
-  readEntityData: boolean;
+  isReadingEntityData: boolean;
   queryFilter: string;
   onFilterChange: (newFilter: string) => void;
   workspacesQuery: WorkspacesQuery;
@@ -73,9 +73,9 @@ export const Root = ({
       <CardContext.Provider
         value={{
           headerId,
-          readEntityData,
           workspacesQuery,
           workspacesConfig,
+          isReadingEntityData: readEntityData,
           queryFilter: activeFilter,
           onFilterChange: newFilter => {
             setInnerFilter(newFilter);

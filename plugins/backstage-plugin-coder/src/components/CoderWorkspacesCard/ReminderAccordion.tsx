@@ -41,7 +41,7 @@ export function ReminderAccordion({
   showTemplateNameReminder = true,
 }: Props) {
   const [activeItemId, setActiveItemId] = useState<string>();
-  const { readEntityData, workspacesConfig, workspacesQuery } =
+  const { isReadingEntityData, workspacesConfig, workspacesQuery } =
     useWorkspacesCardContext();
   const styles = useStyles({ hasData: workspacesQuery.data !== undefined });
 
@@ -50,7 +50,7 @@ export function ReminderAccordion({
       id: 'entity',
       canDisplay:
         showEntityReminder &&
-        readEntityData &&
+        isReadingEntityData &&
         !workspacesConfig.repoUrl &&
         workspacesQuery.data !== undefined,
       headerText: 'Why am I not seeing any workspaces?',
