@@ -13,13 +13,22 @@ type UseStyleKeys =
   | 'button'
   | 'disclosureTriangle'
   | 'disclosureBody'
-  | 'snippet';
+  | 'snippet'
+  | 'link';
 
 const useStyles = makeStyles<Theme, UseStyleProps, UseStyleKeys>(theme => ({
   root: ({ hasData }) => ({
     paddingTop: theme.spacing(1),
     borderTop: hasData ? 'none' : `1px solid ${theme.palette.divider}`,
   }),
+
+  link: {
+    color: theme.palette.link,
+
+    '&:hover': {
+      textDecoration: 'underline',
+    },
+  },
 
   button: {
     width: '100%',
@@ -41,12 +50,13 @@ const useStyles = makeStyles<Theme, UseStyleProps, UseStyleKeys>(theme => ({
     display: 'inline-block',
     textAlign: 'right',
     width: theme.spacing(2.25),
+    fontSize: '0.7rem',
   },
 
   disclosureBody: {
     margin: 0,
     padding: `${theme.spacing(0.5)}px ${theme.spacing(3.5)}px 0 ${theme.spacing(
-      3.75,
+      4,
     )}px`,
   },
 
@@ -89,24 +99,24 @@ export const EntityDataReminder = () => {
         <span aria-hidden className={styles.disclosureTriangle}>
           {isExpanded ? '▼' : '►'}
         </span>{' '}
-        {isExpanded ? 'Hide text' : 'Why am I seeing all workspaces?'}
+        Why am I not seeing any workspaces?
       </button>
 
       {isExpanded && (
         <p id={disclosureBodyId} className={styles.disclosureBody}>
-          This component displays all workspaces when the entity has no repo URL
-          to filter by. Consider disabling{' '}
-          <code className={styles.snippet}>readEntityData</code> (details in our{' '}
+          This component displays only displays all workspaces when the value of
+          the <code className={styles.snippet}>readEntityData</code> prop is{' '}
+          <code className={styles.snippet}>false</code>. See{' '}
           <a
             href="https://github.com/coder/backstage-plugins/blob/main/plugins/backstage-plugin-coder/docs/components.md#notes-4"
             rel="noopener noreferrer"
             target="_blank"
-            style={{ textDecoration: 'underline', color: 'inherit' }}
+            className={styles.link}
           >
-            documentation
+            our documentation
             <VisuallyHidden> (link opens in new tab)</VisuallyHidden>
-          </a>
-          ).
+          </a>{' '}
+          for more info.
         </p>
       )}
     </div>
