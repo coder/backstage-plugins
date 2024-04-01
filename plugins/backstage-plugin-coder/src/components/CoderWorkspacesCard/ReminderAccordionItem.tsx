@@ -76,7 +76,7 @@ const useStyles = makeStyles<Theme, UseStyleProps, UseStyleKeys>(theme => ({
   },
 }));
 
-export const EntityDataReminder = () => {
+export const ReminderAccordionItem = () => {
   const [isExpanded, setIsExpanded] = useState(false);
   const { workspacesQuery } = useWorkspacesCardContext();
   const styles = useStyles({ hasData: workspacesQuery.data !== undefined });
