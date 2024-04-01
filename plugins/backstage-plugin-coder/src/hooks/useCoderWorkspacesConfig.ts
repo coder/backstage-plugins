@@ -23,19 +23,22 @@ import {
   useCoderAppConfig,
 } from '../components/CoderProvider';
 
+const workspaceCreationModeSchema = optional(
+  union(
+    [literal('manual'), literal('auto')],
+    "If defined, createMode must be 'manual' or 'auto'",
+  ),
+);
+
+export type WorkspaceCreationMode = Output<typeof workspaceCreationModeSchema>;
+
 // Very loose parsing requirements to make interfacing with various kinds of
 // YAML files as easy as possible
 const yamlConfigSchema = union([
   undefined_(),
   object({
     templateName: optional(string()),
-    mode: optional(
-      union(
-        [literal('manual'), literal('auto')],
-        "If defined, createMode must be 'manual' or 'auto'",
-      ),
-    ),
-
+    mode: workspaceCreationModeSchema,
     params: optional(
       record(
         string(),
@@ -49,6 +52,11 @@ const yamlConfigSchema = union([
   }),
 ]);
 
+/**
+ * The set of properties that the Coder plugin is configured to parse from a
+ * repo's catalog-info.yaml file. The entire value will be undefined if a repo
+ * does not have the file
+ */
 export type YamlConfig = Output<typeof yamlConfigSchema>;
 
 /**
@@ -56,11 +64,11 @@ export type YamlConfig = Output<typeof yamlConfigSchema>;
  * sourced from CoderAppConfig and any entity data.
  */
 export type CoderWorkspacesConfig =
-  // Was originally defined in terms of fancy mapped types; ended up being a bad
-  // idea, because it increased coupling in a bad way
+  // Was originally defined in terms of fancy mapped types based on YamlConfig;
+  // ended up being a bad idea, because it increased coupling in a bad way
   Readonly<{
-    creationUrl: string;
-    templateName: string;
+    creationUrl?: string;
+    templateName?: string;
     repoUrlParamKeys: readonly string[];
     mode: 'manual' | 'auto';
     params: Record<string, string | undefined>;
@@ -76,7 +84,9 @@ export function compileCoderConfig(
 ): CoderWorkspacesConfig {
   const { workspaces, deployment } = appConfig;
   const yamlConfig = parse(yamlConfigSchema, rawYamlConfig);
-  const mode = yamlConfig?.mode ?? workspaces.mode ?? 'manual';
+  const mode = yamlConfig?.mode ?? workspaces.defaultMode ?? 'manual';
+  const templateName =
+    yamlConfig?.templateName ?? workspaces.defaultTemplateName;
 
   const urlParams = new URLSearchParams({ mode });
   const compiledParams: Record<string, string | undefined> = {};
@@ -112,21 +122,22 @@ export function compileCoderConfig(
     }
   }
 
-  const safeTemplate = encodeURIComponent(
-    yamlConfig?.templateName ?? workspaces.templateName,
-  );
+  let creationUrl: string | undefined = undefined;
+  if (templateName) {
+    const safeTemplate = encodeURIComponent(templateName);
 
-  const creationUrl = `${
-    deployment.accessUrl
-  }/templates/${safeTemplate}/workspace?${urlParams.toString()}`;
+    creationUrl = `${
+      deployment.accessUrl
+    }/templates/${safeTemplate}/workspace?${urlParams.toString()}`;
+  }
 
   return {
+    mode,
     creationUrl,
+    templateName,
     repoUrl: cleanedRepoUrl,
     repoUrlParamKeys: workspaces.repoUrlParamKeys,
     params: compiledParams,
-    templateName: yamlConfig?.templateName ?? workspaces.templateName,
-    mode: yamlConfig?.mode ?? workspaces.mode ?? 'manual',
   };
 }
 

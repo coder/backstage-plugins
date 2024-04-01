@@ -89,8 +89,8 @@ export const mockAppConfig = {
   },
 
   workspaces: {
-    templateName: 'devcontainers',
-    mode: 'manual',
+    defaultTemplateName: 'devcontainers',
+    defaultMode: 'manual',
     repoUrlParamKeys: ['custom_repo', 'repo_url'],
     params: {
       repo: 'custom',

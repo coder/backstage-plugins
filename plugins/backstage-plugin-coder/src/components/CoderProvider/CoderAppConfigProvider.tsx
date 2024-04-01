@@ -3,23 +3,24 @@ import React, {
   createContext,
   useContext,
 } from 'react';
-
-import type { YamlConfig } from '../../hooks/useCoderWorkspacesConfig';
+import type { WorkspaceCreationMode } from '../../hooks/useCoderWorkspacesConfig';
 
 export type CoderAppConfig = Readonly<{
   deployment: Readonly<{
     accessUrl: string;
   }>;
 
-  workspaces: Readonly<
-    Exclude<YamlConfig, undefined> & {
-      // Only specified explicitly to make templateName required
-      templateName: string;
+  // Type is meant to be used with YamlConfig from useCoderWorkspacesConfig;
+  // not using a mapped type because there's just enough differences that
+  // maintaining a relationship that way would be a nightmare of ternaries
+  workspaces: Readonly<{
+    defaultMode?: WorkspaceCreationMode;
+    defaultTemplateName?: string;
+    params?: Record<string, string | undefined>;
 
-      // Defined like this to ensure array always has at least one element
-      repoUrlParamKeys: readonly [string, ...string[]];
-    }
-  >;
+    // Defined like this to ensure array always has at least one element
+    repoUrlParamKeys: readonly [string, ...string[]];
+  }>;
 }>;
 
 const AppConfigContext = createContext<CoderAppConfig | null>(null);
