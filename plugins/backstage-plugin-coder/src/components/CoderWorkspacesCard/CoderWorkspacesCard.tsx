@@ -7,6 +7,7 @@ import { SearchBox } from './SearchBox';
 import { WorkspacesList } from './WorkspacesList';
 import { CreateWorkspaceLink } from './CreateWorkspaceLink';
 import { ExtraActionsButton } from './ExtraActionsButton';
+import { ReminderAccordion } from './ReminderAccordion';
 
 const useStyles = makeStyles(theme => ({
   searchWrapper: {
@@ -15,9 +16,9 @@ const useStyles = makeStyles(theme => ({
   },
 }));
 
-export const CoderWorkspacesCard = (
-  props: Omit<WorkspacesCardProps, 'children'>,
-) => {
+type Props = Omit<WorkspacesCardProps, 'children' | 'footerContent'>;
+
+export const CoderWorkspacesCard = (props: Props) => {
   const styles = useStyles();
 
   return (
@@ -37,6 +38,7 @@ export const CoderWorkspacesCard = (
       </div>
 
       <WorkspacesList />
+      <ReminderAccordion />
     </Root>
   );
 };

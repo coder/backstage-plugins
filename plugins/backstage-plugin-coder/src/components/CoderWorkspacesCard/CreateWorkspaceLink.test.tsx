@@ -26,6 +26,9 @@ function render(inputs?: RenderInputs) {
 
   const mockContextValue: WorkspacesCardContext = {
     workspacesConfig: mockWorkspacesConfig,
+
+    // Everything below this comment doesn't matter for the test logic
+    readEntityData: false,
     headerId: "Doesn't matter",
     queryFilter: "Also doesn't matter",
     onFilterChange: jest.fn(),

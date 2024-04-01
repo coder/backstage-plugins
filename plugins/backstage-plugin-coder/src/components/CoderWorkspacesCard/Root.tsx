@@ -22,11 +22,11 @@ import type { Workspace } from '../../typesConstants';
 import { useCoderWorkspacesQuery } from '../../hooks/useCoderWorkspacesQuery';
 import { Card } from '../Card';
 import { CoderAuthWrapper } from '../CoderAuthWrapper';
-import { EntityDataReminder } from './EntityDataReminder';
 
 export type WorkspacesQuery = UseQueryResult<readonly Workspace[]>;
 
 export type WorkspacesCardContext = Readonly<{
+  readEntityData: boolean;
   queryFilter: string;
   onFilterChange: (newFilter: string) => void;
   workspacesQuery: WorkspacesQuery;
@@ -56,7 +56,6 @@ export const Root = ({
   readEntityData = false,
   ...delegatedProps
 }: WorkspacesCardProps) => {
-  const hookId = useId();
   const [innerFilter, setInnerFilter] = useState(defaultQueryFilter);
   const activeFilter = outerFilter ?? innerFilter;
 
@@ -66,17 +65,15 @@ export const Root = ({
     coderQuery: activeFilter,
   });
 
+  const hookId = useId();
   const headerId = `${hookId}-header`;
-  const showEntityDataReminder =
-    readEntityData &&
-    !workspacesConfig.repoUrl &&
-    workspacesQuery.data !== undefined;
 
   return (
     <CoderAuthWrapper type="card">
       <CardContext.Provider
         value={{
           headerId,
+          readEntityData,
           workspacesQuery,
           workspacesConfig,
           queryFilter: activeFilter,
@@ -99,7 +96,6 @@ export const Root = ({
               cases around keyboard input and button children that native <form>
               elements automatically introduce */}
           <div role="form">{children}</div>
-          {showEntityDataReminder && <EntityDataReminder />}
         </Card>
       </CardContext.Provider>
     </CoderAuthWrapper>
