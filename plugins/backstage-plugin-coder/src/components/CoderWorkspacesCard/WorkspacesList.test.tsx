@@ -16,6 +16,7 @@ function renderWorkspacesList(inputs?: RenderInputs) {
   const { renderListItem, workspacesQuery } = inputs ?? {};
 
   const mockContext: WorkspacesCardContext = {
+    isReadingEntityData: true,
     headerId: "Doesn't matter",
     queryFilter: "Also doesn't matter",
     onFilterChange: jest.fn(),
@@ -62,5 +63,9 @@ describe(`${WorkspacesList.name}`, () => {
 
       expect(listItem).toBeInstanceOf(HTMLLIElement);
     }
+  });
+
+  it('Does not display the call-to-action button for making new workspaces when there is no workspace creation URL', async () => {
+    expect.hasAssertions();
   });
 });
