@@ -42,14 +42,13 @@ type AccordionItemProps = Readonly<
   }>
 >;
 
-export const ReminderAccordionItem = ({
+export const AccordionItem = ({
   isExpanded,
   onExpansion,
   headerText,
   children,
 }: AccordionItemProps) => {
   const styles = useStyles();
-
   const hookId = useId();
   const disclosureBodyId = `${hookId}-disclosure-body`;
 

@@ -1,8 +1,9 @@
-import React, { Fragment, ReactNode, useState } from 'react';
-import { useWorkspacesCardContext } from './Root';
-import { ReminderAccordionItem } from './ReminderAccordionItem';
+import React, { type ReactNode, Fragment, useState } from 'react';
+import { type Theme, makeStyles } from '@material-ui/core';
 import { VisuallyHidden } from '../VisuallyHidden';
-import { Theme, makeStyles } from '@material-ui/core';
+import { useWorkspacesCardContext } from './Root';
+import { AccordionItem } from '../AccordionItem/AccordionItem';
+import { InlineCodeSnippet } from '../InlineCodeSnippet/InlineCodeSnippet';
 
 type AccordionItemInfo = Readonly<{
   id: string;
@@ -11,13 +12,12 @@ type AccordionItemInfo = Readonly<{
   bodyText: ReactNode;
 }>;
 
-type UseStyleProps = Readonly<{
+type StyleKeys = 'root' | 'link';
+type StyleInputs = Readonly<{
   hasData: boolean;
 }>;
 
-type UseStyleKeys = 'root' | 'snippet' | 'link';
-
-const useStyles = makeStyles<Theme, UseStyleProps, UseStyleKeys>(theme => ({
+const useStyles = makeStyles<Theme, StyleInputs, StyleKeys>(theme => ({
   root: ({ hasData }) => ({
     paddingTop: theme.spacing(1),
     borderTop: hasData ? 'none' : `1px solid ${theme.palette.divider}`,
@@ -25,24 +25,8 @@ const useStyles = makeStyles<Theme, UseStyleProps, UseStyleKeys>(theme => ({
 
   link: {
     color: theme.palette.link,
-
     '&:hover': {
       textDecoration: 'underline',
-    },
-  },
-
-  snippet: {
-    color: theme.palette.text.primary,
-    borderRadius: theme.spacing(0.5),
-    padding: `${theme.spacing(0.2)}px ${theme.spacing(1)}px`,
-    backgroundColor: () => {
-      const defaultBackgroundColor = theme.palette.background.default;
-      const isDefaultSpotifyLightTheme =
-        defaultBackgroundColor.toUpperCase() === '#F8F8F8';
-
-      return isDefaultSpotifyLightTheme
-        ? 'hsl(0deg,0%,93%)'
-        : defaultBackgroundColor;
     },
   },
 }));
@@ -61,14 +45,6 @@ export function ReminderAccordion({
     useWorkspacesCardContext();
   const styles = useStyles({ hasData: workspacesQuery.data !== undefined });
 
-  const toggleAccordionGroup = (newItemId: string) => {
-    if (newItemId === activeItemId) {
-      setActiveItemId(undefined);
-    } else {
-      setActiveItemId(newItemId);
-    }
-  };
-
   const accordionData: readonly AccordionItemInfo[] = [
     {
       id: 'entity',
@@ -81,8 +57,8 @@ export function ReminderAccordion({
       bodyText: (
         <>
           This component displays only displays all workspaces when the value of
-          the <code className={styles.snippet}>readEntityData</code> prop is{' '}
-          <code className={styles.snippet}>false</code>. See{' '}
+          the <InlineCodeSnippet>readEntityData</InlineCodeSnippet> prop is{' '}
+          <InlineCodeSnippet>false</InlineCodeSnippet>. See{' '}
           <a
             href="https://github.com/coder/backstage-plugins/blob/main/plugins/backstage-plugin-coder/docs/components.md#notes-4"
             rel="noopener noreferrer"
@@ -99,26 +75,44 @@ export function ReminderAccordion({
     {
       id: 'templateName',
       canDisplay: showTemplateNameReminder && !workspacesConfig.creationUrl,
-      headerText: '',
-      bodyText: 'Blah',
+      headerText: <>Why can&apos;t I make a new workspace?</>,
+      bodyText: (
+        <>
+          This component cannot make a new workspace without a template name
+          value. Values can be provided via{' '}
+          <InlineCodeSnippet>defaultTemplateName</InlineCodeSnippet> in{' '}
+          <InlineCodeSnippet>CoderAppConfig</InlineCodeSnippet> or the{' '}
+          <InlineCodeSnippet>templateName</InlineCodeSnippet> property in a
+          repo's <InlineCodeSnippet>catalog-info.yaml</InlineCodeSnippet> file.
+          See our documentation for more information.
+        </>
+      ),
     },
   ];
 
+  const toggleAccordionGroup = (newItemId: string) => {
+    if (newItemId === activeItemId) {
+      setActiveItemId(undefined);
+    } else {
+      setActiveItemId(newItemId);
+    }
+  };
+
   return (
-    <>
+    <div className={styles.root}>
       {accordionData.map(({ id, canDisplay, headerText, bodyText }) => (
         <Fragment key={id}>
           {canDisplay && (
-            <ReminderAccordionItem
+            <AccordionItem
               headerText={headerText}
               isExpanded={id === activeItemId}
               onExpansion={() => toggleAccordionGroup(id)}
             >
               {bodyText}
-            </ReminderAccordionItem>
+            </AccordionItem>
           )}
         </Fragment>
       ))}
-    </>
+    </div>
   );
 }

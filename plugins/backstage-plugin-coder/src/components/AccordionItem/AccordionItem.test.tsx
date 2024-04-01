@@ -2,20 +2,20 @@ import React from 'react';
 import { screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { renderInCoderEnvironment } from '../../testHelpers/setup';
-import { Root } from './Root';
-import { ReminderAccordionItem } from './ReminderAccordionItem';
+import { Root } from '../CoderWorkspacesCard/Root';
+import { AccordionItem } from './AccordionItem';
 
 function render() {
   return renderInCoderEnvironment({
     children: (
       <Root>
-        <ReminderAccordionItem />
+        <AccordionItem />
       </Root>
     ),
   });
 }
 
-describe(`${ReminderAccordionItem.name}`, () => {
+describe(`${AccordionItem.name}`, () => {
   it('Will toggle between showing/hiding the disclosure info when the user clicks it', async () => {
     await render();
     const user = userEvent.setup();
