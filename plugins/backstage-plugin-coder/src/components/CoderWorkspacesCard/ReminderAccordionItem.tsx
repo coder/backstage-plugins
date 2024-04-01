@@ -1,33 +1,20 @@
-import React, { useState } from 'react';
+import React, { type PropsWithChildren, type ReactNode } from 'react';
 import { useId } from '../../hooks/hookPolyfills';
-import { Theme, makeStyles } from '@material-ui/core';
-import { VisuallyHidden } from '../VisuallyHidden';
-import { useWorkspacesCardContext } from './Root';
+import { makeStyles } from '@material-ui/core';
 
-type UseStyleProps = Readonly<{
-  hasData: boolean;
-}>;
+const useStyles = makeStyles(theme => ({
+  disclosureTriangle: {
+    display: 'inline-block',
+    textAlign: 'right',
+    width: theme.spacing(2.25),
+    fontSize: '0.7rem',
+  },
 
-type UseStyleKeys =
-  | 'root'
-  | 'button'
-  | 'disclosureTriangle'
-  | 'disclosureBody'
-  | 'snippet'
-  | 'link';
-
-const useStyles = makeStyles<Theme, UseStyleProps, UseStyleKeys>(theme => ({
-  root: ({ hasData }) => ({
-    paddingTop: theme.spacing(1),
-    borderTop: hasData ? 'none' : `1px solid ${theme.palette.divider}`,
-  }),
-
-  link: {
-    color: theme.palette.link,
-
-    '&:hover': {
-      textDecoration: 'underline',
-    },
+  disclosureBody: {
+    margin: 0,
+    padding: `${theme.spacing(0.5)}px ${theme.spacing(3.5)}px 0 ${theme.spacing(
+      4,
+    )}px`,
   },
 
   button: {
@@ -45,41 +32,23 @@ const useStyles = makeStyles<Theme, UseStyleProps, UseStyleKeys>(theme => ({
       backgroundColor: theme.palette.action.hover,
     },
   },
-
-  disclosureTriangle: {
-    display: 'inline-block',
-    textAlign: 'right',
-    width: theme.spacing(2.25),
-    fontSize: '0.7rem',
-  },
-
-  disclosureBody: {
-    margin: 0,
-    padding: `${theme.spacing(0.5)}px ${theme.spacing(3.5)}px 0 ${theme.spacing(
-      4,
-    )}px`,
-  },
-
-  snippet: {
-    color: theme.palette.text.primary,
-    borderRadius: theme.spacing(0.5),
-    padding: `${theme.spacing(0.2)}px ${theme.spacing(1)}px`,
-    backgroundColor: () => {
-      const defaultBackgroundColor = theme.palette.background.default;
-      const isDefaultSpotifyLightTheme =
-        defaultBackgroundColor.toUpperCase() === '#F8F8F8';
-
-      return isDefaultSpotifyLightTheme
-        ? 'hsl(0deg,0%,93%)'
-        : defaultBackgroundColor;
-    },
-  },
 }));
 
-export const ReminderAccordionItem = () => {
-  const [isExpanded, setIsExpanded] = useState(false);
-  const { workspacesQuery } = useWorkspacesCardContext();
-  const styles = useStyles({ hasData: workspacesQuery.data !== undefined });
+type AccordionItemProps = Readonly<
+  PropsWithChildren<{
+    isExpanded: boolean;
+    onExpansion: () => void;
+    headerText: ReactNode;
+  }>
+>;
+
+export const ReminderAccordionItem = ({
+  isExpanded,
+  onExpansion,
+  headerText,
+  children,
+}: AccordionItemProps) => {
+  const styles = useStyles();
 
   const hookId = useId();
   const disclosureBodyId = `${hookId}-disclosure-body`;
@@ -88,35 +57,23 @@ export const ReminderAccordionItem = () => {
   // functionality with <detail> and <summary> elements. Would likely clean up
   // the component code a ton but might reduce control over screen reader output
   return (
-    <div className={styles.root}>
+    <div>
       <button
         type="button"
         aria-expanded={isExpanded}
         aria-controls={disclosureBodyId}
-        onClick={() => setIsExpanded(!isExpanded)}
+        onClick={onExpansion}
         className={styles.button}
       >
         <span aria-hidden className={styles.disclosureTriangle}>
           {isExpanded ? '▼' : '►'}
         </span>{' '}
-        Why am I not seeing any workspaces?
+        {headerText}
       </button>
 
       {isExpanded && (
         <p id={disclosureBodyId} className={styles.disclosureBody}>
-          This component displays only displays all workspaces when the value of
-          the <code className={styles.snippet}>readEntityData</code> prop is{' '}
-          <code className={styles.snippet}>false</code>. See{' '}
-          <a
-            href="https://github.com/coder/backstage-plugins/blob/main/plugins/backstage-plugin-coder/docs/components.md#notes-4"
-            rel="noopener noreferrer"
-            target="_blank"
-            className={styles.link}
-          >
-            our documentation
-            <VisuallyHidden> (link opens in new tab)</VisuallyHidden>
-          </a>{' '}
-          for more info.
+          {children}
         </p>
       )}
     </div>
