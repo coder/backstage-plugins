@@ -79,7 +79,7 @@ export type CoderWorkspacesConfig =
 
 export function compileCoderConfig(
   appConfig: CoderAppConfig,
-  rawYamlConfig: unknown,
+  rawYamlConfig: unknown, // Function parses this into more specific type
   repoUrl: string | undefined,
 ): CoderWorkspacesConfig {
   const { workspaces, deployment } = appConfig;
@@ -91,7 +91,7 @@ export function compileCoderConfig(
   const urlParams = new URLSearchParams({ mode });
   const compiledParams: Record<string, string | undefined> = {};
 
-  // Can't replace this with destructuring, because that is all-or-nothing;
+  // Can't replace section with destructuring, because that's all-or-nothing;
   // there's no easy way to granularly check each property without a loop
   const paramsPrecedence = [workspaces.params, yamlConfig?.params ?? {}];
   for (const params of paramsPrecedence) {
@@ -125,7 +125,6 @@ export function compileCoderConfig(
   let creationUrl: string | undefined = undefined;
   if (templateName) {
     const safeTemplate = encodeURIComponent(templateName);
-
     creationUrl = `${
       deployment.accessUrl
     }/templates/${safeTemplate}/workspace?${urlParams.toString()}`;
