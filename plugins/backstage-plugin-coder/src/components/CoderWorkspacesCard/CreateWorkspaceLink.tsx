@@ -10,8 +10,7 @@ type StyleInput = Readonly<{
   canCreateWorkspace: boolean;
 }>;
 
-type StyleKeys = 'root' | 'icon';
-
+type StyleKeys = 'root';
 const useStyles = makeStyles<Theme, StyleInput, StyleKeys>(theme => {
   const padding = theme.spacing(0.5);
 
@@ -20,19 +19,23 @@ const useStyles = makeStyles<Theme, StyleInput, StyleKeys>(theme => {
       padding,
       width: theme.spacing(4) + padding,
       height: theme.spacing(4) + padding,
+      cursor: 'pointer',
       display: 'flex',
       justifyContent: 'center',
       alignItems: 'center',
       backgroundColor: 'inherit',
       borderRadius: '9999px',
       lineHeight: 1,
+      color: canCreateWorkspace
+        ? theme.palette.text.primary
+        : theme.palette.text.disabled,
 
       '&:hover': {
-        backgroundColor: theme.palette.action.hover,
+        backgroundColor: canCreateWorkspace
+          ? theme.palette.action.hover
+          : 'inherit',
       },
     }),
-
-    icon: {},
   };
 });
 
