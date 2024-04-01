@@ -43,6 +43,7 @@ async function renderButton({ buttonText }: RenderInputs) {
     refetch,
   } as unknown as WorkspacesCardContext['workspacesQuery'];
   const mockContext: WorkspacesCardContext = {
+    isReadingEntityData: true,
     headerId: "Doesn't matter",
     queryFilter: "Doesn't matter",
     onFilterChange: jest.fn(),

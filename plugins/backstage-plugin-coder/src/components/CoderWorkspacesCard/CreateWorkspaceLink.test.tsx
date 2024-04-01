@@ -28,7 +28,7 @@ function render(inputs?: RenderInputs) {
     workspacesConfig: mockWorkspacesConfig,
 
     // Everything below this comment doesn't matter for the test logic
-    readEntityData: false,
+    isReadingEntityData: false,
     headerId: "Doesn't matter",
     queryFilter: "Also doesn't matter",
     onFilterChange: jest.fn(),
