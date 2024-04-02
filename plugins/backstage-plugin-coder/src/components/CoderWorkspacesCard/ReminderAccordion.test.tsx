@@ -75,7 +75,7 @@ const matchers = {
 describe(`${ReminderAccordion.name}`, () => {
   describe('General behavior', () => {
     it('Lets the user open a single accordion item', async () => {
-      await renderAccordion({ repoUrl: undefined });
+      await renderAccordion();
       const entityToggle = await screen.findByRole('button', {
         name: matchers.toggles.entity,
       });
@@ -88,7 +88,7 @@ describe(`${ReminderAccordion.name}`, () => {
     });
 
     it('Will close an open accordion item when that item is clicked', async () => {
-      await renderAccordion({ repoUrl: undefined });
+      await renderAccordion();
       const entityToggle = await screen.findByRole('button', {
         name: matchers.toggles.entity,
       });
@@ -102,11 +102,7 @@ describe(`${ReminderAccordion.name}`, () => {
     });
 
     it('Only lets one accordion item be open at a time', async () => {
-      await renderAccordion({
-        repoUrl: undefined,
-        creationUrl: undefined,
-      });
-
+      await renderAccordion();
       const entityToggle = await screen.findByRole('button', {
         name: matchers.toggles.entity,
       });
@@ -132,10 +128,36 @@ describe(`${ReminderAccordion.name}`, () => {
 
   describe('Conditionally displaying items', () => {
     it('Lets the user conditionally hide accordion items based on props', async () => {
-      expect.hasAssertions();
+      type Configuration = Readonly<{
+        props: ReminderAccordionProps;
+        expectedItemCount: number;
+      }>;
+
+      const configurations: readonly Configuration[] = [
+        {
+          expectedItemCount: 0,
+          props: { showEntityReminder: false, showTemplateNameReminder: false },
+        },
+        {
+          expectedItemCount: 1,
+          props: { showEntityReminder: false, showTemplateNameReminder: true },
+        },
+        {
+          expectedItemCount: 1,
+          props: { showEntityReminder: true, showTemplateNameReminder: false },
+        },
+      ];
+
+      for (const config of configurations) {
+        const { unmount } = await renderAccordion(config.props);
+        const accordionItems = screen.queryAllByRole('button');
+
+        expect(accordionItems.length).toBe(config.expectedItemCount);
+        unmount();
+      }
     });
 
-    it('Will only display the entity data reminder when appropriate', async () => {
+    it.only('Will only display the entity data reminder when appropriate', async () => {
       expect.hasAssertions();
     });
 
