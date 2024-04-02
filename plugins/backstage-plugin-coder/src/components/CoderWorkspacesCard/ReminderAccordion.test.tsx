@@ -181,12 +181,56 @@ describe(`${ReminderAccordion.name}`, () => {
 
     /**
      * Assuming that the user hasn't disabled showing the reminder at all, it
-     * will only appear when:
+     * will only appear when both of these are true:
      * 1. The component is set up to read entity data
      * 2. There is no repo URL that could be parsed from the entity data
      */
-    it.only('Will only display the entity data reminder when appropriate', async () => {
-      expect.hasAssertions();
+    it('Will only display the entity data reminder when appropriate', async () => {
+      type Config = Readonly<{
+        isReadingEntityData: boolean;
+        repoUrl: string | undefined;
+      }>;
+
+      const doNotDisplayConfigs: readonly Config[] = [
+        {
+          isReadingEntityData: false,
+          repoUrl: mockCoderWorkspacesConfig.repoUrl,
+        },
+        {
+          isReadingEntityData: false,
+          repoUrl: undefined,
+        },
+        {
+          isReadingEntityData: true,
+          repoUrl: mockCoderWorkspacesConfig.repoUrl,
+        },
+      ];
+
+      for (const config of doNotDisplayConfigs) {
+        const { unmount } = await renderAccordion({
+          isReadingEntityData: config.isReadingEntityData,
+          repoUrl: config.repoUrl,
+        });
+
+        const entityToggle = screen.queryByRole('button', {
+          name: matchers.toggles.entity,
+        });
+
+        expect(entityToggle).not.toBeInTheDocument();
+        unmount();
+      }
+
+      // Verify that toggle appears only this one time
+      await renderAccordion({
+        isReadingEntityData: true,
+        repoUrl: undefined,
+      });
+
+      const entityToggle = await screen.findByRole('button', {
+        name: matchers.toggles.entity,
+      });
+
+      expect(entityToggle).toBeInTheDocument();
     });
   });
 });

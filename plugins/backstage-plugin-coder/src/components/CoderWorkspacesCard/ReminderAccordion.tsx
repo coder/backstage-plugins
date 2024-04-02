@@ -105,7 +105,7 @@ export function ReminderAccordion({
             <Disclosure
               headerText={headerText}
               isExpanded={id === activeItemId}
-              onExpansion={() => toggleAccordionGroup(id)}
+              onExpansionToggle={() => toggleAccordionGroup(id)}
             >
               {bodyText}
             </Disclosure>
