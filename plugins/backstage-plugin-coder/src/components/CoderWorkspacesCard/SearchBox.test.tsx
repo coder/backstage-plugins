@@ -31,6 +31,7 @@ async function renderSearchBox(input?: RenderInputs) {
   const mockContext: WorkspacesCardContext = {
     onFilterChange,
     queryFilter,
+    isReadingEntityData: true,
     headerId: "Doesn't matter",
     workspacesConfig: mockCoderWorkspacesConfig,
     workspacesQuery:
