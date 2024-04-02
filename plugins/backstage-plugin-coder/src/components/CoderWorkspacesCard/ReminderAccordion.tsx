@@ -12,7 +12,7 @@ type AccordionItemInfo = Readonly<{
   bodyText: ReactNode;
 }>;
 
-type StyleKeys = 'root' | 'link';
+type StyleKeys = 'root' | 'link' | 'innerPadding';
 type StyleInputs = Readonly<{
   hasData: boolean;
 }>;
@@ -20,8 +20,18 @@ type StyleInputs = Readonly<{
 const useStyles = makeStyles<Theme, StyleInputs, StyleKeys>(theme => ({
   root: ({ hasData }) => ({
     paddingTop: theme.spacing(1),
+    marginLeft: `-${theme.spacing(2)}px`,
+    marginRight: `-${theme.spacing(2)}px`,
     borderTop: hasData ? 'none' : `1px solid ${theme.palette.divider}`,
+    maxHeight: '240px',
+    overflowX: 'hidden',
+    overflowY: 'auto',
   }),
+
+  innerPadding: {
+    paddingLeft: theme.spacing(2),
+    paddingRight: theme.spacing(2),
+  },
 
   link: {
     color: theme.palette.link,
@@ -98,19 +108,21 @@ export function ReminderAccordion({
 
   return (
     <div role="group" className={styles.root}>
-      {accordionData.map(({ id, canDisplay, headerText, bodyText }) => (
-        <Fragment key={id}>
-          {canDisplay && (
-            <Disclosure
-              headerText={headerText}
-              isExpanded={id === activeItemId}
-              onExpansionToggle={() => toggleAccordionGroup(id)}
-            >
-              {bodyText}
-            </Disclosure>
-          )}
-        </Fragment>
-      ))}
+      <div className={styles.innerPadding}>
+        {accordionData.map(({ id, canDisplay, headerText, bodyText }) => (
+          <Fragment key={id}>
+            {canDisplay && (
+              <Disclosure
+                headerText={headerText}
+                isExpanded={id === activeItemId}
+                onExpansionToggle={() => toggleAccordionGroup(id)}
+              >
+                {bodyText}
+              </Disclosure>
+            )}
+          </Fragment>
+        ))}
+      </div>
     </div>
   );
 }
