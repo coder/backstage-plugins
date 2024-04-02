@@ -7,3 +7,4 @@ export * from './SearchBox';
 export * from './WorkspacesList';
 export * from './WorkspacesListIcon';
 export * from './WorkspacesListItem';
+export * from './ReminderAccordion';
