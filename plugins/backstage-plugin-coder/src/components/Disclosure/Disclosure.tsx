@@ -37,14 +37,14 @@ const useStyles = makeStyles(theme => ({
 export type DisclosureProps = Readonly<
   PropsWithChildren<{
     isExpanded?: boolean;
-    onExpansion?: () => void;
+    onExpansionToggle?: () => void;
     headerText: ReactNode;
   }>
 >;
 
 export const Disclosure = ({
   isExpanded,
-  onExpansion,
+  onExpansionToggle,
   headerText,
   children,
 }: DisclosureProps) => {
@@ -69,7 +69,7 @@ export const Disclosure = ({
         className={styles.button}
         onClick={() => {
           setInternalIsExpanded(!internalIsExpanded);
-          onExpansion?.();
+          onExpansionToggle?.();
         }}
       >
         <span aria-hidden className={styles.disclosureTriangle}>
