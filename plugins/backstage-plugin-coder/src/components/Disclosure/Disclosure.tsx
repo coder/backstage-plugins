@@ -1,4 +1,4 @@
-import React, { type PropsWithChildren, type ReactNode } from 'react';
+import React, { useState, type PropsWithChildren, type ReactNode } from 'react';
 import { useId } from '../../hooks/hookPolyfills';
 import { makeStyles } from '@material-ui/core';
 
@@ -34,10 +34,10 @@ const useStyles = makeStyles(theme => ({
   },
 }));
 
-type Props = Readonly<
+export type DisclosureProps = Readonly<
   PropsWithChildren<{
-    isExpanded: boolean;
-    onExpansion: () => void;
+    isExpanded?: boolean;
+    onExpansion?: () => void;
     headerText: ReactNode;
   }>
 >;
@@ -47,9 +47,14 @@ export const Disclosure = ({
   onExpansion,
   headerText,
   children,
-}: Props) => {
-  const styles = useStyles();
+}: DisclosureProps) => {
   const hookId = useId();
+  const styles = useStyles();
+  const [internalIsExpanded, setInternalIsExpanded] = useState(
+    isExpanded ?? false,
+  );
+
+  const activeIsExpanded = isExpanded ?? internalIsExpanded;
   const disclosureBodyId = `${hookId}-disclosure-body`;
 
   // Might be worth revisiting the markup here to try implementing this
@@ -59,18 +64,21 @@ export const Disclosure = ({
     <div>
       <button
         type="button"
-        aria-expanded={isExpanded}
+        aria-expanded={activeIsExpanded}
         aria-controls={disclosureBodyId}
-        onClick={onExpansion}
         className={styles.button}
+        onClick={() => {
+          setInternalIsExpanded(!internalIsExpanded);
+          onExpansion?.();
+        }}
       >
         <span aria-hidden className={styles.disclosureTriangle}>
-          {isExpanded ? '▼' : '►'}
+          {activeIsExpanded ? '▼' : '►'}
         </span>{' '}
         {headerText}
       </button>
 
-      {isExpanded && (
+      {activeIsExpanded && (
         <p id={disclosureBodyId} className={styles.disclosureBody}>
           {children}
         </p>
