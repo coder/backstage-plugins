@@ -31,7 +31,7 @@ const useStyles = makeStyles<Theme, StyleInputs, StyleKeys>(theme => ({
   },
 }));
 
-type Props = Readonly<{
+export type ReminderAccordionProps = Readonly<{
   showEntityReminder?: boolean;
   showTemplateNameReminder?: boolean;
 }>;
@@ -39,7 +39,7 @@ type Props = Readonly<{
 export function ReminderAccordion({
   showEntityReminder = true,
   showTemplateNameReminder = true,
-}: Props) {
+}: ReminderAccordionProps) {
   const [activeItemId, setActiveItemId] = useState<string>();
   const { isReadingEntityData, workspacesConfig, workspacesQuery } =
     useWorkspacesCardContext();
@@ -51,13 +51,13 @@ export function ReminderAccordion({
       canDisplay:
         showEntityReminder &&
         isReadingEntityData &&
-        !workspacesConfig.repoUrl &&
+        Boolean(workspacesConfig.repoUrl) &&
         workspacesQuery.data !== undefined,
       headerText: 'Why am I not seeing any workspaces?',
       bodyText: (
         <>
-          This component displays only displays all workspaces when the value of
-          the <InlineCodeSnippet>readEntityData</InlineCodeSnippet> prop is{' '}
+          This component only displays all workspaces when the value of the{' '}
+          <InlineCodeSnippet>readEntityData</InlineCodeSnippet> prop is{' '}
           <InlineCodeSnippet>false</InlineCodeSnippet>. See{' '}
           <a
             href="https://github.com/coder/backstage-plugins/blob/main/plugins/backstage-plugin-coder/docs/components.md#notes-4"
@@ -74,7 +74,8 @@ export function ReminderAccordion({
     },
     {
       id: 'templateName',
-      canDisplay: showTemplateNameReminder && !workspacesConfig.creationUrl,
+      canDisplay:
+        showTemplateNameReminder && Boolean(workspacesConfig.creationUrl),
       headerText: <>Why can&apos;t I make a new workspace?</>,
       bodyText: (
         <>
