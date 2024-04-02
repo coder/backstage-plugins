@@ -51,8 +51,7 @@ export function ReminderAccordion({
       canDisplay:
         canShowEntityReminder &&
         isReadingEntityData &&
-        !workspacesConfig.repoUrl &&
-        workspacesQuery.data !== undefined,
+        !workspacesConfig.repoUrl,
       headerText: 'Why am I not seeing any workspaces?',
       bodyText: (
         <>

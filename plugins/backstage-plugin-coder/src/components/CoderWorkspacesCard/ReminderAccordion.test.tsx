@@ -179,6 +179,12 @@ describe(`${ReminderAccordion.name}`, () => {
       expect(templateToggle).not.toBeInTheDocument();
     });
 
+    /**
+     * Assuming that the user hasn't disabled showing the reminder at all, it
+     * will only appear when:
+     * 1. The component is set up to read entity data
+     * 2. There is no repo URL that could be parsed from the entity data
+     */
     it.only('Will only display the entity data reminder when appropriate', async () => {
       expect.hasAssertions();
     });
