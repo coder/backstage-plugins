@@ -157,11 +157,21 @@ describe(`${ReminderAccordion.name}`, () => {
       }
     });
 
-    it.only('Will only display the entity data reminder when appropriate', async () => {
-      expect.hasAssertions();
+    it.only('Will NOT display the template name reminder if there is a creation URL', async () => {
+      await renderAccordion({
+        creationUrl: mockCoderWorkspacesConfig.creationUrl,
+        showTemplateNameReminder: true,
+      });
+
+      const templateToggle = screen.queryByRole('button', {
+        name: matchers.toggles.templateName,
+      });
+
+      console.log('Be sure to rename the show props to canShow!');
+      expect(templateToggle).not.toBeInTheDocument();
     });
 
-    it('Will only display the template name data reminder when appropriate', async () => {
+    it('Will only display the entity data reminder when appropriate', async () => {
       expect.hasAssertions();
     });
   });
