@@ -51,7 +51,7 @@ export function ReminderAccordion({
       canDisplay:
         showEntityReminder &&
         isReadingEntityData &&
-        Boolean(workspacesConfig.repoUrl) &&
+        !workspacesConfig.repoUrl &&
         workspacesQuery.data !== undefined,
       headerText: 'Why am I not seeing any workspaces?',
       bodyText: (
@@ -74,8 +74,7 @@ export function ReminderAccordion({
     },
     {
       id: 'templateName',
-      canDisplay:
-        showTemplateNameReminder && Boolean(workspacesConfig.creationUrl),
+      canDisplay: showTemplateNameReminder && !workspacesConfig.creationUrl,
       headerText: <>Why can&apos;t I make a new workspace?</>,
       bodyText: (
         <>

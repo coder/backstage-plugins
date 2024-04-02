@@ -18,17 +18,19 @@ type RenderInputs = Readonly<
   ReminderAccordionProps & {
     isReadingEntityData?: boolean;
     repoUrl?: undefined | string;
+    creationUrl?: undefined | string;
     queryData?: undefined | readonly Workspace[];
   }
 >;
 
 function renderAccordion(inputs?: RenderInputs) {
   const {
+    repoUrl,
+    creationUrl,
     queryData = [],
     isReadingEntityData = true,
     showEntityReminder = true,
     showTemplateNameReminder = true,
-    repoUrl = mockCoderWorkspacesConfig.repoUrl,
   } = inputs ?? {};
 
   const mockContext: WorkspacesCardContext = {
@@ -39,6 +41,7 @@ function renderAccordion(inputs?: RenderInputs) {
     workspacesConfig: {
       ...mockCoderWorkspacesConfig,
       repoUrl,
+      creationUrl,
     },
     workspacesQuery: {
       data: queryData,
@@ -57,45 +60,87 @@ function renderAccordion(inputs?: RenderInputs) {
   });
 }
 
+const matchers = {
+  toggles: {
+    entity: /Why am I not seeing any workspaces\?/i,
+    templateName: /Why can't I make a new workspace\?/,
+  },
+  bodyText: {
+    entity: /^This component only displays all workspaces when/,
+    templateName:
+      /^This component cannot make a new workspace without a template name value/,
+  },
+} as const satisfies Record<string, Record<string, RegExp>>;
+
 describe(`${ReminderAccordion.name}`, () => {
-  it('Lets the user open a single accordion item', async () => {
-    await renderAccordion();
-    const entityToggle = await screen.findByRole('button', {
-      name: /Why am I not seeing any workspaces\?/i,
+  describe('General behavior', () => {
+    it('Lets the user open a single accordion item', async () => {
+      await renderAccordion({ repoUrl: undefined });
+      const entityToggle = await screen.findByRole('button', {
+        name: matchers.toggles.entity,
+      });
+
+      const user = userEvent.setup();
+      await user.click(entityToggle);
+
+      const entityText = await screen.findByText(matchers.bodyText.entity);
+      expect(entityText).toBeInTheDocument();
     });
 
-    const user = userEvent.setup();
-    await user.click(entityToggle);
+    it('Will close an open accordion item when that item is clicked', async () => {
+      await renderAccordion({ repoUrl: undefined });
+      const entityToggle = await screen.findByRole('button', {
+        name: matchers.toggles.entity,
+      });
 
-    const entityText = await screen.findByText(
-      /^This component only displays all workspaces when/,
-    );
+      const user = userEvent.setup();
+      await user.click(entityToggle);
 
-    expect(entityText).toBeInTheDocument();
-  });
-
-  it.only('Will close an open accordion item when that item is clicked', async () => {
-    await renderAccordion();
-    const entityToggle = await screen.findByRole('button', {
-      name: /Why am I not seeing any workspaces\?/i,
+      const entityText = await screen.findByText(matchers.bodyText.entity);
+      await user.click(entityToggle);
+      expect(entityText).not.toBeInTheDocument();
     });
 
-    const user = userEvent.setup();
-    await user.click(entityToggle);
+    it('Only lets one accordion item be open at a time', async () => {
+      await renderAccordion({
+        repoUrl: undefined,
+        creationUrl: undefined,
+      });
 
-    const entityText = await screen.findByText(
-      /^This component only displays all workspaces when/,
-    );
+      const entityToggle = await screen.findByRole('button', {
+        name: matchers.toggles.entity,
+      });
+      const templateNameToggle = await screen.findByRole('button', {
+        name: matchers.toggles.templateName,
+      });
 
-    await user.click(entityToggle);
-    expect(entityText).not.toBeInTheDocument();
+      const user = userEvent.setup();
+      await user.click(entityToggle);
+
+      const entityText = await screen.findByText(matchers.bodyText.entity);
+      expect(entityText).toBeInTheDocument();
+
+      await user.click(templateNameToggle);
+      expect(entityText).not.toBeInTheDocument();
+
+      const templateText = await screen.findByText(
+        matchers.bodyText.templateName,
+      );
+      expect(templateText).toBeInTheDocument();
+    });
   });
 
-  it('Will close any other open accordion items when a new item is clicked', async () => {
-    expect.hasAssertions();
-  });
+  describe('Conditionally displaying items', () => {
+    it('Lets the user conditionally hide accordion items based on props', async () => {
+      expect.hasAssertions();
+    });
 
-  it('Lets the user conditionally hide accordion items based on props', async () => {
-    expect.hasAssertions();
+    it('Will only display the entity data reminder when appropriate', async () => {
+      expect.hasAssertions();
+    });
+
+    it('Will only display the template name data reminder when appropriate', async () => {
+      expect.hasAssertions();
+    });
   });
 });
