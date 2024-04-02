@@ -47,8 +47,8 @@ function setupBoundaryTest(component: ReactElement) {
 describe(`${CoderErrorBoundary.name}`, () => {
   it('Displays a fallback UI when a rendering error is encountered', () => {
     setupBoundaryTest(<BrokenComponent />);
-    screen.getByText(fallbackText);
-    expect.hasAssertions();
+    const fallbackUi = screen.getByText(fallbackText);
+    expect(fallbackUi).toBeInTheDocument();
   });
 
   it('Exposes rendering errors to Backstage Error API', () => {

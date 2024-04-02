@@ -166,8 +166,6 @@ describe(`${CoderAuthWrapper.name}`, () => {
 
         unmount();
       }
-
-      expect.hasAssertions();
     });
 
     it('Lets the user submit a new token', async () => {
