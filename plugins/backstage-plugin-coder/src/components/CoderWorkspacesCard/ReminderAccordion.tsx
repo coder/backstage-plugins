@@ -32,13 +32,13 @@ const useStyles = makeStyles<Theme, StyleInputs, StyleKeys>(theme => ({
 }));
 
 export type ReminderAccordionProps = Readonly<{
-  showEntityReminder?: boolean;
-  showTemplateNameReminder?: boolean;
+  canShowEntityReminder?: boolean;
+  canShowTemplateNameReminder?: boolean;
 }>;
 
 export function ReminderAccordion({
-  showEntityReminder = true,
-  showTemplateNameReminder = true,
+  canShowEntityReminder = true,
+  canShowTemplateNameReminder = true,
 }: ReminderAccordionProps) {
   const [activeItemId, setActiveItemId] = useState<string>();
   const { isReadingEntityData, workspacesConfig, workspacesQuery } =
@@ -49,7 +49,7 @@ export function ReminderAccordion({
     {
       id: 'entity',
       canDisplay:
-        showEntityReminder &&
+        canShowEntityReminder &&
         isReadingEntityData &&
         !workspacesConfig.repoUrl &&
         workspacesQuery.data !== undefined,
@@ -74,7 +74,7 @@ export function ReminderAccordion({
     },
     {
       id: 'templateName',
-      canDisplay: showTemplateNameReminder && !workspacesConfig.creationUrl,
+      canDisplay: canShowTemplateNameReminder && !workspacesConfig.creationUrl,
       headerText: <>Why can&apos;t I make a new workspace?</>,
       bodyText: (
         <>

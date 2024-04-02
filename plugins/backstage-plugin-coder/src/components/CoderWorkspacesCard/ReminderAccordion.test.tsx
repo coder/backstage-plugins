@@ -29,8 +29,8 @@ function renderAccordion(inputs?: RenderInputs) {
     creationUrl,
     queryData = [],
     isReadingEntityData = true,
-    showEntityReminder = true,
-    showTemplateNameReminder = true,
+    canShowEntityReminder = true,
+    canShowTemplateNameReminder = true,
   } = inputs ?? {};
 
   const mockContext: WorkspacesCardContext = {
@@ -52,8 +52,8 @@ function renderAccordion(inputs?: RenderInputs) {
     children: (
       <CardContext.Provider value={mockContext}>
         <ReminderAccordion
-          showEntityReminder={showEntityReminder}
-          showTemplateNameReminder={showTemplateNameReminder}
+          canShowEntityReminder={canShowEntityReminder}
+          canShowTemplateNameReminder={canShowTemplateNameReminder}
         />
       </CardContext.Provider>
     ),
@@ -136,15 +136,24 @@ describe(`${ReminderAccordion.name}`, () => {
       const configurations: readonly Configuration[] = [
         {
           expectedItemCount: 0,
-          props: { showEntityReminder: false, showTemplateNameReminder: false },
+          props: {
+            canShowEntityReminder: false,
+            canShowTemplateNameReminder: false,
+          },
         },
         {
           expectedItemCount: 1,
-          props: { showEntityReminder: false, showTemplateNameReminder: true },
+          props: {
+            canShowEntityReminder: false,
+            canShowTemplateNameReminder: true,
+          },
         },
         {
           expectedItemCount: 1,
-          props: { showEntityReminder: true, showTemplateNameReminder: false },
+          props: {
+            canShowEntityReminder: true,
+            canShowTemplateNameReminder: false,
+          },
         },
       ];
 
@@ -157,21 +166,20 @@ describe(`${ReminderAccordion.name}`, () => {
       }
     });
 
-    it.only('Will NOT display the template name reminder if there is a creation URL', async () => {
+    it('Will NOT display the template name reminder if there is a creation URL', async () => {
       await renderAccordion({
         creationUrl: mockCoderWorkspacesConfig.creationUrl,
-        showTemplateNameReminder: true,
+        canShowTemplateNameReminder: true,
       });
 
       const templateToggle = screen.queryByRole('button', {
         name: matchers.toggles.templateName,
       });
 
-      console.log('Be sure to rename the show props to canShow!');
       expect(templateToggle).not.toBeInTheDocument();
     });
 
-    it('Will only display the entity data reminder when appropriate', async () => {
+    it.only('Will only display the entity data reminder when appropriate', async () => {
       expect.hasAssertions();
     });
   });
