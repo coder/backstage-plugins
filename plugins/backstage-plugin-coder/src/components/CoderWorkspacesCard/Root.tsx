@@ -1,9 +1,6 @@
 /**
  * @file Wires up all the core logic for passing values down to the
  * sub-components in the same directory.
- *
- * Does not need any tests – test functionality covered by integration tests in
- * CoderWorkspacesCard
  */
 import React, {
   type HTMLAttributes,
@@ -26,7 +23,6 @@ import { CoderAuthWrapper } from '../CoderAuthWrapper';
 export type WorkspacesQuery = UseQueryResult<readonly Workspace[]>;
 
 export type WorkspacesCardContext = Readonly<{
-  isReadingEntityData: boolean;
   queryFilter: string;
   onFilterChange: (newFilter: string) => void;
   workspacesQuery: WorkspacesQuery;
@@ -75,7 +71,6 @@ export const Root = ({
           headerId,
           workspacesQuery,
           workspacesConfig,
-          isReadingEntityData: readEntityData,
           queryFilter: activeFilter,
           onFilterChange: newFilter => {
             setInnerFilter(newFilter);

@@ -110,6 +110,7 @@ export const mockCoderWorkspacesConfig = (() => {
 
   return {
     mode: 'auto',
+    isReadingEntityData: true,
     templateName: mockYamlConfig.templateName,
     repoUrlParamKeys: ['custom_repo', 'repo_url'],
     repoUrl: cleanedRepoUrl,

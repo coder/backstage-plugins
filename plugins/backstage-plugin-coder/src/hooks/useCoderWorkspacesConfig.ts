@@ -67,6 +67,7 @@ export type CoderWorkspacesConfig =
   // Was originally defined in terms of fancy mapped types based on YamlConfig;
   // ended up being a bad idea, because it increased coupling in a bad way
   Readonly<{
+    isReadingEntityData: boolean;
     creationUrl?: string;
     templateName?: string;
     repoUrlParamKeys: readonly string[];
@@ -135,6 +136,7 @@ export function compileCoderConfig(
     creationUrl,
     templateName,
     repoUrl: cleanedRepoUrl,
+    isReadingEntityData: yamlConfig !== undefined,
     repoUrlParamKeys: workspaces.repoUrlParamKeys,
     params: compiledParams,
   };

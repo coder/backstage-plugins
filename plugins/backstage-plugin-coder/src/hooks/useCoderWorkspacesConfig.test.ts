@@ -111,6 +111,7 @@ describe(`${useCoderWorkspacesConfig.name}`, () => {
     );
 
     expect(result.current).toEqual<CoderWorkspacesConfig>({
+      isReadingEntityData: true,
       mode: mockYamlConfig.mode,
       repoUrl: cleanedRepoUrl,
       creationUrl: mockCoderWorkspacesConfig.creationUrl,

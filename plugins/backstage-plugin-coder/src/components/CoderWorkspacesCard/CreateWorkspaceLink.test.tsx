@@ -24,21 +24,13 @@ function render(inputs?: RenderInputs) {
       : undefined,
   };
 
-  const mockContextValue: WorkspacesCardContext = {
+  const mockContextValue: Partial<WorkspacesCardContext> = {
     workspacesConfig: mockWorkspacesConfig,
-
-    // Everything below this comment doesn't matter for the test logic
-    isReadingEntityData: false,
-    headerId: "Doesn't matter",
-    queryFilter: "Also doesn't matter",
-    onFilterChange: jest.fn(),
-    workspacesQuery:
-      null as unknown as WorkspacesCardContext['workspacesQuery'],
   };
 
   return renderInCoderEnvironment({
     children: (
-      <CardContext.Provider value={mockContextValue}>
+      <CardContext.Provider value={mockContextValue as WorkspacesCardContext}>
         <CreateWorkspaceLink />
       </CardContext.Provider>
     ),

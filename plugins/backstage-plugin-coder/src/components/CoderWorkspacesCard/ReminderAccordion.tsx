@@ -41,8 +41,7 @@ export function ReminderAccordion({
   canShowTemplateNameReminder = true,
 }: ReminderAccordionProps) {
   const [activeItemId, setActiveItemId] = useState<string>();
-  const { isReadingEntityData, workspacesConfig, workspacesQuery } =
-    useWorkspacesCardContext();
+  const { workspacesConfig, workspacesQuery } = useWorkspacesCardContext();
   const styles = useStyles({ hasData: workspacesQuery.data !== undefined });
 
   const accordionData: readonly AccordionItemInfo[] = [
@@ -50,7 +49,7 @@ export function ReminderAccordion({
       id: 'entity',
       canDisplay:
         canShowEntityReminder &&
-        isReadingEntityData &&
+        workspacesConfig.isReadingEntityData &&
         !workspacesConfig.repoUrl,
       headerText: 'Why am I not seeing any workspaces?',
       bodyText: (

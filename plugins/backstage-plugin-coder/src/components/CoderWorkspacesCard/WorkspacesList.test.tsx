@@ -15,12 +15,7 @@ type RenderInputs = Readonly<{
 
 function renderWorkspacesList(inputs?: RenderInputs) {
   const { renderListItem, workspacesQuery, repoUrl } = inputs ?? {};
-
-  const mockContext: WorkspacesCardContext = {
-    isReadingEntityData: true,
-    headerId: "Doesn't matter",
-    queryFilter: "Also doesn't matter",
-    onFilterChange: jest.fn(),
+  const mockContext: Partial<WorkspacesCardContext> = {
     workspacesQuery: workspacesQuery as WorkspacesQuery,
     workspacesConfig: {
       ...mockCoderWorkspacesConfig,
@@ -30,7 +25,7 @@ function renderWorkspacesList(inputs?: RenderInputs) {
 
   return renderInCoderEnvironment({
     children: (
-      <CardContext.Provider value={mockContext}>
+      <CardContext.Provider value={mockContext as WorkspacesCardContext}>
         <WorkspacesList renderListItem={renderListItem} />
       </CardContext.Provider>
     ),

@@ -33,15 +33,12 @@ function renderAccordion(inputs?: RenderInputs) {
     canShowTemplateNameReminder = true,
   } = inputs ?? {};
 
-  const mockContext: WorkspacesCardContext = {
-    isReadingEntityData,
-    headerId: 'blah',
-    onFilterChange: jest.fn(),
-    queryFilter: 'blah blah blah',
+  const mockContext: Partial<WorkspacesCardContext> = {
     workspacesConfig: {
       ...mockCoderWorkspacesConfig,
       repoUrl,
       creationUrl,
+      isReadingEntityData,
     },
     workspacesQuery: {
       data: queryData,
@@ -50,7 +47,7 @@ function renderAccordion(inputs?: RenderInputs) {
 
   return renderInCoderEnvironment({
     children: (
-      <CardContext.Provider value={mockContext}>
+      <CardContext.Provider value={mockContext as WorkspacesCardContext}>
         <ReminderAccordion
           canShowEntityReminder={canShowEntityReminder}
           canShowTemplateNameReminder={canShowTemplateNameReminder}
