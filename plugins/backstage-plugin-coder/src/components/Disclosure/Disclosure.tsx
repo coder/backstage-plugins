@@ -1,4 +1,4 @@
-import React, { useState, type PropsWithChildren, type ReactNode } from 'react';
+import React, { type HTMLAttributes, type ReactNode, useState } from 'react';
 import { useId } from '../../hooks/hookPolyfills';
 import { makeStyles } from '@material-ui/core';
 
@@ -31,15 +31,19 @@ const useStyles = makeStyles(theme => ({
     '&:hover': {
       backgroundColor: theme.palette.action.hover,
     },
+
+    '&:not(:first-child)': {
+      paddingTop: theme.spacing(6),
+    },
   },
 }));
 
 export type DisclosureProps = Readonly<
-  PropsWithChildren<{
+  HTMLAttributes<HTMLDivElement> & {
     isExpanded?: boolean;
     onExpansionToggle?: () => void;
     headerText: ReactNode;
-  }>
+  }
 >;
 
 export const Disclosure = ({
@@ -47,6 +51,7 @@ export const Disclosure = ({
   onExpansionToggle,
   headerText,
   children,
+  ...delegatedProps
 }: DisclosureProps) => {
   const hookId = useId();
   const styles = useStyles();
@@ -61,7 +66,7 @@ export const Disclosure = ({
   // functionality with <detail> and <summary> elements. Would likely clean up
   // the component code a bit but might reduce control over screen reader output
   return (
-    <div>
+    <div {...delegatedProps}>
       <button
         type="button"
         aria-expanded={activeIsExpanded}

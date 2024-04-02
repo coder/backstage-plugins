@@ -12,7 +12,7 @@ type AccordionItemInfo = Readonly<{
   bodyText: ReactNode;
 }>;
 
-type StyleKeys = 'root' | 'link' | 'innerPadding';
+type StyleKeys = 'root' | 'link' | 'innerPadding' | 'disclosure';
 type StyleInputs = Readonly<{
   hasData: boolean;
 }>;
@@ -22,6 +22,7 @@ const useStyles = makeStyles<Theme, StyleInputs, StyleKeys>(theme => ({
     paddingTop: theme.spacing(1),
     marginLeft: `-${theme.spacing(2)}px`,
     marginRight: `-${theme.spacing(2)}px`,
+    marginBottom: `-${theme.spacing(2)}px`,
     borderTop: hasData ? 'none' : `1px solid ${theme.palette.divider}`,
     maxHeight: '240px',
     overflowX: 'hidden',
@@ -31,12 +32,19 @@ const useStyles = makeStyles<Theme, StyleInputs, StyleKeys>(theme => ({
   innerPadding: {
     paddingLeft: theme.spacing(2),
     paddingRight: theme.spacing(2),
+    paddingBottom: theme.spacing(2),
   },
 
   link: {
     color: theme.palette.link,
     '&:hover': {
       textDecoration: 'underline',
+    },
+  },
+
+  disclosure: {
+    '&:not(:first-child)': {
+      paddingTop: theme.spacing(1),
     },
   },
 }));
@@ -113,6 +121,7 @@ export function ReminderAccordion({
           <Fragment key={id}>
             {canDisplay && (
               <Disclosure
+                className={styles.disclosure}
                 headerText={headerText}
                 isExpanded={id === activeItemId}
                 onExpansionToggle={() => toggleAccordionGroup(id)}
