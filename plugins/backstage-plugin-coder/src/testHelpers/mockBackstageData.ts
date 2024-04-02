@@ -99,7 +99,7 @@ export const mockAppConfig = {
   },
 } as const satisfies CoderAppConfig;
 
-export const mockCoderWorkspacesConfig: CoderWorkspacesConfig = (() => {
+export const mockCoderWorkspacesConfig = (() => {
   const urlParams = new URLSearchParams({
     mode: mockYamlConfig.mode,
     'param.repo': mockAppConfig.workspaces.params.repo,
@@ -124,7 +124,7 @@ export const mockCoderWorkspacesConfig: CoderWorkspacesConfig = (() => {
       custom_repo: cleanedRepoUrl,
       repo_url: cleanedRepoUrl,
     },
-  };
+  } as const satisfies CoderWorkspacesConfig;
 })();
 
 const authedState = {
