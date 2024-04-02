@@ -3,19 +3,24 @@ import { screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { renderInCoderEnvironment } from '../../testHelpers/setup';
 import { Root } from '../CoderWorkspacesCard/Root';
-import { AccordionItem } from './AccordionItem';
+import { Disclosure } from './Disclosure';
+
+type RenderInputs = Readonly<{
+  headerText: string;
+  children: string;
+}>;
 
 function render() {
   return renderInCoderEnvironment({
     children: (
       <Root>
-        <AccordionItem />
+        <Disclosure />
       </Root>
     ),
   });
 }
 
-describe(`${AccordionItem.name}`, () => {
+describe(`${Disclosure.name}`, () => {
   it('Will toggle between showing/hiding the disclosure info when the user clicks it', async () => {
     await render();
     const user = userEvent.setup();

@@ -34,7 +34,7 @@ const useStyles = makeStyles(theme => ({
   },
 }));
 
-type AccordionItemProps = Readonly<
+type Props = Readonly<
   PropsWithChildren<{
     isExpanded: boolean;
     onExpansion: () => void;
@@ -42,19 +42,19 @@ type AccordionItemProps = Readonly<
   }>
 >;
 
-export const AccordionItem = ({
+export const Disclosure = ({
   isExpanded,
   onExpansion,
   headerText,
   children,
-}: AccordionItemProps) => {
+}: Props) => {
   const styles = useStyles();
   const hookId = useId();
   const disclosureBodyId = `${hookId}-disclosure-body`;
 
   // Might be worth revisiting the markup here to try implementing this
   // functionality with <detail> and <summary> elements. Would likely clean up
-  // the component code a ton but might reduce control over screen reader output
+  // the component code a bit but might reduce control over screen reader output
   return (
     <div>
       <button

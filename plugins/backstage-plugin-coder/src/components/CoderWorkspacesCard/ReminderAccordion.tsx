@@ -2,7 +2,7 @@ import React, { type ReactNode, Fragment, useState } from 'react';
 import { type Theme, makeStyles } from '@material-ui/core';
 import { VisuallyHidden } from '../VisuallyHidden';
 import { useWorkspacesCardContext } from './Root';
-import { AccordionItem } from '../AccordionItem/AccordionItem';
+import { Disclosure } from '../Disclosure/Disclosure';
 import { InlineCodeSnippet } from '../InlineCodeSnippet/InlineCodeSnippet';
 
 type AccordionItemInfo = Readonly<{
@@ -99,17 +99,17 @@ export function ReminderAccordion({
   };
 
   return (
-    <div className={styles.root}>
+    <div role="group" className={styles.root}>
       {accordionData.map(({ id, canDisplay, headerText, bodyText }) => (
         <Fragment key={id}>
           {canDisplay && (
-            <AccordionItem
+            <Disclosure
               headerText={headerText}
               isExpanded={id === activeItemId}
               onExpansion={() => toggleAccordionGroup(id)}
             >
               {bodyText}
-            </AccordionItem>
+            </Disclosure>
           )}
         </Fragment>
       ))}
