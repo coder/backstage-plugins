@@ -13,11 +13,11 @@ import {
 } from '@tanstack/react-query';
 
 import {
-  BackstageHttpError,
   CODER_QUERY_KEY_PREFIX,
   authQueryKey,
   authValidation,
 } from '../../api';
+import { BackstageHttpError } from '../../api/errors';
 import { useBackstageEndpoints } from '../../hooks/useBackstageEndpoints';
 
 const TOKEN_STORAGE_KEY = 'coder-backstage-plugin/token';
@@ -156,7 +156,7 @@ export const CoderAuthProvider = ({ children }: CoderAuthProviderProps) => {
       const queryError = event.query.state.error;
       const shouldRevalidate =
         !isRefetchingTokenQuery &&
-        queryError instanceof BackstageHttpError &&
+        BackstageHttpError.isInstance(queryError) &&
         queryError.status === 401;
 
       if (!shouldRevalidate) {
@@ -238,7 +238,7 @@ function generateAuthState({
     };
   }
 
-  if (authValidityQuery.error instanceof BackstageHttpError) {
+  if (BackstageHttpError.isInstance(authValidityQuery.error)) {
     const deploymentLikelyUnavailable =
       authValidityQuery.error.status === 504 ||
       (authValidityQuery.error.status === 200 &&
