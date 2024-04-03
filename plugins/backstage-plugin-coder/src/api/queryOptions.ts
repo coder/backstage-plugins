@@ -23,6 +23,7 @@ export function authValidation(
     queryFn: () => isAuthValid(inputs),
     enabled,
     keepPreviousData: enabled,
+    refetchOnWindowFocus: query => query.state.data !== false,
   };
 }
 
