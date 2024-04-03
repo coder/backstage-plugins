@@ -12,7 +12,7 @@ import {
   mockBackstageProxyEndpoint as root,
 } from './mockBackstageData';
 import type { Workspace, WorkspacesResponse } from '../typesConstants';
-import { CODER_AUTH_HEADER_KEY } from '../api/coderClient';
+import { CODER_AUTH_HEADER_KEY } from '../api/CoderClient';
 
 const handlers: readonly RestHandler[] = [
   rest.get(`${root}/workspaces`, (req, res, ctx) => {

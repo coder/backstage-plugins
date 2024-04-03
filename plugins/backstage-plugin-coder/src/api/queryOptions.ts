@@ -7,7 +7,7 @@ import {
   getWorkspacesByRepo,
   WorkspacesFetchInputs,
   getWorkspaces,
-} from './coderClient';
+} from './CoderClient';
 
 export const CODER_QUERY_KEY_PREFIX = 'coder-backstage-plugin';
 const PENDING_REFETCH_INTERVAL = 5_000;
