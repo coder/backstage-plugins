@@ -12,11 +12,8 @@ import {
   useQueryClient,
 } from '@tanstack/react-query';
 
-import {
-  CODER_QUERY_KEY_PREFIX,
-  authQueryKey,
-  authValidation,
-} from '../../api';
+import { CODER_QUERY_KEY_PREFIX } from '../../api/queryOptions';
+import { authValidation, authQueryKey } from '../../api/queryOptions';
 import { BackstageHttpError } from '../../api/errors';
 import { useBackstageEndpoints } from '../../hooks/useBackstageEndpoints';
 

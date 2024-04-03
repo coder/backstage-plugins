@@ -1,16 +1,15 @@
 import { parse } from 'valibot';
-import { type UseQueryOptions } from '@tanstack/react-query';
-
-import { CoderWorkspacesConfig } from './hooks/useCoderWorkspacesConfig';
+import type { CoderWorkspacesConfig } from '../hooks/useCoderWorkspacesConfig';
+import { BackstageHttpError } from './errors';
 import {
-  type Workspace,
+  type CoderAuth,
+  assertValidCoderAuth,
+} from '../components/CoderProvider';
+import {
+  Workspace,
   workspaceBuildParametersSchema,
   workspacesResponseSchema,
-} from './typesConstants';
-import { CoderAuth, assertValidCoderAuth } from './components/CoderProvider';
-import { BackstageHttpError } from './api/errors';
-
-export const CODER_QUERY_KEY_PREFIX = 'coder-backstage-plugin';
+} from '../typesConstants';
 
 const PROXY_ROUTE_PREFIX = '/api/proxy/coder';
 export const API_ROUTE_PREFIX = `${PROXY_ROUTE_PREFIX}/api/v2`;
@@ -26,18 +25,42 @@ function getCoderApiRequestInit(authToken: string): RequestInit {
   };
 }
 
+export type AuthValidationInputs = Readonly<{
+  baseUrl: string;
+  authToken: string;
+}>;
+
+export async function isAuthValid(
+  inputs: AuthValidationInputs,
+): Promise<boolean> {
+  const { baseUrl, authToken } = inputs;
+
+  // In this case, the request doesn't actually matter. Just need to make any
+  // kind of dummy request to validate the auth
+  const response = await fetch(
+    `${baseUrl}${API_ROUTE_PREFIX}/users/me`,
+    getCoderApiRequestInit(authToken),
+  );
+
+  if (response.status >= 400 && response.status !== 401) {
+    throw new BackstageHttpError('Failed to complete request', response);
+  }
+
+  return response.status !== 401;
+}
+
 type FetchInputs = Readonly<{
   auth: CoderAuth;
   baseUrl: string;
 }>;
 
-type WorkspacesFetchInputs = Readonly<
+export type WorkspacesFetchInputs = Readonly<
   FetchInputs & {
     coderQuery: string;
   }
 >;
 
-async function getWorkspaces(
+export async function getWorkspaces(
   fetchInputs: WorkspacesFetchInputs,
 ): Promise<readonly Workspace[]> {
   const { baseUrl, coderQuery, auth } = fetchInputs;
@@ -118,7 +141,7 @@ async function getWorkspaceBuildParameters(inputs: BuildParamsFetchInputs) {
   return parse(workspaceBuildParametersSchema, json);
 }
 
-type WorkspacesByRepoFetchInputs = Readonly<
+export type WorkspacesByRepoFetchInputs = Readonly<
   WorkspacesFetchInputs & {
     workspacesConfig: CoderWorkspacesConfig;
   }
@@ -162,67 +185,4 @@ export async function getWorkspacesByRepo(
   }
 
   return matchedWorkspaces;
-}
-
-export function workspaces(
-  inputs: WorkspacesFetchInputs,
-): UseQueryOptions<readonly Workspace[]> {
-  const enabled = inputs.auth.status === 'authenticated';
-
-  return {
-    queryKey: [CODER_QUERY_KEY_PREFIX, 'workspaces', inputs.coderQuery],
-    queryFn: () => getWorkspaces(inputs),
-    enabled,
-    keepPreviousData: enabled && inputs.coderQuery !== '',
-  };
-}
-
-export function workspacesByRepo(
-  inputs: WorkspacesByRepoFetchInputs,
-): UseQueryOptions<readonly Workspace[]> {
-  const enabled =
-    inputs.auth.status === 'authenticated' && inputs.coderQuery !== '';
-
-  return {
-    queryKey: [CODER_QUERY_KEY_PREFIX, 'workspaces', inputs.coderQuery, 'repo'],
-    queryFn: () => getWorkspacesByRepo(inputs),
-    enabled,
-    keepPreviousData: enabled,
-  };
-}
-
-type AuthValidationInputs = Readonly<{
-  baseUrl: string;
-  authToken: string;
-}>;
-
-async function isAuthValid(inputs: AuthValidationInputs): Promise<boolean> {
-  const { baseUrl, authToken } = inputs;
-
-  // In this case, the request doesn't actually matter. Just need to make any
-  // kind of dummy request to validate the auth
-  const response = await fetch(
-    `${baseUrl}${API_ROUTE_PREFIX}/users/me`,
-    getCoderApiRequestInit(authToken),
-  );
-
-  if (response.status >= 400 && response.status !== 401) {
-    throw new BackstageHttpError('Failed to complete request', response);
-  }
-
-  return response.status !== 401;
-}
-
-export const authQueryKey = [CODER_QUERY_KEY_PREFIX, 'auth'] as const;
-
-export function authValidation(
-  inputs: AuthValidationInputs,
-): UseQueryOptions<boolean> {
-  const enabled = inputs.authToken !== '';
-  return {
-    queryKey: [...authQueryKey, inputs.authToken],
-    queryFn: () => isAuthValid(inputs),
-    enabled,
-    keepPreviousData: enabled,
-  };
 }

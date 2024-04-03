@@ -1,5 +1,5 @@
 import { configApiRef, useApi } from '@backstage/core-plugin-api';
-import { ASSETS_ROUTE_PREFIX, API_ROUTE_PREFIX } from '../api';
+import { ASSETS_ROUTE_PREFIX, API_ROUTE_PREFIX } from '../api/coderClient';
 
 export type UseBackstageEndpointResult = Readonly<{
   baseUrl: string;

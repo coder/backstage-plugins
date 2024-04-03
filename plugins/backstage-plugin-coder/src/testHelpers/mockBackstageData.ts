@@ -15,8 +15,7 @@ import {
   type YamlConfig,
 } from '../hooks/useCoderWorkspacesConfig';
 import { ScmIntegrationsApi } from '@backstage/integration-react';
-
-import { API_ROUTE_PREFIX, ASSETS_ROUTE_PREFIX } from '../api';
+import { API_ROUTE_PREFIX, ASSETS_ROUTE_PREFIX } from '../api/coderClient';
 
 /**
  * This is the key that Backstage checks from the entity data to determine the
