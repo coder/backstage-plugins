@@ -1,4 +1,4 @@
-import type { UseQueryOptions } from '@tanstack/react-query';
+import { type UseQueryOptions } from '@tanstack/react-query';
 import type { Workspace } from '../typesConstants';
 import {
   type AuthValidationInputs,
