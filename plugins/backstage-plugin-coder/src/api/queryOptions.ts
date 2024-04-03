@@ -10,6 +10,7 @@ import {
 } from './coderClient';
 
 export const CODER_QUERY_KEY_PREFIX = 'coder-backstage-plugin';
+const PENDING_REFETCH_INTERVAL = 5_000;
 
 export const authQueryKey = [CODER_QUERY_KEY_PREFIX, 'auth'] as const;
 
@@ -25,6 +26,16 @@ export function authValidation(
   };
 }
 
+function getCoderWorkspacesRefetchInterval(
+  workspaces?: readonly Workspace[],
+): number | false {
+  const areAnyWorkspacesPending = workspaces?.some(
+    ws => ws.latest_build.status === 'pending',
+  );
+
+  return areAnyWorkspacesPending ? PENDING_REFETCH_INTERVAL : false;
+}
+
 export function workspaces(
   inputs: WorkspacesFetchInputs,
 ): UseQueryOptions<readonly Workspace[]> {
@@ -34,6 +45,7 @@ export function workspaces(
     queryFn: () => getWorkspaces(inputs),
     enabled,
     keepPreviousData: enabled && inputs.coderQuery !== '',
+    refetchInterval: getCoderWorkspacesRefetchInterval,
   };
 }
 
@@ -46,5 +58,6 @@ export function workspacesByRepo(
     queryFn: () => getWorkspacesByRepo(inputs),
     enabled,
     keepPreviousData: enabled,
+    refetchInterval: getCoderWorkspacesRefetchInterval,
   };
 }
