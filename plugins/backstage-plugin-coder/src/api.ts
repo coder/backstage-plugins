@@ -6,7 +6,6 @@ import {
   type Workspace,
   workspaceBuildParametersSchema,
   workspacesResponseSchema,
-  WorkspaceAgentStatus,
 } from './typesConstants';
 import { CoderAuth, assertValidCoderAuth } from './components/CoderProvider';
 import { BackstageHttpError } from './api/errors';
@@ -163,44 +162,6 @@ export async function getWorkspacesByRepo(
   }
 
   return matchedWorkspaces;
-}
-
-export function getWorkspaceAgentStatuses(
-  workspace: Workspace,
-): readonly WorkspaceAgentStatus[] {
-  const uniqueStatuses: WorkspaceAgentStatus[] = [];
-
-  for (const resource of workspace.latest_build.resources) {
-    if (resource.agents === undefined) {
-      continue;
-    }
-
-    for (const agent of resource.agents) {
-      const status = agent.status;
-      if (!uniqueStatuses.includes(status)) {
-        uniqueStatuses.push(status);
-      }
-    }
-  }
-
-  return uniqueStatuses;
-}
-
-export function isWorkspaceOnline(workspace: Workspace): boolean {
-  const latestBuildStatus = workspace.latest_build.status;
-  const isAvailable =
-    latestBuildStatus !== 'stopped' &&
-    latestBuildStatus !== 'stopping' &&
-    latestBuildStatus !== 'pending';
-
-  if (!isAvailable) {
-    return false;
-  }
-
-  const statuses = getWorkspaceAgentStatuses(workspace);
-  return statuses.every(
-    status => status === 'connected' || status === 'connecting',
-  );
 }
 
 export function workspaces(
