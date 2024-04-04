@@ -1,4 +1,8 @@
-import React, { type AnchorHTMLAttributes, type ForwardedRef } from 'react';
+import React, {
+  type AnchorHTMLAttributes,
+  type ForwardedRef,
+  type ReactElement,
+} from 'react';
 import { type Theme, makeStyles } from '@material-ui/core';
 import { useWorkspacesCardContext } from './Root';
 
@@ -10,7 +14,8 @@ type StyleInput = Readonly<{
   canCreateWorkspace: boolean;
 }>;
 
-type StyleKeys = 'root';
+type StyleKeys = 'root' | 'noLinkTooltipContainer';
+
 const useStyles = makeStyles<Theme, StyleInput, StyleKeys>(theme => {
   const padding = theme.spacing(0.5);
 
@@ -36,12 +41,17 @@ const useStyles = makeStyles<Theme, StyleInput, StyleKeys>(theme => {
           : 'inherit',
       },
     }),
+
+    noLinkTooltipContainer: {
+      display: 'block',
+      maxWidth: '24em',
+    },
   };
 });
 
 type CreateButtonLinkProps = Readonly<
   Omit<AnchorHTMLAttributes<HTMLAnchorElement>, 'aria-disabled'> & {
-    tooltipText?: string;
+    tooltipText?: string | ReactElement;
     tooltipProps?: Omit<TooltipProps, 'children' | 'title'>;
     tooltipRef?: ForwardedRef<unknown>;
   }
@@ -64,7 +74,14 @@ export const CreateWorkspaceLink = ({
     <Tooltip
       ref={tooltipRef}
       title={
-        canCreateWorkspace ? tooltipText : 'Please add a template name value'
+        canCreateWorkspace ? (
+          tooltipText
+        ) : (
+          <span className={styles.noLinkTooltipContainer}>
+            Please add a template name value. More info available in the
+            accordion at the bottom of this widget.
+          </span>
+        )
       }
       {...tooltipProps}
     >

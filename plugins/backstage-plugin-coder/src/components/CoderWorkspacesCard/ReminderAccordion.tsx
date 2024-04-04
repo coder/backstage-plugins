@@ -3,7 +3,7 @@ import { type Theme, makeStyles } from '@material-ui/core';
 import { VisuallyHidden } from '../VisuallyHidden';
 import { useWorkspacesCardContext } from './Root';
 import { Disclosure } from '../Disclosure/Disclosure';
-import { InlineCodeSnippet } from '../InlineCodeSnippet/InlineCodeSnippet';
+import { InlineCodeSnippet as Snippet } from '../InlineCodeSnippet/InlineCodeSnippet';
 
 type AccordionItemInfo = Readonly<{
   id: string;
@@ -73,8 +73,8 @@ export function ReminderAccordion({
       bodyText: (
         <>
           This component only displays all workspaces when the value of the{' '}
-          <InlineCodeSnippet>readEntityData</InlineCodeSnippet> prop is{' '}
-          <InlineCodeSnippet>false</InlineCodeSnippet>. See{' '}
+          <Snippet>readEntityData</Snippet> prop is <Snippet>false</Snippet>.
+          See{' '}
           <a
             href="https://github.com/coder/backstage-plugins/blob/main/plugins/backstage-plugin-coder/docs/components.md#notes-4"
             rel="noopener noreferrer"
@@ -96,11 +96,20 @@ export function ReminderAccordion({
         <>
           This component cannot make a new workspace without a template name
           value. Values can be provided via{' '}
-          <InlineCodeSnippet>defaultTemplateName</InlineCodeSnippet> in{' '}
-          <InlineCodeSnippet>CoderAppConfig</InlineCodeSnippet> or the{' '}
-          <InlineCodeSnippet>templateName</InlineCodeSnippet> property in a
-          repo's <InlineCodeSnippet>catalog-info.yaml</InlineCodeSnippet> file.
-          See our documentation for more information.
+          <Snippet>defaultTemplateName</Snippet> in{' '}
+          <Snippet>CoderAppConfig</Snippet> or the{' '}
+          <Snippet>templateName</Snippet> property in a repo's{' '}
+          <Snippet>catalog-info.yaml</Snippet> file. See{' '}
+          <a
+            href="https://github.com/coder/backstage-plugins/blob/main/plugins/backstage-plugin-coder/docs/components.md#coderappconfig"
+            rel="noopener noreferrer"
+            target="_blank"
+            className={styles.link}
+          >
+            our documentation
+            <VisuallyHidden> (link opens in new tab)</VisuallyHidden>
+          </a>{' '}
+          for more info.
         </>
       ),
     },

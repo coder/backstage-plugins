@@ -76,7 +76,6 @@ _Note: While this plugin has been developed and published by Coder, no Coder ins
        DevcontainersProcessor.fromConfig(env.config, {
          tagName: 'example', // Defaults to devcontainers
          logger: env.logger,
-         eraseTags: false,
        }),
      );
 
@@ -115,7 +114,6 @@ export default async function createPlugin(
   builder.addProcessor(
     DevcontainersProcessor.fromConfig(env.config, {
       logger: env.logger,
-      eraseTags: false,
     }),
   );
 
