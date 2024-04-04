@@ -2,7 +2,6 @@ import React from 'react';
 import { renderInCoderEnvironment } from '../../testHelpers/setup';
 import { CardContext, WorkspacesCardContext } from './Root';
 import { SearchBox } from './SearchBox';
-import { mockCoderWorkspacesConfig } from '../../testHelpers/mockBackstageData';
 import { screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 
@@ -28,18 +27,14 @@ async function renderSearchBox(input?: RenderInputs) {
   const { queryFilter = 'owner:me' } = input ?? {};
   const onFilterChange = jest.fn();
 
-  const mockContext: WorkspacesCardContext = {
+  const mockContext: Partial<WorkspacesCardContext> = {
     onFilterChange,
     queryFilter,
-    headerId: "Doesn't matter",
-    workspacesConfig: mockCoderWorkspacesConfig,
-    workspacesQuery:
-      null as unknown as WorkspacesCardContext['workspacesQuery'],
   };
 
   const renderOutput = await renderInCoderEnvironment({
     children: (
-      <CardContext.Provider value={mockContext}>
+      <CardContext.Provider value={mockContext as WorkspacesCardContext}>
         <SearchBox />
       </CardContext.Provider>
     ),

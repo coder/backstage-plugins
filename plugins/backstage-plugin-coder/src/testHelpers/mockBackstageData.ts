@@ -89,8 +89,8 @@ export const mockAppConfig = {
   },
 
   workspaces: {
-    templateName: 'devcontainers',
-    mode: 'manual',
+    defaultTemplateName: 'devcontainers',
+    defaultMode: 'manual',
     repoUrlParamKeys: ['custom_repo', 'repo_url'],
     params: {
       repo: 'custom',
@@ -99,7 +99,7 @@ export const mockAppConfig = {
   },
 } as const satisfies CoderAppConfig;
 
-export const mockCoderWorkspacesConfig: CoderWorkspacesConfig = (() => {
+export const mockCoderWorkspacesConfig = (() => {
   const urlParams = new URLSearchParams({
     mode: mockYamlConfig.mode,
     'param.repo': mockAppConfig.workspaces.params.repo,
@@ -110,6 +110,7 @@ export const mockCoderWorkspacesConfig: CoderWorkspacesConfig = (() => {
 
   return {
     mode: 'auto',
+    isReadingEntityData: true,
     templateName: mockYamlConfig.templateName,
     repoUrlParamKeys: ['custom_repo', 'repo_url'],
     repoUrl: cleanedRepoUrl,
@@ -124,7 +125,7 @@ export const mockCoderWorkspacesConfig: CoderWorkspacesConfig = (() => {
       custom_repo: cleanedRepoUrl,
       repo_url: cleanedRepoUrl,
     },
-  };
+  } as const satisfies CoderWorkspacesConfig;
 })();
 
 const authedState = {

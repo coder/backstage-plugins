@@ -97,12 +97,12 @@ export const WorkspacesList = ({
       {workspacesQuery.data?.length === 0 && (
         <>
           {emptyState ?? (
-            <Placeholder displayCta>
+            <Placeholder displayCta={Boolean(repoUrl)}>
               {repoUrl ? (
-                <div style={{ textAlign: 'center' }}>
+                <span style={{ display: 'block', textAlign: 'center' }}>
                   No workspaces found for repo
                   <code className={styles.code}>{repoUrl}</code>
-                </div>
+                </span>
               ) : (
                 <>No workspaces returned for your query</>
               )}

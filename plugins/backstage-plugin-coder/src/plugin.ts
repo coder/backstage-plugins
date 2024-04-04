@@ -149,6 +149,18 @@ export const CoderWorkspacesCardWorkspacesListItem = coderPlugin.provide(
   }),
 );
 
+export const CoderWorkspacesReminderAccordion = coderPlugin.provide(
+  createComponentExtension({
+    name: 'CoderWorkspacesCard.ReminderAccordion',
+    component: {
+      lazy: () =>
+        import('./components/CoderWorkspacesCard').then(
+          m => m.ReminderAccordion,
+        ),
+    },
+  }),
+);
+
 /**
  * All custom hooks exposed by the plugin.
  */

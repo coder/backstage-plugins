@@ -39,21 +39,17 @@ async function renderButton({ buttonText }: RenderInputs) {
    * @todo Research how to test dependencies on useQuery
    */
   const refetch = jest.fn();
-  const mockWorkspacesQuery = {
-    refetch,
-  } as unknown as WorkspacesCardContext['workspacesQuery'];
-  const mockContext: WorkspacesCardContext = {
-    headerId: "Doesn't matter",
-    queryFilter: "Doesn't matter",
-    onFilterChange: jest.fn(),
+  const mockContext: Partial<WorkspacesCardContext> = {
     workspacesConfig: mockCoderWorkspacesConfig,
-    workspacesQuery: mockWorkspacesQuery,
+    workspacesQuery: {
+      refetch,
+    } as unknown as WorkspacesCardContext['workspacesQuery'],
   };
 
   const renderOutput = await renderInCoderEnvironment({
     auth,
     children: (
-      <CardContext.Provider value={mockContext}>
+      <CardContext.Provider value={mockContext as WorkspacesCardContext}>
         <ExtraActionsButton tooltipText={buttonText} />
       </CardContext.Provider>
     ),

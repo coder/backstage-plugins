@@ -28,22 +28,23 @@ the Dev Container.
    yarn --cwd packages/app add @coder/backstage-plugin-coder
    ```
 
-1. Add the proxy key to your `app-config.yaml`:
+2. Add the proxy key to your `app-config.yaml`:
 
    ```yaml
    proxy:
      endpoints:
        '/coder':
-         # Replace with your Coder deployment access URL and a trailing /
+         # Replace with your Coder deployment access URL (add a trailing slash)
          target: 'https://coder.example.com/'
+
          changeOrigin: true
-         allowedMethods: ['GET']
+         allowedMethods: ['GET'] # Additional methods will be supported soon!
          allowedHeaders: ['Authorization', 'Coder-Session-Token']
          headers:
            X-Custom-Source: backstage
    ```
 
-1. Add the `CoderProvider` to the application:
+3. Add the `CoderProvider` to the application:
 
    ```tsx
    // In packages/app/src/App.tsx
@@ -58,14 +59,16 @@ the Dev Container.
      },
 
      // Set the default template (and parameters) for
-     // catalog items. This can be overridden in the
-     // catalog-info.yaml for specific items.
+     // catalog items. Individual properties can be overridden
+     // by a repo's catalog-info.yaml file
      workspaces: {
-       templateName: 'devcontainers',
-       mode: 'manual',
-       // This parameter is used to filter Coder workspaces
-       // by a repo URL parameter.
+       defaultTemplateName: 'devcontainers',
+       defaultMode: 'manual',
+
+       // This property defines which parameters in your Coder
+       // workspace templates are used to store repository links
        repoUrlParamKeys: ['custom_repo', 'repo_url'],
+
        params: {
          repo: 'custom',
          region: 'eu-helsinki',
@@ -88,7 +91,7 @@ the Dev Container.
 
    **Note:** You can also wrap a single page or component with `CoderProvider` if you only need Coder in a specific part of your app. See our [API reference](./docs/README.md) (particularly the section on [the `CoderProvider` component](./docs/components.md#coderprovider)) for more details.
 
-1. Add the `CoderWorkspacesCard` card to the entity page in your app:
+4. Add the `CoderWorkspacesCard` card to the entity page in your app:
 
    ```tsx
    // In packages/app/src/components/catalog/EntityPage.tsx
@@ -100,6 +103,33 @@ the Dev Container.
      <CoderWorkspacesCard readEntityData />
    </Grid>;
    ```
+
+### `app-config.yaml` files
+
+In addition to the above, you can define additional properties on your specific repo's `catalog-info.yaml` file.
+
+Example:
+
+```yaml
+apiVersion: backstage.io/v1alpha1
+kind: Component
+metadata:
+  name: python-project
+spec:
+  type: other
+  lifecycle: unknown
+  owner: pms
+
+  # Properties for the Coder plugin are placed here
+  coder:
+    templateName: 'devcontainers'
+    mode: 'auto'
+    params:
+      repo: 'custom'
+      region: 'us-pittsburgh'
+```
+
+You can find more information about what properties are available (and how they're applied) in our [`catalog-info.yaml` file documentation](./docs/catalog-info.md).
 
 ## Roadmap
 

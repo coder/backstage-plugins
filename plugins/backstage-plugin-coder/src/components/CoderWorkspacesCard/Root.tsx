@@ -1,9 +1,6 @@
 /**
  * @file Wires up all the core logic for passing values down to the
  * sub-components in the same directory.
- *
- * Does not need any tests – test functionality covered by integration tests in
- * CoderWorkspacesCard
  */
 import React, {
   type HTMLAttributes,
@@ -22,7 +19,6 @@ import type { Workspace } from '../../typesConstants';
 import { useCoderWorkspacesQuery } from '../../hooks/useCoderWorkspacesQuery';
 import { Card } from '../Card';
 import { CoderAuthWrapper } from '../CoderAuthWrapper';
-import { EntityDataReminder } from './EntityDataReminder';
 
 export type WorkspacesQuery = UseQueryResult<readonly Workspace[]>;
 
@@ -47,7 +43,7 @@ export type WorkspacesCardProps = Readonly<
   }
 >;
 
-export const Root = ({
+const InnerRoot = ({
   children,
   className,
   queryFilter: outerFilter,
@@ -56,7 +52,6 @@ export const Root = ({
   readEntityData = false,
   ...delegatedProps
 }: WorkspacesCardProps) => {
-  const hookId = useId();
   const [innerFilter, setInnerFilter] = useState(defaultQueryFilter);
   const activeFilter = outerFilter ?? innerFilter;
 
@@ -66,11 +61,8 @@ export const Root = ({
     coderQuery: activeFilter,
   });
 
+  const hookId = useId();
   const headerId = `${hookId}-header`;
-  const showEntityDataReminder =
-    readEntityData &&
-    !workspacesConfig.repoUrl &&
-    workspacesQuery.data !== undefined;
 
   return (
     <CoderAuthWrapper type="card">
@@ -99,12 +91,21 @@ export const Root = ({
               cases around keyboard input and button children that native <form>
               elements automatically introduce */}
           <div role="form">{children}</div>
-          {showEntityDataReminder && <EntityDataReminder />}
         </Card>
       </CardContext.Provider>
     </CoderAuthWrapper>
   );
 };
+
+export function Root(props: WorkspacesCardProps) {
+  // Doing this to insulate the user from needing to worry about accidentally
+  // flipping the value of readEntityData between renders. If this value
+  // changes, it will cause the component to unmount and remount, but that
+  // should be painless/maybe invisible compared to having the component throw
+  // a full error and triggering an error boundary
+  const renderKey = String(props.readEntityData ?? false);
+  return <InnerRoot key={renderKey} {...props} />;
+}
 
 export function useWorkspacesCardContext(): WorkspacesCardContext {
   const contextValue = useContext(CardContext);
