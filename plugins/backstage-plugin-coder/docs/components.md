@@ -544,3 +544,26 @@ declare function WorkspaceListItem(props: Props): JSX.Element;
 ### Notes
 
 - Supports full link-like functionality (right-clicking and middle-clicking to open in a new tab, etc.)
+
+## `CoderWorkspacesCard.ReminderAccordion`
+
+An accordion that will conditionally display additional help information in the event of a likely setup error.
+
+### Type definition
+
+```tsx
+type ReminderAccordionProps = Readonly<{
+  canShowEntityReminder?: boolean;
+  canShowTemplateNameReminder?: boolean;
+}>;
+
+declare function ReminderAccordion(props: ReminderAccordionProps): JSX.Element;
+```
+
+### Throws
+
+- Will throw a render error if mounted outside of `CoderWorkspacesCard.Root` or `CoderProvider`.
+
+### Notes
+
+- All `canShow` props allow you to disable specific help messages. If any are set to `false`, their corresponding info block will **never** render. If set to `true` (and all will default to `true` if not specified), they will only appear when a likely setup error has been detected.
