@@ -15,7 +15,6 @@ This class provides a custom [catalog processor](https://backstage.io/docs/featu
 ```tsx
 type ProcessorOptions = Readonly<{
   tagName: string;
-  eraseTags: boolean;
   logger: Logger;
 }>;
 
@@ -62,7 +61,6 @@ export default async function createPlugin(
   builder.addProcessor(
     DevcontainersProcessor.fromConfig(env.config, {
       logger: env.logger,
-      eraseTags: false,
     }),
   );
 
