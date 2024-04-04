@@ -26,7 +26,7 @@ This component is designed to simplify authentication checks for other component
 ```tsx
 type Props = Readonly<
   PropsWithChildren<{
-    type: 'card';
+    type: 'card'; // More types to be added soon!
   }>
 >;
 
@@ -86,7 +86,7 @@ function YourComponent() {
   return <p>Will never reach this code</p>;
 }
 
-<CoderErrorBoundary>
+<CoderErrorBoundary fallbackUi={<p>Something broke. Sorry!</p>}>
   <YourComponent />
 </CoderErrorBoundary>;
 ```
@@ -133,7 +133,7 @@ function YourComponent() {
   return (
     <ul>
       {queryState.data?.map(workspace => (
-        <li key={workspace.id}>{workspace.owner_name}</li>
+        <li key={workspace.id}>{workspace.name}</li>
       ))}
     </ul>
   );
@@ -145,8 +145,8 @@ const appConfig: CoderAppConfig = {
   },
 
   workspaces: {
-    templateName: 'devcontainers',
-    mode: 'manual',
+    defaultTemplateName: 'devcontainers',
+    defaultMode: 'manual',
     repoUrlParamKeys: ['custom_repo', 'repo_url'],
     params: {
       repo: 'custom',
@@ -162,12 +162,12 @@ const appConfig: CoderAppConfig = {
 
 ### Throws
 
-- Does not throw
+- Only throws if `appConfig` is not provided (but this is also caught at the type level)
 
 ### Notes
 
 - This component was deliberately designed to be agnostic of as many Backstage APIs as possible - it can be placed as high as the top of the app, or treated as a wrapper around a specific plugin component.
-  - That said, it is recommended that only have one instance of `CoderProvider` per Backstage deployment. Multiple `CoderProvider` component instances could interfere with each other and accidentally fragment caching state
+  - That said, it is recommended that you only have one instance of `CoderProvider` per Backstage deployment. Multiple `CoderProvider` component instances could interfere with each other and accidentally fragment caching state
 - If you are already using TanStack Query in your deployment, you can provide your own `QueryClient` value via the `queryClient` prop.
   - If not specified, `CoderProvider` will use its own client
   - Even if you aren't using TanStack Query anywhere else, you could consider adding your own client to configure it with more specific settings
@@ -176,11 +176,11 @@ const appConfig: CoderAppConfig = {
 
 ## `CoderWorkspacesCard`
 
-Allows you to search for and display Coder workspaces that the currently-authenticated user has access to. The component handles all data-fetching, caching
+Allows you to search for and display Coder workspaces that the currently-authenticated user has access to. The component handles all data-fetching, caching, and displaying of workspaces.
 
 Has two "modes" – one where the component has access to all Coder workspaces for the user, and one where the component is aware of entity data and filters workspaces to those that match the currently-open repo page. See sample usage for examples.
 
-All "pieces" of the component are also available as modular sub-components that can be imported and composed together individually.
+All "pieces" of the component are also available as modular sub-components that can be imported and composed together individually. `CoderWorkspacesCard` represents a pre-configured version that is plug-and-play.
 
 ### Type signature
 
@@ -216,7 +216,7 @@ const appConfig: CoderAppConfig = {
 ```
 
 In "aware mode" – the component only displays workspaces that
-match the repo data for the currently-open entity page:
+match the repo data for the currently-open entity page, but in exchange, it must always be placed inside a Backstage component that has access to entity data (e.g., `EntityLayout`):
 
 ```tsx
 const appConfig: CoderAppConfig = {
@@ -270,13 +270,15 @@ function YourComponent() {
 
 ## `CoderWorkspacesCard.CreateWorkspacesLink`
 
-A link-button for creating new workspaces. Clicking this link will take you to "create workspace page" in your Coder deployment, with as many fields filled out as possible.
+A link-button for creating new workspaces. Clicking this link will take you to "create workspace page" in your Coder deployment, with as many fields filled out as possible (see notes for exceptions).
 
 ### Type definition
 
 ```tsx
+// All Tooltip-based props come from the type definitions for
+// the MUI `Tooltip` component
 type Props = {
-  tooltipText?: string;
+  tooltipText?: string | ReactElement;
   tooltipProps?: Omit<TooltipProps, 'children' | 'title'>;
   tooltipRef?: ForwardedRef<unknown>;
 
@@ -290,14 +292,13 @@ declare function CreateWorkspacesLink(
 ): JSX.Element;
 ```
 
-All Tooltip-based props come from the type definitions for the MUI `Tooltip` component.
-
 ### Throws
 
 - Will throw a render error if called outside of either a `CoderProvider` or `CoderWorkspacesCard.Root`
 
 ### Notes
 
+- If no workspace creation URL could be generated, this component will not let you create a new workspace. This can happen when the `CoderAppConfig` does not have a `defaultTemplateName` property, and the `catalog-info.yaml` file also does not have a `templateName`
 - If `readEntityData` is `true` in `CoderWorkspacesCard.Root`: this component will include YAML properties parsed from the current page's entity data.
 
 ## `CoderWorkspacesCard.ExtraActionsButton`
@@ -305,11 +306,13 @@ All Tooltip-based props come from the type definitions for the MUI `Tooltip` com
 A contextual menu of additional tertiary actions that can be performed for workspaces. Current actions:
 
 - Refresh workspaces list
-- Eject token
+- Unlinking the current Coder session token
 
 ### Type definition
 
 ```tsx
+// All Tooltip- and Menu-based props come from the type definitions
+// for the MUI Tooltip and Menu components.
 type ExtraActionsButtonProps = Omit<
   ButtonHTMLAttributes<HTMLButtonElement>,
   'id' | 'aria-controls'
@@ -342,8 +345,6 @@ declare function ExtraActionsButton(
 ): JSX.Element;
 ```
 
-All Tooltip- and Menu-based props come from the type definitions for the MUI `Tooltip` and `Menu` components.
-
 ### Throws
 
 - Will throw a render error if called outside of either a `CoderProvider` or `CoderWorkspacesCard.Root`
@@ -351,7 +352,7 @@ All Tooltip- and Menu-based props come from the type definitions for the MUI `To
 ### Notes
 
 - When the menu opens, the first item of the list will auto-focus
-- While the menu is open, you can navigate through items with the Up and Down arrow keys on the keyboard. These instructions are available for screen readers to announce
+- While the menu is open, you can navigate through items with the Up and Down arrow keys on the keyboard. Reminder instructions are also available for screen readers to announce
 
 ## `CoderWorkspacesCard.HeaderRow`
 
@@ -389,27 +390,27 @@ declare function HeaderGroup(
 
 - If `headerLevel` is not specified, the component will default to `h2`
 - If `fullBleedLayout` is `true`, the component will exert negative horizontal margins to fill out its parent
-- If `activeRepoFilteringText` will only display if the value of `readEntityData` in `CoderWorkspacesCard.Root` is `true`
+- `activeRepoFilteringText` will only display if the value of `readEntityData` in `CoderWorkspacesCard.Root` is `true`. The component automatically uses its own text if the prop is not specified.
 
 ## `CoderWorkspacesCard.Root`
 
-Wrapper that acts as a context provider for all other sub-components in `CoderWorkspacesCard` – does not define any components that will render to HTML.
+Wrapper that acts as a context provider for all other sub-components in `CoderWorkspacesCard` – defines a very minimal set of unstyled HTML components that are necessary only for screen reader support.
 
 ### Type definition
 
 ```tsx
-type WorkspacesCardContext = {
-  queryFilter: string;
-  onFilterChange: (newFilter: string) => void;
-  workspacesQuery: UseQueryResult<readonly Workspace[]>;
-  workspacesConfig: CoderWorkspacesConfig;
-  headerId: string;
-};
+type Props = Readonly<{
+  queryFilter?: string;
+  defaultQueryFilter?: string;
+  onFilterChange?: (newFilter: string) => void;
+  readEntityData?: boolean;
+
+  // Also supports all props from the native HTMLDivElement
+  // component, except "id" and "aria-controls"
+}>;
 
 declare function Root(props: Props): JSX.Element;
 ```
-
-All props mirror those returned by [`useWorkspacesCardContext`](./hooks.md#useworkspacescardcontext)
 
 ### Throws
 
@@ -417,8 +418,7 @@ All props mirror those returned by [`useWorkspacesCardContext`](./hooks.md#usewo
 
 ### Notes
 
-- If `entityConfig` is defined, the Root will auto-filter all workspaces down to those that match the repo for the currently-opened entity page
-- The key for `entityConfig` is not optional – even if it isn't defined, it must be explicitly passed an `undefined` value
+- The value of `readEntityData` will cause the component to flip between the two modes mentioned in the documentation for [`CoderWorkspacesCard`](#coderworkspacescard).
 
 ## `CoderWorkspacesCard.SearchBox`
 
@@ -448,7 +448,7 @@ declare function SearchBox(props: Props): JSX.Element;
 
 ### Notes
 
-- The logic for processing user input into a new workspaces query is automatically debounced to wait 400ms.
+- The logic for processing user input into a new workspaces query is automatically debounced.
 
 ## `CoderWorkspacesCard.WorkspacesList`
 

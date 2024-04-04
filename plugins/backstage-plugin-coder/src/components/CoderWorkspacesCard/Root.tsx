@@ -43,7 +43,7 @@ export type WorkspacesCardProps = Readonly<
   }
 >;
 
-export const Root = ({
+const InnerRoot = ({
   children,
   className,
   queryFilter: outerFilter,
@@ -96,6 +96,16 @@ export const Root = ({
     </CoderAuthWrapper>
   );
 };
+
+export function Root(props: WorkspacesCardProps) {
+  // Doing this to insulate the user from needing to worry about accidentally
+  // flipping the value of readEntityData between renders. If this value
+  // changes, it will cause the component to unmount and remount, but that
+  // should be painless/maybe invisible compared to having the component throw
+  // a full error and triggering an error boundary
+  const renderKey = String(props.readEntityData ?? false);
+  return <InnerRoot key={renderKey} {...props} />;
+}
 
 export function useWorkspacesCardContext(): WorkspacesCardContext {
   const contextValue = useContext(CardContext);
