@@ -101,7 +101,7 @@ export function ReminderAccordion({
           <Snippet>templateName</Snippet> property in a repo's{' '}
           <Snippet>catalog-info.yaml</Snippet> file. See{' '}
           <a
-            href="https://github.com/coder/backstage-plugins/blob/main/plugins/backstage-plugin-coder/docs/components.md#notes-4"
+            href="https://github.com/coder/backstage-plugins/blob/main/plugins/backstage-plugin-coder/docs/components.md#coderappconfig"
             rel="noopener noreferrer"
             target="_blank"
             className={styles.link}
