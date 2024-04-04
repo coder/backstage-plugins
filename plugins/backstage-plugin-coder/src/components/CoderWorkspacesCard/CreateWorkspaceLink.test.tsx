@@ -76,7 +76,7 @@ describe(`${CreateWorkspaceLink.name}`, () => {
     // Make sure tooltip is also updated
     const user = userEvent.setup();
     await user.hover(link);
-    const tooltip = await screen.findByText('Please add a template name value');
+    const tooltip = await screen.findByText(/Please add a template name value/);
     expect(tooltip).toBeInTheDocument();
   });
 });
