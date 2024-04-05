@@ -57,7 +57,11 @@ export class StateSnapshotManager<
     snapshot1: TSnapshot,
     snapshot2: TSnapshot,
   ): boolean {
-    if (snapshot1 === snapshot2) {
+    // Have to use both comparison types, because unfortunately, there are
+    // different edge cases around both Object.is and ===
+    const sameByReference =
+      Object.is(snapshot1, snapshot2) || snapshot1 === snapshot2;
+    if (sameByReference) {
       return false;
     }
 
