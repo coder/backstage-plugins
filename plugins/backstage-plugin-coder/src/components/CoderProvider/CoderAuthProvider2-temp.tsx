@@ -5,7 +5,7 @@ import {
   type CoderTokenUiAuth,
   tokenAuthQueryKey,
   useCoderTokenAuth,
-} from '../../api/useCoderTokenAuth';
+} from '../../hooks/useCoderTokenAuth';
 
 export const AuthContext = createContext<CoderTokenUiAuth | null>(null);
 type CoderAuthProviderProps = Readonly<PropsWithChildren<unknown>>;
