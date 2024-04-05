@@ -25,8 +25,12 @@ export const defaultCoderClientConfigOptions = {
 
 export type ArbitraryApiCallFunctionConfig = Readonly<{
   endpoint: string;
-  method?: 'GET' | 'POST' | 'PUT' | 'DELETE';
   body: ReadonlyJsonValue;
+
+  // Type definition is a TypeScript hack; the overall type definition collapses
+  // down to type string, but the other methods specified still show up in
+  // auto-complete
+  method?: 'GET' | 'POST' | 'PUT' | 'DELETE' | (string & {});
 }>;
 
 export type ApiEndpoints = Readonly<{
@@ -36,12 +40,16 @@ export type ApiEndpoints = Readonly<{
 
 export interface CoderClientApi {
   readonly apiEndpoints: ApiEndpoints;
-  makeArbitraryCall: (config: ArbitraryApiCallFunctionConfig) => Promise<any>;
   getWorkspaces: (coderQuery: string) => Promise<readonly Workspace[]>;
+
   getWorkspacesByRepo: (
     coderQuery: string,
     config: CoderWorkspacesConfig,
   ) => Promise<readonly Workspace[]>;
+
+  unsafeApiCall: (
+    config: ArbitraryApiCallFunctionConfig,
+  ) => Promise<ReadonlyJsonValue>;
 }
 
 export class CoderClient implements CoderClientApi {
@@ -218,7 +226,7 @@ export class CoderClient implements CoderClientApi {
     return matchedWorkspaces;
   };
 
-  makeArbitraryCall = async <TReturn = any>(
+  unsafeApiCall = async <TReturn = any>(
     config: ArbitraryApiCallFunctionConfig,
   ): Promise<TReturn> => {
     const { endpoint, body, method = 'GET' } = config;
