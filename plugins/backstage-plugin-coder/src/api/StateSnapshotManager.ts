@@ -1,26 +1,38 @@
-type SubscriptionCallback<TSnapshot = unknown> = (snapshot: TSnapshot) => void;
-type DetectSnapshotChange<TSnapshot = unknown> = (
+type ReadonlyJsonValue =
+  | string
+  | number
+  | boolean
+  | null
+  | readonly ReadonlyJsonValue[]
+  | Readonly<{ [key: string]: ReadonlyJsonValue }>;
+
+type SubscriptionCallback<TSnapshot extends ReadonlyJsonValue> = (
+  snapshot: TSnapshot,
+) => void;
+
+type DidSnapshotsChange<TSnapshot extends ReadonlyJsonValue> = (
   snapshot1: TSnapshot,
   snapshot2: TSnapshot,
 ) => boolean;
 
-type SnapshotManagerOptions<TSnapshot = unknown> = Readonly<{
+type SnapshotManagerOptions<TSnapshot extends ReadonlyJsonValue> = Readonly<{
   initialSnapshot: TSnapshot;
-  didSnapshotsChange?: DetectSnapshotChange<TSnapshot>;
+  didSnapshotsChange?: DidSnapshotsChange<TSnapshot>;
 }>;
 
-interface SnapshotManagerApi<TSnapshot = unknown> {
+interface SnapshotManagerApi<TSnapshot extends ReadonlyJsonValue> {
   subscribe: (callback: SubscriptionCallback<TSnapshot>) => () => void;
   unsubscribe: (callback: SubscriptionCallback<TSnapshot>) => void;
   getSnapshot: () => TSnapshot;
   updateSnapshot: (newSnapshot: TSnapshot) => void;
 }
 
-export class StateSnapshotManager<TSnapshot = unknown>
-  implements SnapshotManagerApi<TSnapshot>
+export class StateSnapshotManager<
+  TSnapshot extends ReadonlyJsonValue = ReadonlyJsonValue,
+> implements SnapshotManagerApi<TSnapshot>
 {
   private subscriptions: Set<SubscriptionCallback<TSnapshot>>;
-  private didSnapshotsChange: DetectSnapshotChange<TSnapshot>;
+  private didSnapshotsChange: DidSnapshotsChange<TSnapshot>;
   private activeSnapshot: TSnapshot;
 
   constructor(options: SnapshotManagerOptions<TSnapshot>) {
@@ -37,7 +49,10 @@ export class StateSnapshotManager<TSnapshot = unknown>
     this.subscriptions.forEach(cb => cb(snapshotBinding));
   }
 
-  // Default comparison method uses shallow comparisons
+  /**
+   * Favors shallow-ish comparisons (will check one level deep for objects and
+   * arrays)
+   */
   private defaultDidSnapshotsChange(
     snapshot1: TSnapshot,
     snapshot2: TSnapshot,
