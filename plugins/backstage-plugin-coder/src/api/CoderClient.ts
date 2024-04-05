@@ -2,8 +2,9 @@ import { parse } from 'valibot';
 import type { CoderWorkspacesConfig } from '../hooks/useCoderWorkspacesConfig';
 import { BackstageHttpError } from './errors';
 import {
-  Workspace,
-  WorkspaceBuildParameter,
+  type ReadonlyJsonValue,
+  type Workspace,
+  type WorkspaceBuildParameter,
   workspaceBuildParametersSchema,
   workspacesResponseSchema,
 } from '../typesConstants';
@@ -24,8 +25,8 @@ export const defaultCoderClientConfigOptions = {
 
 export type ArbitraryApiCallFunctionConfig = Readonly<{
   endpoint: string;
-  method: 'GET' | 'POST' | 'PUT' | 'DELETE';
-  args: readonly any[];
+  method?: 'GET' | 'POST' | 'PUT' | 'DELETE';
+  body: ReadonlyJsonValue;
 }>;
 
 export type ApiEndpoints = Readonly<{
@@ -217,11 +218,36 @@ export class CoderClient implements CoderClientApi {
     return matchedWorkspaces;
   };
 
-  makeArbitraryCall = async (
+  makeArbitraryCall = async <TReturn = any>(
     config: ArbitraryApiCallFunctionConfig,
-  ): Promise<any> => {
-    console.log('This is not implemented yet', config);
-    return 'blah';
+  ): Promise<TReturn> => {
+    const { endpoint, body, method = 'GET' } = config;
+
+    const baseRequestInit = this.getRequestInit();
+    const requestInit: RequestInit = {
+      ...baseRequestInit,
+      method,
+      body: JSON.stringify(body),
+    };
+
+    const res = await fetch(endpoint, requestInit);
+
+    if (!res.ok) {
+      throw new BackstageHttpError(
+        `Unable to complete ${method} request for ${endpoint}`,
+        res,
+      );
+    }
+
+    if (!res.headers.get('content-type')?.includes('application/json')) {
+      throw new BackstageHttpError(
+        '200 request has no data - potential proxy issue',
+        res,
+      );
+    }
+
+    const json = await res.json();
+    return json;
   };
 }
 

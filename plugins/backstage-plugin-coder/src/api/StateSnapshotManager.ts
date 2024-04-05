@@ -1,10 +1,4 @@
-type ReadonlyJsonValue =
-  | string
-  | number
-  | boolean
-  | null
-  | readonly ReadonlyJsonValue[]
-  | Readonly<{ [key: string]: ReadonlyJsonValue }>;
+import type { ReadonlyJsonValue } from '../typesConstants';
 
 type SubscriptionCallback<TSnapshot extends ReadonlyJsonValue> = (
   snapshot: TSnapshot,

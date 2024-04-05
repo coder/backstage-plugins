@@ -9,6 +9,14 @@ import {
   optional,
 } from 'valibot';
 
+export type ReadonlyJsonValue =
+  | string
+  | number
+  | boolean
+  | null
+  | readonly ReadonlyJsonValue[]
+  | Readonly<{ [key: string]: ReadonlyJsonValue }>;
+
 export const DEFAULT_CODER_DOCS_LINK = 'https://coder.com/docs/v2/latest';
 
 export const workspaceAgentStatusSchema = union([
