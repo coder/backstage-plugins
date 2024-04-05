@@ -251,10 +251,10 @@ export class CoderClient implements CoderClientApi {
   };
 }
 
-export const coderClientRef = createApiRef<CoderClient>({
+export const coderClientApiRef = createApiRef<CoderClient>({
   id: 'backstage-plugin-coder.coder-client',
 });
 
 export function useCoderClient() {
-  return useApi(coderClientRef);
+  return useApi(coderClientApiRef);
 }
