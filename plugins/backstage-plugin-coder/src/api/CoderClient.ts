@@ -201,7 +201,7 @@ export const ASSETS_ROUTE_PREFIX = PROXY_ROUTE_PREFIX;
 export const CODER_AUTH_HEADER_KEY = 'Coder-Session-Token';
 export const REQUEST_TIMEOUT_MS = 20_000;
 
-function getCoderApiRequestInit(authToken: string): RequestInit {
+export function getCoderApiRequestInit(authToken: string): RequestInit {
   return {
     headers: { [CODER_AUTH_HEADER_KEY]: authToken },
     signal: AbortSignal.timeout(REQUEST_TIMEOUT_MS),
