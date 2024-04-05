@@ -1,7 +1,7 @@
 import { useSyncExternalStore } from 'react';
 import { type UseQueryResult, useQuery } from '@tanstack/react-query';
 import { useApi } from '@backstage/core-plugin-api';
-import { CODER_QUERY_KEY_PREFIX } from './queryOptions';
+import { CODER_QUERY_KEY_PREFIX } from '../api/queryOptions';
 import { BackstageHttpError } from '../api/errors';
 import {
   type AuthTokenStateSnapshot,
