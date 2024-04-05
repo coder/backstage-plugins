@@ -2,7 +2,7 @@ import React from 'react';
 import { CoderLogo } from '../CoderLogo';
 import { LinkButton } from '@backstage/core-components';
 import { makeStyles } from '@material-ui/core';
-import { useCoderAuth } from '../CoderProvider';
+import { useCoderTokenAuth } from '../../hooks/useCoderTokenAuth';
 
 const useStyles = makeStyles(theme => ({
   root: {
@@ -31,7 +31,7 @@ const useStyles = makeStyles(theme => ({
 
 export const CoderAuthDistrustedForm = () => {
   const styles = useStyles();
-  const { ejectToken } = useCoderAuth();
+  const { ejectToken } = useCoderTokenAuth();
 
   return (
     <div className={styles.root}>

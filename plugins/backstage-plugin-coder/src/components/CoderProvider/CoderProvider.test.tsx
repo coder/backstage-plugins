@@ -7,7 +7,10 @@ import { configApiRef, errorApiRef } from '@backstage/core-plugin-api';
 
 import { CoderProvider } from './CoderProvider';
 import { useCoderAppConfig } from './CoderAppConfigProvider';
-import { type CoderAuth, useCoderAuth } from './CoderAuthProvider';
+import {
+  type CoderTokenUiAuth,
+  useCoderTokenAuth,
+} from '../../hooks/useCoderTokenAuth';
 
 import {
   getMockConfigApi,
@@ -82,7 +85,7 @@ describe(`${CoderProvider.name}`, () => {
     // core to the functionality. In this case, you do need to bring in the full
     // CoderProvider
     const renderUseCoderAuth = () => {
-      return renderHook(useCoderAuth, {
+      return renderHook(useCoderTokenAuth, {
         wrapper: ({ children }) => (
           <TestApiProvider
             apis={[
@@ -107,7 +110,7 @@ describe(`${CoderProvider.name}`, () => {
 
       await waitFor(() => {
         expect(result.current).toEqual(
-          expect.objectContaining<Partial<CoderAuth>>({
+          expect.objectContaining<Partial<CoderTokenUiAuth>>({
             status: 'authenticated',
             token: mockCoderAuthToken,
             error: undefined,
@@ -118,7 +121,7 @@ describe(`${CoderProvider.name}`, () => {
       act(() => result.current.ejectToken());
 
       expect(result.current).toEqual(
-        expect.objectContaining<Partial<CoderAuth>>({
+        expect.objectContaining<Partial<CoderTokenUiAuth>>({
           status: 'tokenMissing',
           token: undefined,
         }),

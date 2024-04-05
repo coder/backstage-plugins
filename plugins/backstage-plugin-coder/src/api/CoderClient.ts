@@ -2,10 +2,6 @@ import { parse } from 'valibot';
 import type { CoderWorkspacesConfig } from '../hooks/useCoderWorkspacesConfig';
 import { BackstageHttpError } from './errors';
 import {
-  type CoderAuth,
-  assertValidCoderAuth,
-} from '../components/CoderProvider';
-import {
   Workspace,
   WorkspaceBuildParameter,
   workspaceBuildParametersSchema,
