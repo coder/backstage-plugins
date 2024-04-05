@@ -47,7 +47,13 @@ export class CoderClient implements CoderClientApi {
   private readonly discoveryApi: DiscoveryApi;
   private readonly authApi: CoderAuthApi;
   private readonly options: CoderClientConfigOptions;
-  private lastBaseEndpoint!: string;
+
+  // Spotify recommends using the DiscoveryApi over the ConfigApi nowadays, but
+  // the tradeoff is that the method for getting the proxy endpoints is async.
+  // Caching the latest value from each call to ensure that some kind of value
+  // is available synchronously for UI updates. Make sure that a dummy proxy
+  // call is made as part of the constructor
+  private latestProxyEndpoint: string = '';
 
   constructor(
     discoveryApi: DiscoveryApi,
@@ -57,22 +63,23 @@ export class CoderClient implements CoderClientApi {
     this.discoveryApi = discoveryApi;
     this.authApi = authApi;
     this.options = { ...defaultCoderClientConfigOptions, ...(options ?? {}) };
-    void this.getBaseEndpoint();
+
+    void this.getBaseProxyEndpoint();
   }
 
-  private async getBaseEndpoint(): Promise<string> {
-    const newestBaseEndpoint = await this.discoveryApi.getBaseUrl('proxy');
-    this.lastBaseEndpoint = newestBaseEndpoint;
-    return newestBaseEndpoint;
+  private async getBaseProxyEndpoint(): Promise<string> {
+    const newest = await this.discoveryApi.getBaseUrl('proxy');
+    this.latestProxyEndpoint = newest;
+    return newest;
   }
 
   private async getApiEndpoint(): Promise<string> {
-    const baseEndpoint = await this.getBaseEndpoint();
+    const baseEndpoint = await this.getBaseProxyEndpoint();
     return `${baseEndpoint}${this.options.apiRoutePrefix}`;
   }
 
   private async getAssetsEndpoint(): Promise<string> {
-    const baseEndpoint = await this.getBaseEndpoint();
+    const baseEndpoint = await this.getBaseProxyEndpoint();
     return `${baseEndpoint}${this.options.assetsRoutePrefix}`;
   }
 
@@ -117,9 +124,17 @@ export class CoderClient implements CoderClientApi {
   }
 
   get apiEndpoints(): ApiEndpoints {
+    if (!this.latestProxyEndpoint) {
+      return {
+        apiRoute: '',
+        assetsRoute: '',
+      };
+    }
+
+    const { apiRoutePrefix, assetsRoutePrefix } = this.options;
     return {
-      apiRoute: `${this.lastBaseEndpoint}${this.options.apiRoutePrefix}`,
-      assetsRoute: `${this.lastBaseEndpoint}${this.options.assetsRoutePrefix}`,
+      apiRoute: `${this.latestProxyEndpoint}${apiRoutePrefix}`,
+      assetsRoute: `${this.latestProxyEndpoint}${assetsRoutePrefix}`,
     };
   }
 
