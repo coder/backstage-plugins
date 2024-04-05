@@ -1,3 +1,14 @@
+/**
+ * @file A helper class that simplifies the process of connecting mutable class
+ * values (such as the majority of values from API factories) with React's
+ * useSyncExternalStore hook.
+ *
+ * The class will transform the mutable values into immutable snapshots that can
+ * safely be referenced within React UI.
+ *
+ * This should not be used directly, but should instead be composed into other
+ * API factories (or equivalent classes).
+ */
 import type { ReadonlyJsonValue } from '../typesConstants';
 
 type SubscriptionCallback<TSnapshot extends ReadonlyJsonValue> = (
@@ -5,12 +16,17 @@ type SubscriptionCallback<TSnapshot extends ReadonlyJsonValue> = (
 ) => void;
 
 type DidSnapshotsChange<TSnapshot extends ReadonlyJsonValue> = (
-  snapshot1: TSnapshot,
-  snapshot2: TSnapshot,
+  oldSnapshot: TSnapshot,
+  newSnapshot: TSnapshot,
 ) => boolean;
 
 type SnapshotManagerOptions<TSnapshot extends ReadonlyJsonValue> = Readonly<{
   initialSnapshot: TSnapshot;
+
+  /**
+   * Lets you define a custom comparison strategy for detecting whether a
+   * snapshot has really changed in a way that should be reflected in the UI.
+   */
   didSnapshotsChange?: DidSnapshotsChange<TSnapshot>;
 }>;
 
@@ -43,48 +59,61 @@ export class StateSnapshotManager<
     this.subscriptions.forEach(cb => cb(snapshotBinding));
   }
 
+  private static areSameByReference<TSnapshot extends ReadonlyJsonValue>(
+    snapshot1: TSnapshot | undefined,
+    snapshot2: TSnapshot | undefined,
+  ): boolean {
+    // Comparison looks wonky, but Object.is handles more edge cases than ===
+    // for these kinds of comparisons, but it itself has an edge case
+    // with -0 and +0. Still need === to handle that comparison
+    return (
+      Object.is(snapshot1, snapshot2) || (snapshot1 === 0 && snapshot2 === 0)
+    );
+  }
+
   /**
    * Favors shallow-ish comparisons (will check one level deep for objects and
    * arrays)
    */
   private defaultDidSnapshotsChange(
-    snapshot1: TSnapshot,
-    snapshot2: TSnapshot,
+    oldSnapshot: TSnapshot,
+    newSnapshot: TSnapshot,
   ): boolean {
-    // Have to use both comparison types, because unfortunately, there are
-    // different edge cases around both Object.is and ===
-    const sameByReference =
-      Object.is(snapshot1, snapshot2) || snapshot1 === snapshot2;
-    if (sameByReference) {
+    if (StateSnapshotManager.areSameByReference(oldSnapshot, newSnapshot)) {
       return false;
     }
 
-    const wasObjectPrimitiveChange =
-      (typeof snapshot1 === 'object' &&
-        (typeof snapshot2 !== 'object' || snapshot2 === null)) ||
-      ((typeof snapshot1 !== 'object' || snapshot1 === null) &&
-        typeof snapshot2 === 'object');
-    if (wasObjectPrimitiveChange) {
+    const changedFromObjectToPrimitive =
+      typeof oldSnapshot === 'object' &&
+      (typeof newSnapshot !== 'object' || newSnapshot === null);
+
+    const changedFromPrimitiveToObject =
+      (typeof oldSnapshot !== 'object' || oldSnapshot === null) &&
+      typeof newSnapshot === 'object';
+
+    if (changedFromObjectToPrimitive || changedFromPrimitiveToObject) {
       return true;
     }
 
-    if (Array.isArray(snapshot1) && Array.isArray(snapshot2)) {
+    if (Array.isArray(oldSnapshot) && Array.isArray(newSnapshot)) {
       const sameByShallowComparison =
-        snapshot1.length === snapshot2.length &&
-        snapshot1.every((element, index) => element === snapshot2[index]);
+        oldSnapshot.length === newSnapshot.length &&
+        oldSnapshot.every((element, index) =>
+          StateSnapshotManager.areSameByReference(element, newSnapshot[index]),
+        );
 
       return !sameByShallowComparison;
     }
 
-    const values1: unknown[] = Object.values(snapshot1 as Object);
-    const values2: unknown[] = Object.values(snapshot2 as Object);
+    const oldInnerValues: unknown[] = Object.values(oldSnapshot as Object);
+    const newInnerValues: unknown[] = Object.values(newSnapshot as Object);
 
-    if (values1.length !== values2.length) {
+    if (oldInnerValues.length !== newInnerValues.length) {
       return true;
     }
 
-    for (const [index, value] of values1.entries()) {
-      if (value !== values2[index]) {
+    for (const [index, value] of oldInnerValues.entries()) {
+      if (value !== newInnerValues[index]) {
         return true;
       }
     }
