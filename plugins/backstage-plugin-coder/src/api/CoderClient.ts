@@ -28,14 +28,23 @@ export const defaultCoderClientConfigOptions = {
   requestTimeoutMs: 20_000,
 } as const satisfies CoderClientConfigOptions;
 
+export type ArbitraryApiCallFunctionConfig = Readonly<{
+  endpoint: string;
+  method: 'GET' | 'POST' | 'PUT' | 'DELETE';
+  args: readonly any[];
+}>;
+
+type ArbitraryApiFunction = (
+  config: ArbitraryApiCallFunctionConfig,
+) => Promise<any>;
+
 export interface CoderClientApi {
+  makeArbitraryCall: ArbitraryApiFunction;
   getWorkspaces: (coderQuery: string) => Promise<readonly Workspace[]>;
   getWorkspacesByRepo: (
     coderQuery: string,
     config: CoderWorkspacesConfig,
   ) => Promise<readonly Workspace[]>;
-
-  makeArbitraryCall: (...args: readonly any[]) => any;
 }
 
 export class CoderClient implements CoderClientApi {
@@ -182,7 +191,8 @@ export class CoderClient implements CoderClientApi {
     return matchedWorkspaces;
   };
 
-  makeArbitraryCall = async (...args: readonly any[]): Promise<any> => {
+  makeArbitraryCall: ArbitraryApiFunction = async config => {
+    console.log('This is not implemented yet', config);
     return 'blah';
   };
 }
