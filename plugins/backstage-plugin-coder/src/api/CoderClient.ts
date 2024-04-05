@@ -8,7 +8,7 @@ import {
   workspacesResponseSchema,
 } from '../typesConstants';
 import { DiscoveryApi, createApiRef, useApi } from '@backstage/core-plugin-api';
-import { CoderAuthApi } from './auth';
+import { CoderAuthApi } from './Auth';
 
 type CoderClientConfigOptions = Readonly<{
   apiRoutePrefix: string;

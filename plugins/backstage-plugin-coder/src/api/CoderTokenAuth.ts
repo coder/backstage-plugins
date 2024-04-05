@@ -1,7 +1,7 @@
 import { DiscoveryApi, createApiRef } from '@backstage/core-plugin-api';
 import { defaultCoderClientConfigOptions } from './CoderClient';
 import { BackstageHttpError } from './errors';
-import { CoderAuthApi } from './auth';
+import { CoderAuthApi } from './Auth';
 import { StateSnapshotManager } from './StateSnapshotManager';
 
 type ConfigOptions = Readonly<{
@@ -22,6 +22,9 @@ export const defaultTokenAuthConfigOptions = {
   localStorageKey: 'coder-backstage-plugin/token',
   authTokenHeaderKey: 'Coder-Session-Token',
   gracePeriodTimeoutMs: 6_000,
+
+  // Sharing config values with CoderClient to remove need for Auth class
+  // instances to have an instance of the main CoderClient class
   apiPath: defaultCoderClientConfigOptions.apiRoutePrefix,
   requestTimeoutMs: defaultCoderClientConfigOptions.requestTimeoutMs,
 } as const satisfies ConfigOptions;
