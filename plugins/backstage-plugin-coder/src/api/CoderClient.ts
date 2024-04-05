@@ -16,11 +16,9 @@ type CoderClientConfigOptions = Readonly<{
   requestTimeoutMs: number;
 }>;
 
-const PROXY_ROUTE_PREFIX = '/api/proxy/coder';
-
 export const defaultCoderClientConfigOptions = {
   apiRoutePrefix: '/api/v2',
-  assetsRoutePrefix: '', // Intentionally left as empty string
+  assetsRoutePrefix: '/', // Intentionally left as single slash
   requestTimeoutMs: 20_000,
 } as const satisfies CoderClientConfigOptions;
 
@@ -30,12 +28,14 @@ export type ArbitraryApiCallFunctionConfig = Readonly<{
   args: readonly any[];
 }>;
 
-type ArbitraryApiFunction = (
-  config: ArbitraryApiCallFunctionConfig,
-) => Promise<any>;
+export type ApiEndpoints = Readonly<{
+  apiRoute: string;
+  assetsRoute: string;
+}>;
 
 export interface CoderClientApi {
-  makeArbitraryCall: ArbitraryApiFunction;
+  readonly apiEndpoints: ApiEndpoints;
+  makeArbitraryCall: (config: ArbitraryApiCallFunctionConfig) => Promise<any>;
   getWorkspaces: (coderQuery: string) => Promise<readonly Workspace[]>;
   getWorkspacesByRepo: (
     coderQuery: string,
@@ -47,6 +47,7 @@ export class CoderClient implements CoderClientApi {
   private readonly discoveryApi: DiscoveryApi;
   private readonly authApi: CoderAuthApi;
   private readonly options: CoderClientConfigOptions;
+  private lastBaseEndpoint!: string;
 
   constructor(
     discoveryApi: DiscoveryApi,
@@ -56,15 +57,22 @@ export class CoderClient implements CoderClientApi {
     this.discoveryApi = discoveryApi;
     this.authApi = authApi;
     this.options = { ...defaultCoderClientConfigOptions, ...(options ?? {}) };
+    void this.getBaseEndpoint();
+  }
+
+  private async getBaseEndpoint(): Promise<string> {
+    const newestBaseEndpoint = await this.discoveryApi.getBaseUrl('proxy');
+    this.lastBaseEndpoint = newestBaseEndpoint;
+    return newestBaseEndpoint;
   }
 
   private async getApiEndpoint(): Promise<string> {
-    const baseEndpoint = await this.discoveryApi.getBaseUrl('proxy');
+    const baseEndpoint = await this.getBaseEndpoint();
     return `${baseEndpoint}${this.options.apiRoutePrefix}`;
   }
 
   private async getAssetsEndpoint(): Promise<string> {
-    const baseEndpoint = await this.discoveryApi.getBaseUrl('proxy');
+    const baseEndpoint = await this.getBaseEndpoint();
     return `${baseEndpoint}${this.options.assetsRoutePrefix}`;
   }
 
@@ -106,6 +114,13 @@ export class CoderClient implements CoderClientApi {
 
     const json = await res.json();
     return parse(workspaceBuildParametersSchema, json);
+  }
+
+  get apiEndpoints(): ApiEndpoints {
+    return {
+      apiRoute: `${this.lastBaseEndpoint}${this.options.apiRoutePrefix}`,
+      assetsRoute: `${this.lastBaseEndpoint}${this.options.assetsRoutePrefix}`,
+    };
   }
 
   /* ***************************************************************************
@@ -187,7 +202,9 @@ export class CoderClient implements CoderClientApi {
     return matchedWorkspaces;
   };
 
-  makeArbitraryCall: ArbitraryApiFunction = async config => {
+  makeArbitraryCall = async (
+    config: ArbitraryApiCallFunctionConfig,
+  ): Promise<any> => {
     console.log('This is not implemented yet', config);
     return 'blah';
   };
@@ -200,8 +217,3 @@ export const coderClientRef = createApiRef<CoderClient>({
 export function useCoderClient() {
   return useApi(coderClientRef);
 }
-
-export const API_ROUTE_PREFIX = `${PROXY_ROUTE_PREFIX}/api/v2`;
-export const ASSETS_ROUTE_PREFIX = PROXY_ROUTE_PREFIX;
-
-export const CODER_AUTH_HEADER_KEY = 'Coder-Session-Token';

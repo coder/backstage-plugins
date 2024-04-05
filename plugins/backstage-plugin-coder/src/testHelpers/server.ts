@@ -12,7 +12,7 @@ import {
   mockBackstageProxyEndpoint as root,
 } from './mockBackstageData';
 import type { Workspace, WorkspacesResponse } from '../typesConstants';
-import { CODER_AUTH_HEADER_KEY } from '../api/CoderClient';
+import { defaultTokenAuthConfigOptions } from '../api/CoderTokenAuth';
 
 const handlers: readonly RestHandler[] = [
   rest.get(`${root}/workspaces`, (req, res, ctx) => {
@@ -52,7 +52,9 @@ const handlers: readonly RestHandler[] = [
 
   // This is the dummy request used to verify a user's auth status
   rest.get(`${root}/users/me`, (req, res, ctx) => {
-    const token = req.headers.get(CODER_AUTH_HEADER_KEY);
+    const headerKey = defaultTokenAuthConfigOptions.authTokenHeaderKey;
+    const token = req.headers.get(headerKey);
+
     if (token === mockCoderAuthToken) {
       return res(ctx.status(200));
     }

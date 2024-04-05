@@ -17,7 +17,7 @@ type ConfigOptions = Readonly<{
   gracePeriodTimeoutMs: number;
 }>;
 
-const defaultTokenAuthConfigOptions = {
+export const defaultTokenAuthConfigOptions = {
   localStorage: window.localStorage,
   localStorageKey: 'coder-backstage-plugin/token',
   authTokenHeaderKey: 'Coder-Session-Token',

@@ -5,17 +5,17 @@ import type { ScmIntegrationRegistry } from '@backstage/integration';
 /* eslint-enable @backstage/no-undeclared-imports */
 
 import { useEntity } from '@backstage/plugin-catalog-react';
-import {
-  type CoderAppConfig,
-  type CoderAuth,
-  type CoderAuthStatus,
-} from '../components/CoderProvider';
+import { type CoderAppConfig } from '../components/CoderProvider';
+import { defaultCoderClientConfigOptions } from '../api/CoderClient';
 import {
   CoderWorkspacesConfig,
   type YamlConfig,
 } from '../hooks/useCoderWorkspacesConfig';
 import { ScmIntegrationsApi } from '@backstage/integration-react';
-import { API_ROUTE_PREFIX, ASSETS_ROUTE_PREFIX } from '../api/CoderClient';
+import {
+  CoderTokenAuthUiStatus,
+  CoderTokenUiAuth,
+} from '../hooks/useCoderTokenAuth';
 
 /**
  * This is the key that Backstage checks from the entity data to determine the
@@ -52,9 +52,9 @@ export const mockBackstageUrlRoot = 'http://localhost:7007';
  * The actual endpoint to hit when trying to mock out a server request during
  * testing.
  */
-export const mockBackstageProxyEndpoint = `${mockBackstageUrlRoot}${API_ROUTE_PREFIX}`;
+export const mockBackstageProxyEndpoint = `${mockBackstageUrlRoot}${defaultCoderClientConfigOptions.apiRoutePrefix}`;
 
-export const mockBackstageAssetsEndpoint = `${mockBackstageUrlRoot}${ASSETS_ROUTE_PREFIX}`;
+export const mockBackstageAssetsEndpoint = `${mockBackstageUrlRoot}${defaultCoderClientConfigOptions.assetsRoutePrefix}`;
 
 export const mockCoderAuthToken = 'ZG0HRy2gGN-mXljc1s5FqtE8WUJ4sUc5X';
 
@@ -134,7 +134,7 @@ const authedState = {
   isAuthenticated: true,
   registerNewToken: jest.fn(),
   ejectToken: jest.fn(),
-} as const satisfies Partial<CoderAuth>;
+} as const satisfies Partial<CoderTokenUiAuth>;
 
 const notAuthedState = {
   token: undefined,
@@ -143,7 +143,7 @@ const notAuthedState = {
   isAuthenticated: false,
   registerNewToken: jest.fn(),
   ejectToken: jest.fn(),
-} as const satisfies Partial<CoderAuth>;
+} as const satisfies Partial<CoderTokenUiAuth>;
 
 export const mockAuthStates = {
   authenticated: {
@@ -190,7 +190,7 @@ export const mockAuthStates = {
     ...notAuthedState,
     status: 'deploymentUnavailable',
   },
-} as const satisfies Record<CoderAuthStatus, CoderAuth>;
+} as const satisfies Record<CoderTokenAuthUiStatus, CoderTokenUiAuth>;
 
 export function getMockConfigApi() {
   return new MockConfigApi({
