@@ -2,6 +2,7 @@ import { DiscoveryApi, createApiRef } from '@backstage/core-plugin-api';
 import { defaultCoderClientConfigOptions } from './CoderClient';
 import { BackstageHttpError } from './errors';
 import { CoderAuthApi } from './auth';
+import { StateSnapshotManager } from './StateSnapshotManager';
 
 type ConfigOptions = Readonly<{
   localStorage: typeof window.localStorage;
@@ -32,7 +33,9 @@ export type AuthTokenStateSnapshot = Readonly<{
   isInsideGracePeriod: boolean;
 }>;
 
-type SubscriptionCallback = (snapshot: AuthTokenStateSnapshot) => void;
+type SubscriptionCallback<TSnapshot = AuthTokenStateSnapshot> = (
+  snapshot: TSnapshot,
+) => void;
 
 export interface CoderTokenAuthApi extends CoderAuthApi {
   readonly token: string;
@@ -55,13 +58,12 @@ export class CoderTokenAuth implements CoderTokenAuthApi {
   readonly initialToken: string;
   private readonly options: ConfigOptions;
   private readonly discoveryApi: DiscoveryApi;
+  private readonly snapshotManager: StateSnapshotManager<AuthTokenStateSnapshot>;
 
   #token: string;
   #isTokenValid: boolean;
   #isInsideGracePeriod: boolean;
   #distrustGracePeriodTimeoutId: number | undefined;
-  #subscriptions: Set<SubscriptionCallback>;
-  #stateSnapshot: AuthTokenStateSnapshot;
 
   constructor(discoveryApi: DiscoveryApi, options?: Partial<ConfigOptions>) {
     this.discoveryApi = discoveryApi;
@@ -72,14 +74,15 @@ export class CoderTokenAuth implements CoderTokenAuthApi {
     this.#isTokenValid = false;
     this.#isInsideGracePeriod = true;
     this.#distrustGracePeriodTimeoutId = undefined;
-    this.#subscriptions = new Set();
 
-    this.#stateSnapshot = {
+    const initialSnapshot: AuthTokenStateSnapshot = {
       currentToken: this.#token,
       initialToken: this.initialToken,
       isCurrentTokenValid: this.#isTokenValid,
       isInsideGracePeriod: this.#isInsideGracePeriod,
     };
+
+    this.snapshotManager = new StateSnapshotManager({ initialSnapshot });
   }
 
   static isInstance(value: unknown): value is CoderTokenAuth {
@@ -106,6 +109,17 @@ export class CoderTokenAuth implements CoderTokenAuthApi {
     }
   }
 
+  private flushStateChanges(): void {
+    const newSnapshot: AuthTokenStateSnapshot = {
+      currentToken: this.#token,
+      initialToken: this.initialToken,
+      isCurrentTokenValid: this.#isTokenValid,
+      isInsideGracePeriod: this.#isInsideGracePeriod,
+    };
+
+    this.snapshotManager.updateSnapshot(newSnapshot);
+  }
+
   private setIsTokenValid(newIsTokenValidValue: boolean): void {
     if (newIsTokenValidValue === this.#isTokenValid) {
       return;
@@ -121,35 +135,11 @@ export class CoderTokenAuth implements CoderTokenAuthApi {
     }
 
     this.#isTokenValid = newIsTokenValidValue;
-    this.notifySubscriptions();
+    this.flushStateChanges();
 
     if (this.#isTokenValid) {
       this.writeTokenToLocalStorage();
     }
-  }
-
-  private notifySubscriptions(): void {
-    const noChangeInSnapshotValues =
-      this.#stateSnapshot.currentToken === this.#token &&
-      this.#stateSnapshot.isCurrentTokenValid === this.#isTokenValid &&
-      this.#stateSnapshot.isInsideGracePeriod === this.#isInsideGracePeriod;
-
-    if (noChangeInSnapshotValues) {
-      return;
-    }
-
-    // Snapshots themselves are immutable, but the .#tokenSnapshot property
-    // isn't. Have to store value in separate variable and reference
-    // that for subscription dispatches to ensure 100% immutability
-    const newSnapshot: AuthTokenStateSnapshot = {
-      initialToken: this.token,
-      currentToken: this.#token,
-      isCurrentTokenValid: this.#isTokenValid,
-      isInsideGracePeriod: this.#isInsideGracePeriod,
-    };
-
-    this.#stateSnapshot = newSnapshot;
-    this.#subscriptions.forEach(cb => cb(newSnapshot));
   }
 
   get token(): string {
@@ -181,16 +171,17 @@ export class CoderTokenAuth implements CoderTokenAuthApi {
     this.#token = newToken;
     this.setIsTokenValid(false);
     void this.validateToken(newToken);
-    this.notifySubscriptions();
+    this.flushStateChanges();
   };
 
-  subscribe = (callback: SubscriptionCallback): (() => void) => {
-    this.#subscriptions.add(callback);
-    return () => this.unsubscribe(callback);
+  subscribe = (
+    callback: SubscriptionCallback<AuthTokenStateSnapshot>,
+  ): (() => void) => {
+    return this.snapshotManager.subscribe(callback);
   };
 
   unsubscribe = (callback: SubscriptionCallback): void => {
-    this.#subscriptions.delete(callback);
+    return this.snapshotManager.unsubscribe(callback);
   };
 
   validateToken = async (tokenToValidate: string): Promise<boolean> => {
@@ -228,7 +219,7 @@ export class CoderTokenAuth implements CoderTokenAuthApi {
   };
 
   getStateSnapshot = (): AuthTokenStateSnapshot => {
-    return this.#stateSnapshot;
+    return this.snapshotManager.getSnapshot();
   };
 
   getRequestInit = (): RequestInit => {
