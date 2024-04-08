@@ -62,8 +62,17 @@ export function defaultDidSnapshotsChange<TSnapshot extends ReadonlyJsonValue>(
   const newIsPrimitive =
     typeof newSnapshot !== 'object' || newSnapshot === null;
 
-  if (oldIsPrimitive && newIsPrimitive && oldSnapshot !== newSnapshot) {
-    return true;
+  if (oldIsPrimitive && newIsPrimitive) {
+    const numbersAreWithinTolerance =
+      typeof oldSnapshot === 'number' &&
+      typeof newSnapshot === 'number' &&
+      Math.abs(oldSnapshot - newSnapshot) < 0.00005;
+
+    if (numbersAreWithinTolerance) {
+      return false;
+    }
+
+    return oldSnapshot !== newSnapshot;
   }
 
   const changedFromObjectToPrimitive = !oldIsPrimitive && newIsPrimitive;

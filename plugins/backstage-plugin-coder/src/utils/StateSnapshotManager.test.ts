@@ -4,6 +4,74 @@ import {
   defaultDidSnapshotsChange,
 } from './StateSnapshotManager';
 
+describe(`${defaultDidSnapshotsChange.name}`, () => {
+  type SampleInput = Readonly<{
+    snapshotA: ReadonlyJsonValue;
+    snapshotB: ReadonlyJsonValue;
+  }>;
+
+  it('Will detect when two JSON primitives are the same', () => {
+    const samples = [
+      { snapshotA: true, snapshotB: true },
+      { snapshotA: 'cat', snapshotB: 'cat' },
+      { snapshotA: 2, snapshotB: 2 },
+      { snapshotA: null, snapshotB: null },
+    ] as const satisfies readonly SampleInput[];
+
+    for (const { snapshotA, snapshotB } of samples) {
+      expect(defaultDidSnapshotsChange(snapshotA, snapshotB)).toBe(false);
+    }
+  });
+
+  it('Will detect when two JSON primitives are different', () => {
+    const samples = [
+      { snapshotA: true, snapshotB: false },
+      { snapshotA: 'cat', snapshotB: 'dog' },
+      { snapshotA: 2, snapshotB: 789 },
+      { snapshotA: null, snapshotB: 'blah' },
+    ] as const satisfies readonly SampleInput[];
+
+    for (const { snapshotA, snapshotB } of samples) {
+      expect(defaultDidSnapshotsChange(snapshotA, snapshotB)).toBe(true);
+    }
+  });
+
+  it('Will detect when a value flips from a primitive to an object (or vice versa)', () => {
+    expect(defaultDidSnapshotsChange(null, {})).toBe(true);
+    expect(defaultDidSnapshotsChange({}, null)).toBe(true);
+  });
+
+  it('Will reject numbers that changed by a very small floating-point epsilon', () => {
+    expect(defaultDidSnapshotsChange(3, 3 / 1.00000001)).toBe(false);
+  });
+
+  it('Will check array values one level deep', () => {
+    const snapshotA = [1, 2, 3];
+
+    const snapshotB = [...snapshotA];
+    expect(defaultDidSnapshotsChange(snapshotA, snapshotB)).toBe(false);
+
+    const snapshotC = [...snapshotA, 4];
+    expect(defaultDidSnapshotsChange(snapshotA, snapshotC)).toBe(true);
+
+    const snapshotD = [...snapshotA, {}];
+    expect(defaultDidSnapshotsChange(snapshotA, snapshotD)).toBe(true);
+  });
+
+  it('Will check object values one level deep', () => {
+    const snapshotA = { cat: true, dog: true };
+
+    const snapshotB = { ...snapshotA, dog: true };
+    expect(defaultDidSnapshotsChange(snapshotA, snapshotB)).toBe(false);
+
+    const snapshotC = { ...snapshotA, bird: true };
+    expect(defaultDidSnapshotsChange(snapshotA, snapshotC)).toBe(true);
+
+    const snapshotD = { ...snapshotA, value: {} };
+    expect(defaultDidSnapshotsChange(snapshotA, snapshotD)).toBe(true);
+  });
+});
+
 describe(`${StateSnapshotManager.name}`, () => {
   it('Lets external systems subscribe and unsubscribe to internal snapshot changes', () => {
     type SampleData = Readonly<{
@@ -11,7 +79,7 @@ describe(`${StateSnapshotManager.name}`, () => {
       snapshotB: ReadonlyJsonValue;
     }>;
 
-    const sampleData = [
+    const samples = [
       { snapshotA: false, snapshotB: true },
       { snapshotA: 0, snapshotB: 1 },
       { snapshotA: 'cat', snapshotB: 'dog' },
@@ -20,7 +88,7 @@ describe(`${StateSnapshotManager.name}`, () => {
       { snapshotA: [], snapshotB: ['I have a value now!'] },
     ] as const satisfies readonly SampleData[];
 
-    for (const { snapshotA, snapshotB } of sampleData) {
+    for (const { snapshotA, snapshotB } of samples) {
       const subscriptionCallback = jest.fn();
       const manager = new StateSnapshotManager({
         initialSnapshot: snapshotA,
@@ -38,7 +106,7 @@ describe(`${StateSnapshotManager.name}`, () => {
     }
   });
 
-  it('Lets user define custom comparison algorithm during instantiation', () => {
+  it('Lets user define a custom comparison algorithm during instantiation', () => {
     type SampleData = Readonly<{
       snapshotA: ReadonlyJsonValue;
       snapshotB: ReadonlyJsonValue;
@@ -48,31 +116,38 @@ describe(`${StateSnapshotManager.name}`, () => {
     const exampleDeeplyNestedJson: ReadonlyJsonValue = {
       value1: {
         value2: {
-          value3: {
-            value4: [{ valueX: true }, { valueY: false }],
-          },
+          value3: 'neat',
         },
+      },
+
+      value4: {
+        value5: [{ valueX: true }, { valueY: false }],
       },
     };
 
-    const sampleData = [
+    const samples = [
       {
         snapshotA: exampleDeeplyNestedJson,
-        snapshotB: JSON.parse(JSON.stringify(exampleDeeplyNestedJson)),
-        compare: (A, B) => JSON.stringify(A) === JSON.stringify(B),
+        snapshotB: {
+          ...exampleDeeplyNestedJson,
+          value4: {
+            value5: [{ valueX: false }, { valueY: false }],
+          },
+        },
+        compare: (A, B) => JSON.stringify(A) !== JSON.stringify(B),
       },
       {
-        snapshotA: { tag: 'snapshot', value: 1 },
-        snapshotB: { tag: 'snapshot', value: 9999 },
+        snapshotA: { tag: 'snapshot-993', value: 1 },
+        snapshotB: { tag: 'snapshot-2004', value: 1 },
         compare: (A, B) => {
           const recastA = A as Record<string, unknown>;
           const recastB = B as Record<string, unknown>;
-          return recastA.tag === recastB.tag;
+          return recastA.tag !== recastB.tag;
         },
       },
     ] as const satisfies readonly SampleData[];
 
-    for (const { snapshotA, snapshotB, compare } of sampleData) {
+    for (const { snapshotA, snapshotB, compare } of samples) {
       const subscriptionCallback = jest.fn();
       const manager = new StateSnapshotManager({
         initialSnapshot: snapshotA,
@@ -85,13 +160,13 @@ describe(`${StateSnapshotManager.name}`, () => {
     }
   });
 
-  it('Rejects new snapshots that are equivalent to old ones, and does NOT notify subscriptions', () => {
+  it('Rejects new snapshots that are equivalent to old ones, and does NOT notify subscribers', () => {
     type SampleData = Readonly<{
       snapshotA: ReadonlyJsonValue;
       snapshotB: ReadonlyJsonValue;
     }>;
 
-    const sampleData = [
+    const samples = [
       { snapshotA: true, snapshotB: true },
       { snapshotA: 'kitty', snapshotB: 'kitty' },
       { snapshotA: null, snapshotB: null },
@@ -99,7 +174,7 @@ describe(`${StateSnapshotManager.name}`, () => {
       { snapshotA: {}, snapshotB: {} },
     ] as const satisfies readonly SampleData[];
 
-    for (const { snapshotA, snapshotB } of sampleData) {
+    for (const { snapshotA, snapshotB } of samples) {
       const subscriptionCallback = jest.fn();
       const manager = new StateSnapshotManager({
         initialSnapshot: snapshotA,
@@ -111,6 +186,19 @@ describe(`${StateSnapshotManager.name}`, () => {
       expect(subscriptionCallback).not.toHaveBeenCalled();
     }
   });
-});
 
-describe(`${defaultDidSnapshotsChange.name}`, () => {});
+  it("Uses the default comparison algorithm if one isn't specified at instantiation", () => {
+    const snapshotA = { value: 'blah' };
+    const snapshotB = { value: 'blah' };
+
+    const manager = new StateSnapshotManager({
+      initialSnapshot: snapshotA,
+    });
+
+    const subscriptionCallback = jest.fn();
+    void manager.subscribe(subscriptionCallback);
+    manager.updateSnapshot(snapshotB);
+
+    expect(subscriptionCallback).not.toHaveBeenCalled();
+  });
+});
