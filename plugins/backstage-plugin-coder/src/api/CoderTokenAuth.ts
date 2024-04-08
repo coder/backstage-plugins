@@ -47,7 +47,7 @@ export interface CoderTokenAuthApi extends CoderAuthApi {
   readonly isTokenValid: boolean;
   readonly isInsideGracePeriod: boolean;
 
-  setToken: (newToken: string) => void;
+  registerNewToken: (newToken: string) => void;
   clearToken: () => void;
   validateToken: (tokenToValidate: string) => Promise<boolean>;
 
@@ -125,6 +125,17 @@ export class CoderTokenAuth implements CoderTokenAuthApi {
     this.snapshotManager.updateSnapshot(newSnapshot);
   }
 
+  private setToken(newToken: string): void {
+    if (newToken === this.#token) {
+      return;
+    }
+
+    this.#token = newToken;
+    this.setIsTokenValid(false);
+    void this.validateToken(newToken);
+    this.flushStateChanges();
+  }
+
   private setIsTokenValid(newIsTokenValidValue: boolean): void {
     if (newIsTokenValidValue === this.#isTokenValid) {
       return;
@@ -168,15 +179,10 @@ export class CoderTokenAuth implements CoderTokenAuthApi {
    * can be passed around React without risk of losing their "this" context
    ****************************************************************************/
 
-  setToken = (newToken: string): void => {
-    if (newToken === '' || newToken === this.#token) {
-      return;
+  registerNewToken = (newToken: string): void => {
+    if (newToken !== '') {
+      this.setToken(newToken);
     }
-
-    this.#token = newToken;
-    this.setIsTokenValid(false);
-    void this.validateToken(newToken);
-    this.flushStateChanges();
   };
 
   subscribe = (
