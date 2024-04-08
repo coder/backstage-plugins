@@ -3,12 +3,14 @@
  * values (such as the majority of values from API factories) with React's
  * useSyncExternalStore hook.
  *
- * The class will transform the mutable values into immutable snapshots that can
- * safely be referenced within React UI.
- *
  * This should not be used directly from within React, but should instead be
  * composed into other classes (such as API factories). Those classes can then
  * be brought into React.
+ *
+ * As long as you can figure out how to turn the mutable values in some other
+ * class into an immutable snapshot, all you have to do is pass the new snapshot
+ * into this class. It will then take care of notifying subscriptions, while
+ * reconciling old/new snapshots to minimize needless re-renders.
  */
 import type { ReadonlyJsonValue } from '../typesConstants';
 
