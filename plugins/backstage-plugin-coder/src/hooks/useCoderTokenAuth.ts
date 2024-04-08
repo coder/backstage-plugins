@@ -77,7 +77,7 @@ export function useCoderTokenAuth(): CoderTokenUiAuth {
     ...uiState,
     tokenLoadedOnMount: authStateSnapshot.initialToken !== '',
     isAuthenticated: validCoderStatuses.includes(uiState.status),
-    registerNewToken: authApi.setToken,
+    registerNewToken: authApi.registerNewToken,
     ejectToken: authApi.clearToken,
   };
 }

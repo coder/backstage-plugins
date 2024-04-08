@@ -132,8 +132,9 @@ export class CoderTokenAuth implements CoderTokenAuthApi {
 
     this.#token = newToken;
     this.setIsTokenValid(false);
-    void this.validateToken(newToken);
     this.flushStateChanges();
+
+    void this.validateToken(newToken);
   }
 
   private setIsTokenValid(newIsTokenValidValue: boolean): void {
@@ -179,12 +180,6 @@ export class CoderTokenAuth implements CoderTokenAuthApi {
    * can be passed around React without risk of losing their "this" context
    ****************************************************************************/
 
-  registerNewToken = (newToken: string): void => {
-    if (newToken !== '') {
-      this.setToken(newToken);
-    }
-  };
-
   subscribe = (
     callback: SubscriptionCallback<AuthTokenStateSnapshot>,
   ): (() => void) => {
@@ -224,9 +219,15 @@ export class CoderTokenAuth implements CoderTokenAuthApi {
     return newIsValidValue;
   };
 
+  registerNewToken = (newToken: string): void => {
+    if (newToken !== '') {
+      this.setToken(newToken);
+    }
+  };
+
   clearToken = (): void => {
     this.setToken('');
-    this.setIsTokenValid(false);
+    this.writeTokenToLocalStorage();
   };
 
   getStateSnapshot = (): AuthTokenStateSnapshot => {
