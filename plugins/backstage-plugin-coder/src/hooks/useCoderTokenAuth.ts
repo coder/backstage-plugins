@@ -3,7 +3,10 @@ import { type UseQueryResult, useQuery } from '@tanstack/react-query';
 import { useApi } from '@backstage/core-plugin-api';
 import { CODER_QUERY_KEY_PREFIX } from '../api/queryOptions';
 import { BackstageHttpError } from '../api/errors';
-import { type AuthTokenStateSnapshot } from '../api/CoderTokenAuth';
+import {
+  CoderTokenAuth,
+  type AuthTokenStateSnapshot,
+} from '../api/CoderTokenAuth';
 import { coderAuthApiRef } from '../api/Auth';
 
 export const tokenAuthQueryKey = [
@@ -54,7 +57,7 @@ const validCoderStatuses: readonly CoderTokenAuthUiStatus[] = [
 
 export function useCoderTokenAuth(): CoderTokenUiAuth {
   const authApi = useApi(coderAuthApiRef);
-  if (authApi.type !== 'token') {
+  if (!CoderTokenAuth.isInstance(authApi)) {
     throw new Error('coderAuthRef is not configured for token auth');
   }
 

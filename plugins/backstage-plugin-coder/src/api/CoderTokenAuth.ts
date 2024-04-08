@@ -41,7 +41,6 @@ type SubscriptionCallback<TSnapshot = AuthTokenStateSnapshot> = (
 ) => void;
 
 export interface CoderTokenAuthApi extends CoderAuthApi {
-  readonly type: 'token';
   readonly token: string;
   readonly initialToken: string;
   readonly isTokenValid: boolean;
@@ -59,7 +58,6 @@ export interface CoderTokenAuthApi extends CoderAuthApi {
 }
 
 export class CoderTokenAuth implements CoderTokenAuthApi {
-  readonly type = 'token';
   readonly initialToken: string;
   private readonly options: ConfigOptions;
   private readonly discoveryApi: DiscoveryApi;
