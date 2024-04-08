@@ -18,8 +18,8 @@ type CoderClientConfigOptions = Readonly<{
 }>;
 
 export const defaultCoderClientConfigOptions = {
-  apiRoutePrefix: '/api/v2',
-  assetsRoutePrefix: '/', // Intentionally left as single slash
+  apiRoutePrefix: '/coder/api/v2',
+  assetsRoutePrefix: '/coder', // Intentionally left as single slash
   requestTimeoutMs: 20_000,
 } as const satisfies CoderClientConfigOptions;
 
