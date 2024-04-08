@@ -7,7 +7,7 @@ import React, {
 } from 'react';
 
 import { useId } from '../../hooks/hookPolyfills';
-import { useCoderAuth } from '../CoderProvider';
+import { useCoderTokenAuth } from '../../hooks/useCoderTokenAuth';
 import { useWorkspacesCardContext } from './Root';
 import { VisuallyHidden } from '../VisuallyHidden';
 
@@ -102,7 +102,7 @@ export const ExtraActionsButton = ({
   const hookId = useId();
   const [loadedAnchor, setLoadedAnchor] = useState<HTMLButtonElement>();
   const refreshWorkspaces = useRefreshWorkspaces();
-  const { ejectToken } = useCoderAuth();
+  const { ejectToken } = useCoderTokenAuth();
   const styles = useStyles();
 
   const closeMenu = () => setLoadedAnchor(undefined);
