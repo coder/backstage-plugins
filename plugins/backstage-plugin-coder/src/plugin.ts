@@ -5,22 +5,23 @@ import {
   discoveryApiRef,
 } from '@backstage/core-plugin-api';
 import { rootRouteRef } from './routes';
-import { CoderTokenAuth, coderTokenAuthApiRef } from './api/CoderTokenAuth';
+import { CoderTokenAuth } from './api/CoderTokenAuth';
 import { CoderClient, coderClientApiRef } from './api/CoderClient';
+import { coderAuthApiRef } from './api/Auth';
 
 export const coderPlugin = createPlugin({
   id: 'coder',
   routes: { root: rootRouteRef },
   apis: [
     createApiFactory({
-      api: coderTokenAuthApiRef,
+      api: coderAuthApiRef,
       deps: { discoveryApi: discoveryApiRef },
       factory: ({ discoveryApi }) => new CoderTokenAuth(discoveryApi),
     }),
 
     createApiFactory({
       api: coderClientApiRef,
-      deps: { discoveryApi: discoveryApiRef, authApi: coderTokenAuthApiRef },
+      deps: { discoveryApi: discoveryApiRef, authApi: coderAuthApiRef },
       factory: ({ discoveryApi, authApi }) => {
         return new CoderClient(discoveryApi, authApi);
       },

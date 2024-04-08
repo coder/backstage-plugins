@@ -1,4 +1,4 @@
-import { DiscoveryApi, createApiRef } from '@backstage/core-plugin-api';
+import { DiscoveryApi } from '@backstage/core-plugin-api';
 import { defaultCoderClientConfigOptions } from './CoderClient';
 import { BackstageHttpError } from './errors';
 import { CoderAuthApi } from './Auth';
@@ -41,6 +41,7 @@ type SubscriptionCallback<TSnapshot = AuthTokenStateSnapshot> = (
 ) => void;
 
 export interface CoderTokenAuthApi extends CoderAuthApi {
+  readonly type: 'token';
   readonly token: string;
   readonly initialToken: string;
   readonly isTokenValid: boolean;
@@ -58,6 +59,7 @@ export interface CoderTokenAuthApi extends CoderAuthApi {
 }
 
 export class CoderTokenAuth implements CoderTokenAuthApi {
+  readonly type = 'token';
   readonly initialToken: string;
   private readonly options: ConfigOptions;
   private readonly discoveryApi: DiscoveryApi;
@@ -241,7 +243,3 @@ export class CoderTokenAuth implements CoderTokenAuthApi {
     }
   };
 }
-
-export const coderTokenAuthApiRef = createApiRef<CoderTokenAuth>({
-  id: 'backstage-plugin-coder.token-auth',
-});
