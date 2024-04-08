@@ -6,8 +6,9 @@
  * The class will transform the mutable values into immutable snapshots that can
  * safely be referenced within React UI.
  *
- * This should not be used directly, but should instead be composed into other
- * API factories (or equivalent classes).
+ * This should not be used directly from within React, but should instead be
+ * composed into other classes (such as API factories). Those classes can then
+ * be brought into React.
  */
 import type { ReadonlyJsonValue } from '../typesConstants';
 

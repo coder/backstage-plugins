@@ -2,7 +2,7 @@ import { DiscoveryApi } from '@backstage/core-plugin-api';
 import { defaultCoderClientConfigOptions } from './CoderClient';
 import { BackstageHttpError } from './errors';
 import { CoderAuthApi } from './Auth';
-import { StateSnapshotManager } from './StateSnapshotManager';
+import { StateSnapshotManager } from '../utils/StateSnapshotManager';
 
 type ConfigOptions = Readonly<{
   localStorage: typeof window.localStorage;
