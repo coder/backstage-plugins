@@ -1,21 +1,37 @@
 /* eslint-disable @backstage/no-undeclared-imports -- For test helpers only */
-import { ConfigReader } from '@backstage/core-app-api';
+import { ConfigReader, FrontendHostDiscovery } from '@backstage/core-app-api';
 import { MockConfigApi, MockErrorApi } from '@backstage/test-utils';
 import type { ScmIntegrationRegistry } from '@backstage/integration';
 /* eslint-enable @backstage/no-undeclared-imports */
 
 import { useEntity } from '@backstage/plugin-catalog-react';
 import { type CoderAppConfig } from '../components/CoderProvider';
-import { defaultCoderClientConfigOptions } from '../api/CoderClient';
+import {
+  CoderClient,
+  coderClientApiRef,
+  defaultCoderClientConfigOptions,
+} from '../api/CoderClient';
 import {
   CoderWorkspacesConfig,
   type YamlConfig,
 } from '../hooks/useCoderWorkspacesConfig';
-import { ScmIntegrationsApi } from '@backstage/integration-react';
+import {
+  ScmIntegrationsApi,
+  scmIntegrationsApiRef,
+} from '@backstage/integration-react';
 import {
   CoderTokenAuthUiStatus,
   CoderTokenUiAuth,
 } from '../hooks/useCoderTokenAuth';
+import {
+  ApiRef,
+  DiscoveryApi,
+  configApiRef,
+  discoveryApiRef,
+  errorApiRef,
+} from '@backstage/core-plugin-api';
+import { CoderAuthApi, coderAuthApiRef } from '../api/Auth';
+import { CoderTokenAuth } from '../api/CoderTokenAuth';
 
 /**
  * This is the key that Backstage checks from the entity data to determine the
@@ -215,4 +231,47 @@ export function getMockErrorApi() {
  */
 export function getMockSourceControl(): ScmIntegrationRegistry {
   return ScmIntegrationsApi.fromConfig(new ConfigReader({}));
+}
+
+type CoderClientSetupInfo = Readonly<{
+  discoveryApi: DiscoveryApi;
+  authApi: CoderAuthApi;
+  coderClientApi: CoderClient;
+}>;
+
+export function getMockCoderClientApis(): CoderClientSetupInfo {
+  const discoveryApi = FrontendHostDiscovery.fromConfig(
+    new ConfigReader({
+      backend: {
+        baseUrl: mockBackstageUrlRoot,
+      },
+    }),
+  );
+
+  const authApi = new CoderTokenAuth(discoveryApi);
+  const coderClientApi = new CoderClient(discoveryApi, authApi);
+  return { discoveryApi, authApi, coderClientApi };
+}
+
+/**
+ * This is the main API setup test helper you should be using in the vast
+ * majority of tests.
+ */
+export function getMockApiList(): readonly [
+  ApiRef<unknown>,
+  Partial<unknown>,
+][] {
+  const mockErrorApi = getMockErrorApi();
+  const mockSourceControl = getMockSourceControl();
+  const mockConfigApi = getMockConfigApi();
+  const { discoveryApi, coderClientApi, authApi } = getMockCoderClientApis();
+
+  return [
+    [errorApiRef, mockErrorApi],
+    [scmIntegrationsApiRef, mockSourceControl],
+    [configApiRef, mockConfigApi],
+    [discoveryApiRef, discoveryApi],
+    [coderAuthApiRef, authApi],
+    [coderClientApiRef, coderClientApi],
+  ];
 }

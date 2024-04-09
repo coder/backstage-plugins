@@ -11,25 +11,23 @@ import {
 
 import React from 'react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { scmIntegrationsApiRef } from '@backstage/integration-react';
-import { configApiRef, errorApiRef } from '@backstage/core-plugin-api';
 import { EntityProvider } from '@backstage/plugin-catalog-react';
 import {
-  type CoderAuth,
-  type CoderAuthStatus,
   type CoderAppConfig,
   type CoderProviderProps,
   AuthContext,
   CoderAppConfigProvider,
 } from '../components/CoderProvider';
+import type {
+  CoderTokenUiAuth,
+  CoderTokenAuthUiStatus,
+} from '../hooks/useCoderTokenAuth';
 import {
-  getMockSourceControl,
   mockAppConfig,
   mockEntity,
-  getMockErrorApi,
-  getMockConfigApi,
   mockAuthStates,
   BackstageEntity,
+  getMockApiList,
 } from './mockBackstageData';
 import { CoderErrorBoundary } from '../plugin';
 
@@ -109,13 +107,13 @@ export function getMockQueryClient(): QueryClient {
 
 type MockAuthProps = Readonly<
   CoderProviderProps & {
-    auth?: CoderAuth;
+    auth?: CoderTokenUiAuth;
 
     /**
      * Shortcut property for injecting an auth object. Can conflict with the
      * auth property; if both are defined, authStatus is completely ignored
      */
-    authStatus?: CoderAuthStatus;
+    authStatus?: CoderTokenAuthUiStatus;
   }
 >;
 
@@ -145,7 +143,7 @@ type RenderHookAsCoderEntityOptions<TProps extends NonNullable<unknown>> = Omit<
   RenderHookOptions<TProps>,
   'wrapper'
 > & {
-  authStatus?: CoderAuthStatus;
+  authStatus?: CoderTokenAuthUiStatus;
 };
 
 export const renderHookAsCoderEntity = async <
@@ -156,22 +154,13 @@ export const renderHookAsCoderEntity = async <
   options?: RenderHookAsCoderEntityOptions<TProps>,
 ): Promise<RenderHookResult<TReturn, TProps>> => {
   const { authStatus, ...delegatedOptions } = options ?? {};
-  const mockErrorApi = getMockErrorApi();
-  const mockSourceControl = getMockSourceControl();
-  const mockConfigApi = getMockConfigApi();
   const mockQueryClient = getMockQueryClient();
 
   const renderHookValue = renderHook(hook, {
     ...delegatedOptions,
     wrapper: ({ children }) => {
       const mainMarkup = (
-        <TestApiProvider
-          apis={[
-            [errorApiRef, mockErrorApi],
-            [scmIntegrationsApiRef, mockSourceControl],
-            [configApiRef, mockConfigApi],
-          ]}
-        >
+        <TestApiProvider apis={getMockApiList()}>
           <CoderProviderWithMockAuth
             appConfig={mockAppConfig}
             queryClient={mockQueryClient}
@@ -195,7 +184,7 @@ type RenderInCoderEnvironmentInputs = Readonly<{
   entity?: BackstageEntity;
   appConfig?: CoderAppConfig;
   queryClient?: QueryClient;
-  auth?: CoderAuth;
+  auth?: CoderTokenUiAuth;
 }>;
 
 export async function renderInCoderEnvironment({
@@ -205,25 +194,12 @@ export async function renderInCoderEnvironment({
   queryClient = getMockQueryClient(),
   appConfig = mockAppConfig,
 }: RenderInCoderEnvironmentInputs) {
-  /**
-   * Tried really hard to get renderInTestApp to work, but I couldn't figure out
-   * how to get it set up with custom config values (mainly for testing the
-   * backend endpoints).
-   *
-   * Manually setting up the config API to get around that
-   */
-  const mockErrorApi = getMockErrorApi();
-  const mockSourceControl = getMockSourceControl();
-  const mockConfigApi = getMockConfigApi();
-
   const mainMarkup = (
-    <TestApiProvider
-      apis={[
-        [errorApiRef, mockErrorApi],
-        [scmIntegrationsApiRef, mockSourceControl],
-        [configApiRef, mockConfigApi],
-      ]}
-    >
+    /**
+     * @todo Look into replacing TestApiProvider + wrapInTestApp with
+     * renderInTestApp
+     */
+    <TestApiProvider apis={getMockApiList()}>
       <EntityProvider entity={entity}>
         <CoderProviderWithMockAuth
           appConfig={appConfig}
