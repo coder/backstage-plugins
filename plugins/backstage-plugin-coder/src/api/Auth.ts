@@ -9,7 +9,7 @@ import { CODER_API_REF_ID_PREFIX } from '../typesConstants';
  * Shared set of properties among all Coder auth implementations
  */
 export interface CoderAuthApi {
-  assertAuthIsValid: () => void;
+  assertAuthIsValid: () => Promise<void>;
   getRequestInit: () => RequestInit;
 }
 

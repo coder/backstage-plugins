@@ -240,11 +240,14 @@ export class CoderTokenAuth implements CoderTokenAuthApi {
     };
   };
 
-  assertAuthIsValid = (): void => {
-    if (!this.#isTokenValid) {
-      throw new Error(
-        'Trying to access auth token before it has been validated',
-      );
+  assertAuthIsValid = async (): Promise<void> => {
+    if (this.#isTokenValid) {
+      return;
+    }
+
+    const isValid = await this.validateToken(this.#token);
+    if (!isValid) {
+      throw new Error('Auth is not valid');
     }
   };
 }

@@ -78,9 +78,9 @@ export class CoderClient implements CoderClientApi {
   }
 
   private async getBaseProxyEndpoint(): Promise<string> {
-    const newest = await this.discoveryApi.getBaseUrl('proxy');
-    this.latestProxyEndpoint = newest;
-    return newest;
+    const latestPath = await this.discoveryApi.getBaseUrl('proxy');
+    this.latestProxyEndpoint = latestPath;
+    return latestPath;
   }
 
   private async getApiEndpoint(): Promise<string> {
@@ -93,8 +93,8 @@ export class CoderClient implements CoderClientApi {
     return `${baseEndpoint}${this.options.assetsRoutePrefix}`;
   }
 
-  private getRequestInit(): RequestInit {
-    this.authApi.assertAuthIsValid();
+  private async getRequestInit(): Promise<RequestInit> {
+    await this.authApi.assertAuthIsValid();
     const authInit = this.authApi.getRequestInit();
 
     return {
@@ -110,9 +110,11 @@ export class CoderClient implements CoderClientApi {
     workspaceBuildId: string,
   ): Promise<readonly WorkspaceBuildParameter[]> {
     const apiEndpoint = await this.getApiEndpoint();
+    const requestInit = await this.getRequestInit();
+
     const res = await fetch(
       `${apiEndpoint}/workspacebuilds/${workspaceBuildId}/parameters`,
-      this.getRequestInit(),
+      requestInit,
     );
 
     if (!res.ok) {
@@ -155,11 +157,12 @@ export class CoderClient implements CoderClientApi {
 
   getWorkspaces = async (coderQuery: string): Promise<readonly Workspace[]> => {
     const apiEndpoint = await this.getApiEndpoint();
+    const requestInit = await this.getRequestInit();
     const urlParams = new URLSearchParams({ q: coderQuery, limit: '0' });
 
     const res = await fetch(
       `${apiEndpoint}/workspaces?${urlParams.toString()}`,
-      this.getRequestInit(),
+      requestInit,
     );
 
     if (!res.ok) {

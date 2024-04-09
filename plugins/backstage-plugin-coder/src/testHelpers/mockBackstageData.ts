@@ -31,7 +31,10 @@ import {
   errorApiRef,
 } from '@backstage/core-plugin-api';
 import { CoderAuthApi, coderAuthApiRef } from '../api/Auth';
-import { CoderTokenAuth } from '../api/CoderTokenAuth';
+import {
+  CoderTokenAuth,
+  defaultTokenAuthConfigOptions,
+} from '../api/CoderTokenAuth';
 
 /**
  * This is the key that Backstage checks from the entity data to determine the
@@ -252,11 +255,27 @@ type CoderClientSetupInfo = Readonly<{
 }>;
 
 export function setupCoderClient(): CoderClientSetupInfo {
-  const discoveryApi = getMockDiscoveryApi();
-  const authApi = new CoderTokenAuth(discoveryApi);
-  const coderClientApi = new CoderClient(discoveryApi, authApi);
+  const mockDiscoveryApi = getMockDiscoveryApi();
+  const mockLocalStorage: Partial<Storage> = {
+    getItem: key => {
+      if (key === defaultTokenAuthConfigOptions.localStorageKey) {
+        return mockCoderAuthToken;
+      }
 
-  return { discoveryApi, authApi, coderClientApi };
+      return null;
+    },
+  };
+
+  const mockAuthApi = new CoderTokenAuth(mockDiscoveryApi, {
+    localStorage: mockLocalStorage as Storage,
+  });
+
+  const mockCoderClientApi = new CoderClient(mockDiscoveryApi, mockAuthApi);
+  return {
+    discoveryApi: mockDiscoveryApi,
+    authApi: mockAuthApi,
+    coderClientApi: mockCoderClientApi,
+  };
 }
 
 /**
