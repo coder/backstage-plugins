@@ -14,7 +14,7 @@ export const tokenAuthQueryKey = [
   'auth-token',
 ] as const;
 
-type TokenAuthRenderState = Readonly<
+type TokenAuthStatusSummary = Readonly<
   | {
       status: 'initializing' | 'tokenMissing';
       token: undefined;
@@ -39,10 +39,10 @@ type TokenAuthRenderState = Readonly<
     }
 >;
 
-export type CoderTokenAuthUiStatus = TokenAuthRenderState['status'];
+export type CoderTokenAuthUiStatus = TokenAuthStatusSummary['status'];
 
 export type CoderTokenUiAuth = Readonly<
-  TokenAuthRenderState & {
+  TokenAuthStatusSummary & {
     isAuthenticated: boolean;
     tokenLoadedOnMount: boolean;
     registerNewToken: (newToken: string) => void;
@@ -61,25 +61,30 @@ export function useCoderTokenAuth(): CoderTokenUiAuth {
     throw new Error('coderAuthRef is not configured for token auth');
   }
 
-  const authStateSnapshot = useSyncExternalStore(
+  // Even though a lot of the values on apiSnapshot mirror the ones you can just
+  // grab from authApi, accessing non-functions from authApi is not safe within
+  // the React UI. The API uses mutable values, and React will not be able to
+  // re-render in response to them changing. The snapshot binds React to the API
+  // in a render-safe way – use the snapshot values as much as possible
+  const apiSnapshot = useSyncExternalStore(
     authApi.subscribe,
     authApi.getStateSnapshot,
   );
 
-  const isQueryEnabled = Boolean(authStateSnapshot.currentToken);
+  const isQueryEnabled = Boolean(apiSnapshot.currentToken);
   const authValidityQuery = useQuery({
-    queryKey: [...tokenAuthQueryKey, authStateSnapshot.currentToken],
-    queryFn: () => authApi.validateToken(authStateSnapshot.currentToken),
+    queryKey: [...tokenAuthQueryKey, apiSnapshot.currentToken],
+    queryFn: () => authApi.validateToken(apiSnapshot.currentToken),
     enabled: isQueryEnabled,
     keepPreviousData: isQueryEnabled,
     refetchOnWindowFocus: query => query.state.data !== false,
   });
 
-  const uiState = generateUiState(authStateSnapshot, authValidityQuery);
+  const summary = deriveStatusSummary(apiSnapshot, authValidityQuery);
   return {
-    ...uiState,
-    tokenLoadedOnMount: authStateSnapshot.initialToken !== '',
-    isAuthenticated: validCoderStatuses.includes(uiState.status),
+    ...summary,
+    tokenLoadedOnMount: apiSnapshot.initialToken !== '',
+    isAuthenticated: validCoderStatuses.includes(summary.status),
     registerNewToken: authApi.registerNewToken,
     ejectToken: authApi.clearToken,
   };
@@ -93,10 +98,10 @@ export function useCoderTokenAuth(): CoderTokenUiAuth {
  *
  * @see {@link https://tkdodo.eu/blog/status-checks-in-react-query}
  */
-export function generateUiState(
+export function deriveStatusSummary(
   authStateSnapshot: AuthTokenStateSnapshot,
   authValidityQuery: UseQueryResult<boolean>,
-): TokenAuthRenderState {
+): TokenAuthStatusSummary {
   const { currentToken, initialToken, isInsideGracePeriod } = authStateSnapshot;
   const isInitializing =
     initialToken !== '' &&
