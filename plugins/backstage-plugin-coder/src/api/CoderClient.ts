@@ -10,6 +10,7 @@ import {
 } from '../typesConstants';
 import { DiscoveryApi, createApiRef, useApi } from '@backstage/core-plugin-api';
 import { CoderAuthApi } from './Auth';
+import { CODER_API_REF_ID_PREFIX } from '../typesConstants';
 
 type CoderClientConfigOptions = Readonly<{
   apiRoutePrefix: string;
@@ -260,7 +261,7 @@ export class CoderClient implements CoderClientApi {
 }
 
 export const coderClientApiRef = createApiRef<CoderClient>({
-  id: 'backstage-plugin-coder.coder-client',
+  id: `${CODER_API_REF_ID_PREFIX}.coder-client`,
 });
 
 export function useCoderClient() {

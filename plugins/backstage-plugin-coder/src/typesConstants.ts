@@ -9,6 +9,8 @@ import {
   optional,
 } from 'valibot';
 
+export const CODER_API_REF_ID_PREFIX = 'backstage-plugin-coder';
+
 export type ReadonlyJsonValue =
   | string
   | number
