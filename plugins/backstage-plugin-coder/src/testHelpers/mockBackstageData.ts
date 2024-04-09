@@ -233,12 +233,6 @@ export function getMockSourceControl(): ScmIntegrationRegistry {
   return ScmIntegrationsApi.fromConfig(new ConfigReader({}));
 }
 
-type CoderClientSetupInfo = Readonly<{
-  discoveryApi: DiscoveryApi;
-  authApi: CoderAuthApi;
-  coderClientApi: CoderClient;
-}>;
-
 export function getMockDiscoveryApi(): DiscoveryApi {
   return FrontendHostDiscovery.fromConfig(
     new ConfigReader({
@@ -249,17 +243,17 @@ export function getMockDiscoveryApi(): DiscoveryApi {
   );
 }
 
-export function getMockCoderClientApis(): CoderClientSetupInfo {
-  const discoveryApi = FrontendHostDiscovery.fromConfig(
-    new ConfigReader({
-      backend: {
-        baseUrl: mockBackstageUrlRoot,
-      },
-    }),
-  );
+type CoderClientSetupInfo = Readonly<{
+  discoveryApi: DiscoveryApi;
+  authApi: CoderAuthApi;
+  coderClientApi: CoderClient;
+}>;
 
+export function setupCoderClient(): CoderClientSetupInfo {
+  const discoveryApi = getMockDiscoveryApi();
   const authApi = new CoderTokenAuth(discoveryApi);
   const coderClientApi = new CoderClient(discoveryApi, authApi);
+
   return { discoveryApi, authApi, coderClientApi };
 }
 
@@ -274,17 +268,14 @@ export function getMockApiList(): readonly [
   const mockErrorApi = getMockErrorApi();
   const mockSourceControl = getMockSourceControl();
   const mockConfigApi = getMockConfigApi();
-  const mockDiscoveryApi = getMockDiscoveryApi();
-
-  const auth = new CoderTokenAuth(mockDiscoveryApi);
-  const coderClient = new CoderClient(mockDiscoveryApi, auth);
+  const { discoveryApi, authApi, coderClientApi } = setupCoderClient();
 
   return [
     [errorApiRef, mockErrorApi],
     [scmIntegrationsApiRef, mockSourceControl],
     [configApiRef, mockConfigApi],
-    [discoveryApiRef, mockDiscoveryApi],
-    [coderAuthApiRef, auth],
-    [coderClientApiRef, coderClient],
+    [discoveryApiRef, discoveryApi],
+    [coderAuthApiRef, authApi],
+    [coderClientApiRef, coderClientApi],
   ];
 }

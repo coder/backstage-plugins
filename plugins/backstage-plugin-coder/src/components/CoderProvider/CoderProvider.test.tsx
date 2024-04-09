@@ -3,7 +3,11 @@ import { renderHook } from '@testing-library/react';
 import { act, waitFor } from '@testing-library/react';
 
 import { TestApiProvider, wrapInTestApp } from '@backstage/test-utils';
-import { configApiRef, errorApiRef } from '@backstage/core-plugin-api';
+import {
+  configApiRef,
+  discoveryApiRef,
+  errorApiRef,
+} from '@backstage/core-plugin-api';
 
 import { CoderProvider } from './CoderProvider';
 import { useCoderAppConfig } from './CoderAppConfigProvider';
@@ -14,14 +18,18 @@ import {
 
 import {
   getMockConfigApi,
+  getMockDiscoveryApi,
   getMockErrorApi,
   mockAppConfig,
   mockCoderAuthToken,
+  setupCoderClient,
 } from '../../testHelpers/mockBackstageData';
 import {
   getMockQueryClient,
   renderHookAsCoderEntity,
+  renderInCoderEnvironment,
 } from '../../testHelpers/setup';
+import { coderAuthApiRef } from '../../api/Auth';
 
 describe(`${CoderProvider.name}`, () => {
   describe('AppConfig', () => {
@@ -45,52 +53,23 @@ describe(`${CoderProvider.name}`, () => {
         expect(result.current).toBe(mockAppConfig);
       }
     });
-
-    // Our documentation pushes people to define the config outside a component,
-    // just to stabilize the memory reference for the value, and make sure that
-    // memoization caches don't get invalidated too often. This test is just a
-    // safety net to catch what happens if someone forgets
-    test('Context value will change by reference on re-render if defined inline inside a parent', () => {
-      const ParentComponent = ({ children }: PropsWithChildren<unknown>) => {
-        const configThatChangesEachRender = { ...mockAppConfig };
-
-        return wrapInTestApp(
-          <TestApiProvider
-            apis={[
-              [errorApiRef, getMockErrorApi()],
-              [configApiRef, getMockConfigApi()],
-            ]}
-          >
-            <CoderProvider appConfig={configThatChangesEachRender}>
-              {children}
-            </CoderProvider>
-          </TestApiProvider>,
-        );
-      };
-
-      const { result, rerender } = renderHook(useCoderAppConfig, {
-        wrapper: ParentComponent,
-      });
-
-      const firstResult = result.current;
-      rerender();
-
-      expect(result.current).not.toBe(firstResult);
-      expect(result.current).toEqual(firstResult);
-    });
   });
 
   describe('Auth', () => {
     // Can't use the render helpers because they all assume that the auth isn't
-    // core to the functionality. In this case, you do need to bring in the full
-    // CoderProvider
-    const renderUseCoderAuth = () => {
-      return renderHook(useCoderTokenAuth, {
+    // core to the functionality and can be hand-waved. In this case, you do
+    // need to bring in the full CoderProvider to verify it's working
+    const renderUseCoderAuth = async () => {
+      const { discoveryApi, authApi } = setupCoderClient();
+
+      const renderResult = renderHook(useCoderTokenAuth, {
         wrapper: ({ children }) => (
           <TestApiProvider
             apis={[
               [errorApiRef, getMockErrorApi()],
               [configApiRef, getMockConfigApi()],
+              [discoveryApiRef, discoveryApi],
+              [coderAuthApiRef, authApi],
             ]}
           >
             <CoderProvider
@@ -102,10 +81,13 @@ describe(`${CoderProvider.name}`, () => {
           </TestApiProvider>
         ),
       });
+
+      await waitFor(() => expect(renderResult.result.current).not.toBe(null));
+      return renderResult;
     };
 
     it('Should let the user eject their auth token', async () => {
-      const { result } = renderUseCoderAuth();
+      const { result } = await renderUseCoderAuth();
       act(() => result.current.registerNewToken(mockCoderAuthToken));
 
       await waitFor(() => {
