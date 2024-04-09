@@ -1,8 +1,8 @@
-import React, { PropsWithChildren } from 'react';
+import React from 'react';
 import { renderHook } from '@testing-library/react';
 import { act, waitFor } from '@testing-library/react';
 
-import { TestApiProvider, wrapInTestApp } from '@backstage/test-utils';
+import { TestApiProvider } from '@backstage/test-utils';
 import {
   configApiRef,
   discoveryApiRef,
@@ -18,7 +18,6 @@ import {
 
 import {
   getMockConfigApi,
-  getMockDiscoveryApi,
   getMockErrorApi,
   mockAppConfig,
   mockCoderAuthToken,
@@ -27,9 +26,9 @@ import {
 import {
   getMockQueryClient,
   renderHookAsCoderEntity,
-  renderInCoderEnvironment,
 } from '../../testHelpers/setup';
 import { coderAuthApiRef } from '../../api/Auth';
+import { coderClientApiRef } from '../../api/CoderClient';
 
 describe(`${CoderProvider.name}`, () => {
   describe('AppConfig', () => {
@@ -60,7 +59,7 @@ describe(`${CoderProvider.name}`, () => {
     // core to the functionality and can be hand-waved. In this case, you do
     // need to bring in the full CoderProvider to verify it's working
     const renderUseCoderAuth = async () => {
-      const { discoveryApi, authApi } = setupCoderClient();
+      const { discoveryApi, authApi, coderClientApi } = setupCoderClient();
 
       const renderResult = renderHook(useCoderTokenAuth, {
         wrapper: ({ children }) => (
@@ -70,6 +69,7 @@ describe(`${CoderProvider.name}`, () => {
               [configApiRef, getMockConfigApi()],
               [discoveryApiRef, discoveryApi],
               [coderAuthApiRef, authApi],
+              [coderClientApiRef, coderClientApi],
             ]}
           >
             <CoderProvider

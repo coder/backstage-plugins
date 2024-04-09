@@ -68,9 +68,11 @@ export const mockBackstageUrlRoot = 'http://localhost:7007';
  * The actual endpoint to hit when trying to mock out a server request during
  * testing.
  */
-export const mockBackstageProxyEndpoint = `${mockBackstageUrlRoot}${defaultCoderClientConfigOptions.apiRoutePrefix}`;
+export const mockBackstageProxyEndpoint =
+  `${mockBackstageUrlRoot}/api/proxy${defaultCoderClientConfigOptions.apiRoutePrefix}` as const;
 
-export const mockBackstageAssetsEndpoint = `${mockBackstageUrlRoot}${defaultCoderClientConfigOptions.assetsRoutePrefix}`;
+export const mockBackstageAssetsEndpoint =
+  `${mockBackstageUrlRoot}/api/proxy${defaultCoderClientConfigOptions.assetsRoutePrefix}` as const;
 
 export const mockCoderAuthToken = 'ZG0HRy2gGN-mXljc1s5FqtE8WUJ4sUc5X';
 
