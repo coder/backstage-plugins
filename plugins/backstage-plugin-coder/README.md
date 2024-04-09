@@ -131,6 +131,151 @@ spec:
 
 You can find more information about what properties are available (and how they're applied) in our [`catalog-info.yaml` file documentation](./docs/catalog-info.md).
 
+## Advanced: Use the Coder API
+
+You can build custom React components and functions that use the Coder API on behalf of the authenticated user.
+
+### Example: List Coder workspaces
+
+```tsx
+import { useCoderClient, getErrorMessage } from '@coder/coder-js-sdk'; // https://github.com/coder/coder/tree/main/js-sdk
+
+function CustomWorkspacesComponent () {
+  const coderClient = useCoderClient();
+  const workspacesState = useAsync(() => {
+    return coderClient.api.getWorkspaces({
+      q: "owner:me",
+    });
+  }, []);
+
+  return (
+    <CoderAuthWrapper type="card">
+      <h1>Your workspaces</h1>
+
+      {workspacesState.loading && <Progress />}
+      {workspacesState.error && <ErrorPanel title="Failed to load workspaces" error={getErrorMessage(err)} />}
+      {workspaces.length > 0 && (
+        {workspaces.map((workspace) => (
+          <ul>{workspace.name}<ul>
+        ))}
+      )}
+    </CoderAuthWrapper>
+  );
+}
+```
+
+### Example: Custom Auth Component
+
+```tsx
+import { useCoderClient, getErrorMessage } from '@backstage/backstage-plugin-coder'; // https://github.com/coder/coder/tree/main/js-sdk
+
+function useCoderClient () {
+
+  const api =  useApi(coderClientApiRef);
+  // 
+
+  return {
+    ...api.methods,
+    safeRenderState,
+  }
+}
+
+const myRandomFunction = async () => {
+
+  // some other Backstage thing
+  const coderClient = useCoderClient();
+  
+  if (!coderClient.isAuthenticated) {
+    throw new Error("not logged in")
+  } else {
+    // do stuff
+  }
+}
+
+function CustomWorkspacesComponent () {
+  const coderClient = useCoderClient();
+  const workspacesState = useAsync(() => {
+    return coderClient.api.getWorkspaces({
+      q: "owner:me",
+    });
+  }, []);
+
+  // TODO: myComponent, probably looks something like
+  // <div><input type="password" onClick={??}></div>
+
+  return (
+    <CoderAuthWrapper type="card" logInComponent={myComponent}>
+      <h1>Your workspaces</h1>
+
+      {workspacesState.loading && <Progress />}
+      {workspacesState.error && (
+        <ErrorPanel
+          title="Failed to load workspaces"
+          error={getErrorMessage(err)}
+        />
+      )}
+      {workspaces.length > 0 && (
+        {workspaces.map((workspace) => (
+          <ul>{workspace.name}</ul>
+        ))}
+      }
+    </CoderAuthWrapper>
+  )
+```
+
+### Example: Skaffolder Step (or Backend)
+
+```tsx
+// TODO: Figure out how the Skaffolder works
+// is it FE or BE?
+```
+
+```tsx
+import { OauthApps } from "@backstage..."
+
+const api = useApi(oauthsomethingsomething)
+oapi.oauthtoken
+
+// using sdk directly:
+import { sdkFactory } from "@coder/coder-js-sdk"
+const sdk = sdkFactory(url, token)
+```
+
+// https://github.com/coder/backstage.cdr.dev/commit/0765dc204fcde0a7c3e7e449802d61e2dc70de01
+
+### Example: Custom authentication flow
+
+```tsx
+function CustomWorkspacesFunction () {
+  const coderClient = useCoderClient();
+  const workspacesState = useAsync(() => {
+    return coderClient.api.getWorkspaces({
+      q: "owner:me",
+    });
+  }, []);
+  
+  const clientSnapshot = useSyncExternalStore(
+    coderClient.subscribe,
+    coderClient.getStateSnapshot
+  );
+
+  clientSnapshot.isAuthenticated;
+  const err = getErrorMessage(workspacesState.error)
+
+
+  const workspaces = coderClient.api.getWorkspaces({
+    q: "owner:me",
+  })
+
+  if (coderClient.isAuthenticated()) {
+    
+  } else {
+
+  }
+
+}
+```
+
 ## Roadmap
 
 This plugin is in active development. The following features are planned:
