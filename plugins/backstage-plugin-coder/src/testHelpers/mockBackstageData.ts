@@ -239,6 +239,16 @@ type CoderClientSetupInfo = Readonly<{
   coderClientApi: CoderClient;
 }>;
 
+export function getMockDiscoveryApi(): DiscoveryApi {
+  return FrontendHostDiscovery.fromConfig(
+    new ConfigReader({
+      backend: {
+        baseUrl: mockBackstageUrlRoot,
+      },
+    }),
+  );
+}
+
 export function getMockCoderClientApis(): CoderClientSetupInfo {
   const discoveryApi = FrontendHostDiscovery.fromConfig(
     new ConfigReader({
@@ -264,14 +274,17 @@ export function getMockApiList(): readonly [
   const mockErrorApi = getMockErrorApi();
   const mockSourceControl = getMockSourceControl();
   const mockConfigApi = getMockConfigApi();
-  const { discoveryApi, coderClientApi, authApi } = getMockCoderClientApis();
+  const mockDiscoveryApi = getMockDiscoveryApi();
+
+  const auth = new CoderTokenAuth(mockDiscoveryApi);
+  const coderClient = new CoderClient(mockDiscoveryApi, auth);
 
   return [
     [errorApiRef, mockErrorApi],
     [scmIntegrationsApiRef, mockSourceControl],
     [configApiRef, mockConfigApi],
-    [discoveryApiRef, discoveryApi],
-    [coderAuthApiRef, authApi],
-    [coderClientApiRef, coderClientApi],
+    [discoveryApiRef, mockDiscoveryApi],
+    [coderAuthApiRef, auth],
+    [coderClientApiRef, coderClient],
   ];
 }
