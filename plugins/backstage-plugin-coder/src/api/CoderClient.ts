@@ -9,6 +9,7 @@ import { BackstageHttpError } from './errors';
 import { DiscoveryApi, createApiRef } from '@backstage/core-plugin-api';
 import { CoderAuthApi } from './Auth';
 import { CODER_API_REF_ID_PREFIX } from '../typesConstants';
+import { StateSnapshotManager } from '../utils/StateSnapshotManager';
 
 type CoderClientConfigOptions = Readonly<{
   apiRoutePrefix: string;
@@ -24,7 +25,8 @@ export const defaultCoderClientConfigOptions = {
   requestTimeoutMs: 20_000,
 } as const satisfies CoderClientConfigOptions;
 
-export type ApiEndpoints = Readonly<{
+export type CoderClientSnapshot = Readonly<{
+  isAuthValid: boolean;
   apiRoute: string;
   assetsRoute: string;
 }>;
@@ -42,15 +44,16 @@ export type CoderClientApi = Readonly<{
   api: ApiNamespace;
   isAuthValid: boolean;
   validateAuth: () => Promise<boolean>;
-  getApiEndpoints: () => ApiEndpoints;
+  getStateSnapshot: () => CoderClientSnapshot;
 }>;
 
 export class CoderClient implements CoderClientApi {
   private readonly discoveryApi: DiscoveryApi;
   private readonly authApi: CoderAuthApi;
   private readonly options: CoderClientConfigOptions;
-  private latestBaseEndpoint: string;
+  private readonly snapshotManager: StateSnapshotManager<CoderClientSnapshot>;
 
+  private latestBaseEndpoint: string;
   readonly api: ApiNamespace;
 
   constructor(
@@ -85,10 +88,30 @@ export class CoderClient implements CoderClientApi {
     // Call DiscoveryApi to populate initial endpoint path, so that the path
     // can be accessed synchronously from the UI
     void this.getBaseProxyEndpoint();
+
+    // Hook up snapshot manager so that external systems can be made aware when
+    // state changes in a render-safe way
+    this.snapshotManager = new StateSnapshotManager({
+      initialSnapshot: this.prepareNewSnapshot(),
+    });
   }
 
   get isAuthValid(): boolean {
     return this.authApi.isTokenValid;
+  }
+
+  private prepareNewSnapshot(): CoderClientSnapshot {
+    const { apiRoutePrefix, assetsRoutePrefix } = this.options;
+    return {
+      isAuthValid: this.authApi.isTokenValid,
+      apiRoute: `${this.latestBaseEndpoint}${apiRoutePrefix}`,
+      assetsRoute: `${this.latestBaseEndpoint}${assetsRoutePrefix}`,
+    };
+  }
+
+  private notifySubscriptions(): void {
+    const newSnapshot = this.prepareNewSnapshot();
+    this.snapshotManager.updateSnapshot(newSnapshot);
   }
 
   // Backstage officially recommends that you use the DiscoveryApi over the
@@ -99,6 +122,8 @@ export class CoderClient implements CoderClientApi {
   private async getBaseProxyEndpoint(): Promise<string> {
     const latestBase = await this.discoveryApi.getBaseUrl('proxy');
     this.latestBaseEndpoint = latestBase;
+    this.notifySubscriptions();
+
     return latestBase;
   }
 
@@ -125,19 +150,8 @@ export class CoderClient implements CoderClientApi {
     });
   };
 
-  getApiEndpoints = (): ApiEndpoints => {
-    if (!this.latestBaseEndpoint) {
-      return {
-        apiRoute: '',
-        assetsRoute: '',
-      };
-    }
-
-    const { apiRoutePrefix, assetsRoutePrefix } = this.options;
-    return {
-      apiRoute: `${this.latestBaseEndpoint}${apiRoutePrefix}`,
-      assetsRoute: `${this.latestBaseEndpoint}${assetsRoutePrefix}`,
-    };
+  getStateSnapshot = (): CoderClientSnapshot => {
+    return this.snapshotManager.getSnapshot();
   };
 }
 
