@@ -1,7 +1,7 @@
 import { useSyncExternalStore } from 'use-sync-external-store/shim';
 import { type UseQueryResult, useQuery } from '@tanstack/react-query';
 import { useApi } from '@backstage/core-plugin-api';
-import { useCoderClient } from '../api/CoderClient';
+import { useCoderClient } from './useCoderClient';
 import { CODER_QUERY_KEY_PREFIX } from '../api/queryOptions';
 import { BackstageHttpError } from '../api/errors';
 import {

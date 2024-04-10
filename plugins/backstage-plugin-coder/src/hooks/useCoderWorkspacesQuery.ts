@@ -1,7 +1,7 @@
 import { useQuery } from '@tanstack/react-query';
 import { workspacesByRepo, workspaces } from '../api/queryOptions';
 import type { CoderWorkspacesConfig } from './useCoderWorkspacesConfig';
-import { useCoderClient } from '../api/CoderClient';
+import { useCoderClient } from './useCoderClient';
 
 type QueryInput = Readonly<{
   coderQuery: string;

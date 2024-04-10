@@ -1,6 +1,6 @@
 import React, { ForwardedRef, HTMLAttributes, useState } from 'react';
 import { Theme, makeStyles } from '@material-ui/core';
-import { useCoderClient } from '../../api/CoderClient';
+import { useCoderClient } from '../../hooks/useCoderClient';
 
 type WorkspaceListIconProps = Readonly<
   Omit<HTMLAttributes<HTMLDivElement>, 'children' | 'aria-hidden'> & {
