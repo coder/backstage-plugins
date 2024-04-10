@@ -1,15 +1,9 @@
-import { DiscoveryApi } from '@backstage/core-plugin-api';
-import { defaultCoderClientConfigOptions } from './CoderClient';
-import { BackstageHttpError } from './errors';
-import { CoderAuthApi } from './Auth';
+import type { CoderAuthApi, IsAuthValidCallback } from './Auth';
 import { StateSnapshotManager } from '../utils/StateSnapshotManager';
 
 type ConfigOptions = Readonly<{
   localStorage: typeof window.localStorage;
   localStorageKey: string;
-  requestTimeoutMs: number;
-  authTokenHeaderKey: string;
-  apiPath: string;
 
   // Handles auth edge case where a previously-valid token can't be verified.
   // Not immediately removing token to provide better UX in case someone's
@@ -20,19 +14,13 @@ type ConfigOptions = Readonly<{
 export const defaultTokenAuthConfigOptions = {
   localStorage: window.localStorage,
   localStorageKey: 'coder-backstage-plugin/token',
-  authTokenHeaderKey: 'Coder-Session-Token',
   gracePeriodTimeoutMs: 6_000,
-
-  // Sharing config values with CoderClient to remove need for Auth class
-  // instances to have an instance of the main CoderClient class
-  apiPath: defaultCoderClientConfigOptions.apiRoutePrefix,
-  requestTimeoutMs: defaultCoderClientConfigOptions.requestTimeoutMs,
 } as const satisfies ConfigOptions;
 
 export type AuthTokenStateSnapshot = Readonly<{
-  currentToken: string;
+  token: string;
+  isTokenValid: boolean;
   initialToken: string;
-  isCurrentTokenValid: boolean;
   isInsideGracePeriod: boolean;
 }>;
 
@@ -40,27 +28,15 @@ type SubscriptionCallback<TSnapshot = AuthTokenStateSnapshot> = (
   snapshot: TSnapshot,
 ) => void;
 
-export interface CoderTokenAuthApi extends CoderAuthApi {
-  readonly token: string;
+export interface CoderTokenAuthApi
+  extends CoderAuthApi<AuthTokenStateSnapshot> {
   readonly initialToken: string;
-  readonly isTokenValid: boolean;
   readonly isInsideGracePeriod: boolean;
-
-  registerNewToken: (newToken: string) => void;
-  clearToken: () => void;
-  validateToken: (tokenToValidate: string) => Promise<boolean>;
-
-  // Methods for syncing the Auth instance with other systems (main use case:
-  // syncing it with React)
-  subscribe: (callback: SubscriptionCallback) => () => void;
-  unsubscribe: (callback: SubscriptionCallback) => void;
-  getStateSnapshot: () => AuthTokenStateSnapshot;
 }
 
 export class CoderTokenAuth implements CoderTokenAuthApi {
   readonly initialToken: string;
   private readonly options: ConfigOptions;
-  private readonly discoveryApi: DiscoveryApi;
   private readonly snapshotManager: StateSnapshotManager<AuthTokenStateSnapshot>;
 
   #token: string;
@@ -68,8 +44,7 @@ export class CoderTokenAuth implements CoderTokenAuthApi {
   #isInsideGracePeriod: boolean;
   #distrustGracePeriodTimeoutId: number | undefined;
 
-  constructor(discoveryApi: DiscoveryApi, options?: Partial<ConfigOptions>) {
-    this.discoveryApi = discoveryApi;
+  constructor(options?: Partial<ConfigOptions>) {
     this.options = { ...defaultTokenAuthConfigOptions, ...(options ?? {}) };
 
     this.initialToken = this.readTokenFromLocalStorage();
@@ -79,9 +54,9 @@ export class CoderTokenAuth implements CoderTokenAuthApi {
     this.#distrustGracePeriodTimeoutId = undefined;
 
     const initialSnapshot: AuthTokenStateSnapshot = {
-      currentToken: this.#token,
+      token: this.#token,
+      isTokenValid: this.#isTokenValid,
       initialToken: this.initialToken,
-      isCurrentTokenValid: this.#isTokenValid,
       isInsideGracePeriod: this.#isInsideGracePeriod,
     };
 
@@ -90,11 +65,6 @@ export class CoderTokenAuth implements CoderTokenAuthApi {
 
   static isInstance(value: unknown): value is CoderTokenAuth {
     return value instanceof CoderTokenAuth;
-  }
-
-  private async getApiEndpoint(): Promise<string> {
-    const base = await this.discoveryApi.getBaseUrl('proxy');
-    return `${base}${this.options.apiPath}`;
   }
 
   private readTokenFromLocalStorage(): string {
@@ -112,11 +82,11 @@ export class CoderTokenAuth implements CoderTokenAuthApi {
     }
   }
 
-  private flushStateChanges(): void {
+  private notifySubscriptions(): void {
     const newSnapshot: AuthTokenStateSnapshot = {
-      currentToken: this.#token,
+      token: this.#token,
+      isTokenValid: this.#isTokenValid,
       initialToken: this.initialToken,
-      isCurrentTokenValid: this.#isTokenValid,
       isInsideGracePeriod: this.#isInsideGracePeriod,
     };
 
@@ -130,9 +100,7 @@ export class CoderTokenAuth implements CoderTokenAuthApi {
 
     this.#token = newToken;
     this.setIsTokenValid(false);
-    this.flushStateChanges();
-
-    void this.validateToken(newToken);
+    this.notifySubscriptions();
   }
 
   private setIsTokenValid(newIsTokenValidValue: boolean): void {
@@ -150,7 +118,7 @@ export class CoderTokenAuth implements CoderTokenAuthApi {
     }
 
     this.#isTokenValid = newIsTokenValidValue;
-    this.flushStateChanges();
+    this.notifySubscriptions();
 
     if (this.#isTokenValid) {
       this.writeTokenToLocalStorage();
@@ -163,10 +131,6 @@ export class CoderTokenAuth implements CoderTokenAuthApi {
 
   get isTokenValid(): boolean {
     return this.#isTokenValid;
-  }
-
-  get authHeaderKey(): string {
-    return this.options.authTokenHeaderKey;
   }
 
   get isInsideGracePeriod(): boolean {
@@ -188,33 +152,8 @@ export class CoderTokenAuth implements CoderTokenAuthApi {
     return this.snapshotManager.unsubscribe(callback);
   };
 
-  validateToken = async (tokenToValidate: string): Promise<boolean> => {
-    const endpoint = await this.getApiEndpoint();
-
-    let response: Response;
-    try {
-      // In this case, the request doesn't actually matter. Just need to make
-      // any kind of dummy request to validate the auth
-      response = await fetch(`${endpoint}/users/me`, this.getRequestInit());
-    } catch (err) {
-      if (tokenToValidate === this.#token) {
-        this.setIsTokenValid(false);
-      }
-
-      throw err;
-    }
-
-    if (response.status >= 400 && response.status !== 401) {
-      this.setIsTokenValid(false);
-      throw new BackstageHttpError('Failed to complete request', response);
-    }
-
-    const newIsValidValue = response.status !== 401;
-    if (tokenToValidate === this.#token) {
-      this.setIsTokenValid(newIsValidValue);
-    }
-
-    return newIsValidValue;
+  getStateSnapshot = (): AuthTokenStateSnapshot => {
+    return this.snapshotManager.getSnapshot();
   };
 
   registerNewToken = (newToken: string): void => {
@@ -228,26 +167,11 @@ export class CoderTokenAuth implements CoderTokenAuthApi {
     this.writeTokenToLocalStorage();
   };
 
-  getStateSnapshot = (): AuthTokenStateSnapshot => {
-    return this.snapshotManager.getSnapshot();
-  };
-
-  getRequestInit = (): RequestInit => {
-    const { authTokenHeaderKey, requestTimeoutMs } = this.options;
-    return {
-      headers: { [authTokenHeaderKey]: this.#token },
-      signal: AbortSignal.timeout(requestTimeoutMs),
-    };
-  };
-
-  assertAuthIsValid = async (): Promise<void> => {
-    if (this.#isTokenValid) {
-      return;
-    }
-
-    const isValid = await this.validateToken(this.#token);
-    if (!isValid) {
-      throw new Error('Auth is not valid');
-    }
+  validateAuth = async (
+    validationMethod: IsAuthValidCallback,
+  ): Promise<boolean> => {
+    const isValid = await validationMethod(this.#token);
+    this.setIsTokenValid(isValid);
+    return isValid;
   };
 }
