@@ -24,11 +24,11 @@ export type CoderAuthApi<
 > = TPayload & {
   /**
    * Gives back a "state setter" that lets you dispatch a new auth status to
-   * the main Auth class.
+   * the an Auth class implementation.
    *
-   * Dispatching will only go through if the auth class's token does not change
-   * between the validator being created, and it being called. If it does
-   * change, you will need to make a new validator.
+   * Dispatching should only go through if the auth class's token does not
+   * change between the validator being created, and it being called. If the
+   * token does change, you will need to make a new validator.
    */
   getAuthValidator: () => AuthValidatorDispatch;
 

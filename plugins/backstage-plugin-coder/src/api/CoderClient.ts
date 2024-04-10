@@ -192,6 +192,18 @@ export class CoderClient implements CoderClientApi {
    * can be passed around React without risk of losing their "this" context
    ****************************************************************************/
 
+  unsubscribe = (callback: SubscriptionCallback): void => {
+    this.snapshotManager.unsubscribe(callback);
+  };
+
+  subscribe = (callback: SubscriptionCallback): (() => void) => {
+    return this.snapshotManager.subscribe(callback);
+  };
+
+  getStateSnapshot = (): CoderClientSnapshot => {
+    return this.snapshotManager.getSnapshot();
+  };
+
   validateAuth = async (): Promise<boolean> => {
     const dispatchNewStatus = this.authApi.getAuthValidator();
 
@@ -202,6 +214,8 @@ export class CoderClient implements CoderClientApi {
       dispatchNewStatus(true);
       return true;
     } catch (err) {
+      dispatchNewStatus(false);
+
       if (!(err instanceof AxiosError)) {
         throw err;
       }
@@ -216,20 +230,7 @@ export class CoderClient implements CoderClientApi {
       }
     }
 
-    dispatchNewStatus(false);
     return false;
-  };
-
-  getStateSnapshot = (): CoderClientSnapshot => {
-    return this.snapshotManager.getSnapshot();
-  };
-
-  unsubscribe = (callback: SubscriptionCallback): void => {
-    this.snapshotManager.unsubscribe(callback);
-  };
-
-  subscribe = (callback: SubscriptionCallback): (() => void) => {
-    return this.snapshotManager.subscribe(callback);
   };
 }
 

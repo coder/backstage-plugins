@@ -56,14 +56,9 @@ export class CoderTokenAuth implements CoderTokenAuthApi {
     this.#isInsideGracePeriod = true;
     this.#distrustGracePeriodTimeoutId = undefined;
 
-    const initialSnapshot: AuthTokenStateSnapshot = {
-      token: this.#token,
-      isTokenValid: this.#isTokenValid,
-      initialToken: this.initialToken,
-      isInsideGracePeriod: this.#isInsideGracePeriod,
-    };
-
-    this.snapshotManager = new StateSnapshotManager({ initialSnapshot });
+    this.snapshotManager = new StateSnapshotManager({
+      initialSnapshot: this.prepareNewSnapshot(),
+    });
   }
 
   static isInstance(value: unknown): value is CoderTokenAuth {
@@ -85,14 +80,17 @@ export class CoderTokenAuth implements CoderTokenAuthApi {
     }
   }
 
-  private notifySubscriptions(): void {
-    const newSnapshot: AuthTokenStateSnapshot = {
+  private prepareNewSnapshot(): AuthTokenStateSnapshot {
+    return {
       token: this.#token,
       isTokenValid: this.#isTokenValid,
       initialToken: this.initialToken,
       isInsideGracePeriod: this.#isInsideGracePeriod,
     };
+  }
 
+  private notifySubscriptions(): void {
+    const newSnapshot = this.prepareNewSnapshot();
     this.snapshotManager.updateSnapshot(newSnapshot);
   }
 
