@@ -173,8 +173,13 @@ export class CoderTokenAuth implements CoderTokenAuthApi {
   validateAuth = async (
     validationMethod: IsAuthValidCallback,
   ): Promise<boolean> => {
-    const isValid = await validationMethod(this.#token);
-    this.setIsTokenValid(isValid);
-    return isValid;
+    try {
+      const isValid = await validationMethod(this.#token);
+      this.setIsTokenValid(isValid);
+      return isValid;
+    } catch {
+      this.setIsTokenValid(false);
+      return false;
+    }
   };
 }
