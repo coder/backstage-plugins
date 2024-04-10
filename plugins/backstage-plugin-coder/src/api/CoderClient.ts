@@ -1,15 +1,13 @@
-import axios from 'axios';
+import axios, { AxiosError } from 'axios';
 import * as coderSdkApi from 'coder/site/src/api/api';
-
-import { getErrorMessage } from 'coder/site/src/api/errors';
-import type { Workspace } from 'coder/site/src/api/typesGenerated';
-
-import type { CoderWorkspacesConfig } from '../hooks/useCoderWorkspacesConfig';
-import { BackstageHttpError } from './errors';
 import { DiscoveryApi, createApiRef } from '@backstage/core-plugin-api';
-import { CoderAuthApi } from './Auth';
+import { BackstageHttpError } from './errors';
+
+import type { CoderAuthApi } from './Auth';
 import { CODER_API_REF_ID_PREFIX } from '../typesConstants';
 import { StateSnapshotManager } from '../utils/StateSnapshotManager';
+import type { Workspace } from 'coder/site/src/api/typesGenerated';
+import type { CoderWorkspacesConfig } from '../hooks/useCoderWorkspacesConfig';
 
 type CoderClientConfigOptions = Readonly<{
   apiRoutePrefix: string;
@@ -31,7 +29,7 @@ export type CoderClientSnapshot = Readonly<{
   assetsRoute: string;
 }>;
 
-type ApiNamespace = Readonly<
+export type CoderApiNamespace = Readonly<
   typeof coderSdkApi & {
     getWorkspacesByRepo: (
       coderQuery: string,
@@ -40,11 +38,16 @@ type ApiNamespace = Readonly<
   }
 >;
 
+type SubscriptionCallback = (newSnapshot: CoderClientSnapshot) => void;
+
 export type CoderClientApi = Readonly<{
-  api: ApiNamespace;
+  api: CoderApiNamespace;
   isAuthValid: boolean;
   validateAuth: () => Promise<boolean>;
+
   getStateSnapshot: () => CoderClientSnapshot;
+  unsubscribe: (callback: SubscriptionCallback) => void;
+  subscribe: (callback: SubscriptionCallback) => () => void;
 }>;
 
 export class CoderClient implements CoderClientApi {
@@ -54,7 +57,7 @@ export class CoderClient implements CoderClientApi {
   private readonly snapshotManager: StateSnapshotManager<CoderClientSnapshot>;
 
   private latestBaseEndpoint: string;
-  readonly api: ApiNamespace;
+  readonly api: CoderApiNamespace;
 
   constructor(
     discoveryApi: DiscoveryApi,
@@ -67,14 +70,13 @@ export class CoderClient implements CoderClientApi {
     this.latestBaseEndpoint = '';
     this.options = { ...defaultCoderClientConfigOptions, ...(options ?? {}) };
 
-    // Wire up API namespace and patch in additional function for end-user
+    // Wire up API namespace and patch in additional function(s) for end-user
     // convenience. Cannot inline function definitions inside this.api
     // assignment because of funky JavaScript `this` rules
     const getWorkspacesByRepo: typeof this.getWorkspacesByRepo = (
       coderQuery,
       config,
     ) => this.getWorkspacesByRepo(coderQuery, config);
-
     this.api = { ...coderSdkApi, getWorkspacesByRepo };
 
     // Wire up Backstage APIs to be aware of Axios, and keep it aware of the
@@ -118,7 +120,7 @@ export class CoderClient implements CoderClientApi {
   // ConfigApi nowadays, and that you call it before each request. But the
   // problem is that the Discovery API has no synchronous methods for getting
   // endpoints, meaning that there's no great built-in way to access that data
-  // synchronously. Have to cache it over time
+  // synchronously. Have to cache the return value for UI logic
   private async getBaseProxyEndpoint(): Promise<string> {
     const latestBase = await this.discoveryApi.getBaseUrl('proxy');
     this.latestBaseEndpoint = latestBase;
@@ -127,10 +129,63 @@ export class CoderClient implements CoderClientApi {
     return latestBase;
   }
 
+  private remapWorkspaceUrls(
+    workspaces: readonly Workspace[],
+  ): readonly Workspace[] {
+    const { assetsRoute } = this.getStateSnapshot();
+
+    return workspaces.map(ws => {
+      const templateIconUrl = ws.template_icon;
+      if (!templateIconUrl.startsWith('/')) {
+        return ws;
+      }
+
+      return {
+        ...ws,
+        template_icon: `${assetsRoute}${templateIconUrl}`,
+      };
+    });
+  }
+
   private async getWorkspacesByRepo(
     coderQuery: string,
     config: CoderWorkspacesConfig,
-  ): Promise<readonly Workspace[]> {}
+  ): Promise<readonly Workspace[]> {
+    const { workspaces } = await this.api.getWorkspaces({
+      q: coderQuery,
+      limit: 0,
+    });
+
+    const remappedWorkspaces = this.remapWorkspaceUrls(workspaces);
+    const paramResults = await Promise.allSettled(
+      remappedWorkspaces.map(ws =>
+        this.api.getWorkspaceBuildParameters(ws.latest_build.id),
+      ),
+    );
+
+    const matchedWorkspaces: Workspace[] = [];
+    for (const [index, res] of paramResults.entries()) {
+      if (res.status === 'rejected') {
+        continue;
+      }
+
+      for (const param of res.value) {
+        const include =
+          config.repoUrlParamKeys.includes(param.name) &&
+          param.value === config.repoUrl;
+
+        if (include) {
+          // Doing type assertion just in case noUncheckedIndexedAccess compiler
+          // setting ever gets turned on; this shouldn't ever break, but it's
+          // technically not type-safe
+          matchedWorkspaces.push(workspaces[index] as Workspace);
+          break;
+        }
+      }
+    }
+
+    return matchedWorkspaces;
+  }
 
   /* ***************************************************************************
    * All public functions should be defined as arrow functions to ensure they
@@ -139,19 +194,44 @@ export class CoderClient implements CoderClientApi {
 
   validateAuth = (): Promise<boolean> => {
     return this.authApi.validateAuth(async () => {
-      // try {
-      //    await this.api.getUserLoginType();
-      //   return true;
-      // } catch (err) {
-      // }
-      // if (response.status >= 400 && response.status !== 401) {
-      //   throw new BackstageHttpError('Failed to complete request', response);
-      // }
+      try {
+        // Dummy request; just need something that all users would have access
+        // to, and that doesn't require a body
+        await this.api.getUserLoginType();
+        return true;
+      } catch (err) {
+        this.notifySubscriptions();
+
+        if (!(err instanceof AxiosError)) {
+          throw err;
+        }
+
+        const response = err.response;
+        if (response === undefined) {
+          throw new Error(
+            'Unable to complete request - unknown error detected.',
+          );
+        }
+
+        if (response.status >= 400 && response.status !== 401) {
+          throw new BackstageHttpError('Failed to complete request', response);
+        }
+      }
+
+      return false;
     });
   };
 
   getStateSnapshot = (): CoderClientSnapshot => {
     return this.snapshotManager.getSnapshot();
+  };
+
+  unsubscribe = (callback: SubscriptionCallback): void => {
+    this.snapshotManager.unsubscribe(callback);
+  };
+
+  subscribe = (callback: SubscriptionCallback): (() => void) => {
+    return this.snapshotManager.subscribe(callback);
   };
 }
 
@@ -159,4 +239,4 @@ export const coderClientApiRef = createApiRef<CoderClient>({
   id: `${CODER_API_REF_ID_PREFIX}.coder-client`,
 });
 
-export * as ApiTypes from 'coder/site/src/api/typesGenerated';
+export type * as CoderSdkTypes from 'coder/site/src/api/typesGenerated';
