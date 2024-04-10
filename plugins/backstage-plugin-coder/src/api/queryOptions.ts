@@ -31,9 +31,16 @@ export function workspaces({
 }: WorkspacesInputs): UseQueryOptions<readonly Workspace[]> {
   return {
     queryKey: getSharedWorkspacesQueryKey(coderQuery),
-    queryFn: () => client.getWorkspaces(coderQuery),
     keepPreviousData: coderQuery !== '',
     refetchInterval: getCoderWorkspacesRefetchInterval,
+    queryFn: async () => {
+      const response = await client.api.getWorkspaces({
+        q: coderQuery,
+        limit: 0,
+      });
+
+      return response.workspaces;
+    },
   };
 }
 
@@ -51,7 +58,8 @@ export function workspacesByRepo({
   const enabled = coderQuery !== '';
   return {
     queryKey: [...getSharedWorkspacesQueryKey(coderQuery), workspacesConfig],
-    queryFn: () => client.getWorkspacesByRepo(coderQuery, workspacesConfig),
+    queryFn: async () =>
+      client.api.getWorkspacesByRepo(coderQuery, workspacesConfig),
     enabled,
     keepPreviousData: enabled,
     refetchInterval: getCoderWorkspacesRefetchInterval,
