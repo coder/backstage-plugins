@@ -7,22 +7,21 @@ import {
   coderClientApiRef,
 } from '../api/CoderClient';
 
-type UseCoderClientSnapshot = Readonly<
-  CoderClientSnapshot & {
-    api: CoderApiNamespace;
-    validateAuth: CoderClient['validateAuth'];
-  }
->;
+type UseCoderClientSnapshot = Readonly<{
+  api: CoderApiNamespace;
+  state: CoderClientSnapshot;
+  validateAuth: CoderClient['validateAuth'];
+}>;
 
 export function useCoderClient(): UseCoderClientSnapshot {
   const clientApi = useApi(coderClientApiRef);
-  const safeApiSnapshot = useSyncExternalStore(
+  const safeApiStateSnapshot = useSyncExternalStore(
     clientApi.subscribe,
     clientApi.getStateSnapshot,
   );
 
   return {
-    ...safeApiSnapshot,
+    state: safeApiStateSnapshot,
     api: clientApi.api,
     validateAuth: clientApi.validateAuth,
   };
