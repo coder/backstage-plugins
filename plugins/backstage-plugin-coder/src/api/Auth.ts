@@ -22,16 +22,28 @@ export type AuthSubscriptionCallback<
 export type CoderAuthApi<
   TPayload extends AuthSubscriptionPayload = AuthSubscriptionPayload,
 > = TPayload & {
-  clearToken: () => void;
-  registerNewToken: (newToken: string) => void;
+  /**
+   * Lets external systems determine if an auth token is valid.
+   */
   validateAuth: (validationMethod: IsAuthValidCallback) => Promise<boolean>;
 
   /**
+   * Subscribes an external system to auth changes.
+   *
    * Returns an pre-wired unsubscribe callback to remove fuss of needing to hold
    * onto the original callback if it's not directly needed anymore
    */
   subscribe: (callback: AuthSubscriptionCallback<TPayload>) => () => void;
+
+  /**
+   * Lets an external system unsubscribe from auth changes.
+   */
   unsubscribe: (callback: AuthSubscriptionCallback<TPayload>) => void;
+
+  /**
+   * Lets an external system get an fully immutable snapshot of the current auth
+   * state.
+   */
   getStateSnapshot: () => AuthSubscriptionPayload;
 };
 

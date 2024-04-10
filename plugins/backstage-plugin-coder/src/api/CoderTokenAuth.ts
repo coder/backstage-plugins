@@ -32,6 +32,9 @@ export interface CoderTokenAuthApi
   extends CoderAuthApi<AuthTokenStateSnapshot> {
   readonly initialToken: string;
   readonly isInsideGracePeriod: boolean;
+
+  clearToken: () => void;
+  registerNewToken: (newToken: string) => void;
 }
 
 export class CoderTokenAuth implements CoderTokenAuthApi {
