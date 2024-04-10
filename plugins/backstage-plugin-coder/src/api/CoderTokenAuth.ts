@@ -1,4 +1,4 @@
-import type { CoderAuthApi, IsAuthValidCallback } from './Auth';
+import type { AuthValidatorDispatch, CoderAuthApi } from './Auth';
 import { StateSnapshotManager } from '../utils/StateSnapshotManager';
 
 type ConfigOptions = Readonly<{
@@ -170,16 +170,13 @@ export class CoderTokenAuth implements CoderTokenAuthApi {
     this.writeTokenToLocalStorage();
   };
 
-  validateAuth = async (
-    validationMethod: IsAuthValidCallback,
-  ): Promise<boolean> => {
-    try {
-      const isValid = await validationMethod(this.#token);
-      this.setIsTokenValid(isValid);
-      return isValid;
-    } catch (err) {
-      this.setIsTokenValid(false);
-      throw err;
-    }
+  getAuthValidator = (): AuthValidatorDispatch => {
+    const tokenOnSetup = this.#token;
+
+    return newStatus => {
+      if (this.#token === tokenOnSetup) {
+        this.setIsTokenValid(newStatus);
+      }
+    };
   };
 }

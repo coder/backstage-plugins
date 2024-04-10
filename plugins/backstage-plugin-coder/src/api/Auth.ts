@@ -5,8 +5,6 @@
 import { createApiRef } from '@backstage/core-plugin-api';
 import { CODER_API_REF_ID_PREFIX } from '../typesConstants';
 
-export type IsAuthValidCallback = (token: string) => boolean | Promise<boolean>;
-
 type AuthSubscriptionPayload = Readonly<{
   token: string;
   isTokenValid: boolean;
@@ -16,6 +14,8 @@ export type AuthSubscriptionCallback<
   TSubscriptionPayload extends AuthSubscriptionPayload = AuthSubscriptionPayload,
 > = (payload: TSubscriptionPayload) => void;
 
+export type AuthValidatorDispatch = (newStatus: boolean) => void;
+
 /**
  * Shared set of properties among all Coder auth implementations
  */
@@ -23,9 +23,14 @@ export type CoderAuthApi<
   TPayload extends AuthSubscriptionPayload = AuthSubscriptionPayload,
 > = TPayload & {
   /**
-   * Lets external systems determine if an auth token is valid.
+   * Gives back a "state setter" that lets you dispatch a new auth status to
+   * the main Auth class.
+   *
+   * Dispatching will only go through if the auth class's token does not change
+   * between the validator being created, and it being called. If it does
+   * change, you will need to make a new validator.
    */
-  validateAuth: (validationMethod: IsAuthValidCallback) => Promise<boolean>;
+  getAuthValidator: () => AuthValidatorDispatch;
 
   /**
    * Subscribes an external system to auth changes.

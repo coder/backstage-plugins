@@ -192,34 +192,32 @@ export class CoderClient implements CoderClientApi {
    * can be passed around React without risk of losing their "this" context
    ****************************************************************************/
 
-  validateAuth = (): Promise<boolean> => {
-    return this.authApi.validateAuth(async () => {
-      try {
-        // Dummy request; just need something that all users would have access
-        // to, and that doesn't require a body
-        await this.api.getUserLoginType();
-        return true;
-      } catch (err) {
-        this.notifySubscriptions();
+  validateAuth = async (): Promise<boolean> => {
+    const dispatchNewStatus = this.authApi.getAuthValidator();
 
-        if (!(err instanceof AxiosError)) {
-          throw err;
-        }
-
-        const response = err.response;
-        if (response === undefined) {
-          throw new Error(
-            'Unable to complete request - unknown error detected.',
-          );
-        }
-
-        if (response.status >= 400 && response.status !== 401) {
-          throw new BackstageHttpError('Failed to complete request', response);
-        }
+    try {
+      // Dummy request; just need something that all users would have access
+      // to, and that doesn't require a body
+      await this.api.getUserLoginType();
+      dispatchNewStatus(true);
+      return true;
+    } catch (err) {
+      if (!(err instanceof AxiosError)) {
+        throw err;
       }
 
-      return false;
-    });
+      const response = err.response;
+      if (response === undefined) {
+        throw new Error('Unable to complete request - unknown error detected.');
+      }
+
+      if (response.status >= 400 && response.status !== 401) {
+        throw new BackstageHttpError('Failed to complete request', response);
+      }
+    }
+
+    dispatchNewStatus(false);
+    return false;
   };
 
   getStateSnapshot = (): CoderClientSnapshot => {
