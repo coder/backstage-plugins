@@ -172,11 +172,24 @@ export class CoderTokenAuth implements CoderTokenAuthApi {
 
   getAuthValidator = (): AuthValidatorDispatch => {
     const tokenOnSetup = this.#token;
+    let allowUpdate = true;
 
+    const onChange = (newSnapshot: AuthTokenStateSnapshot) => {
+      if (!allowUpdate || newSnapshot.token === tokenOnSetup) {
+        return;
+      }
+
+      allowUpdate = false;
+      this.snapshotManager.unsubscribe(onChange);
+    };
+
+    this.snapshotManager.subscribe(onChange);
     return newStatus => {
-      if (this.#token === tokenOnSetup) {
+      if (allowUpdate) {
         this.setIsTokenValid(newStatus);
       }
+
+      this.snapshotManager.unsubscribe(onChange);
     };
   };
 }
