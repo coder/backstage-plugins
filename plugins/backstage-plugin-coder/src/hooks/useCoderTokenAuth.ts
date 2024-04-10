@@ -1,11 +1,12 @@
-import { useSyncExternalStore } from 'react';
+import { useSyncExternalStore } from 'use-sync-external-store/shim';
 import { type UseQueryResult, useQuery } from '@tanstack/react-query';
 import { useApi } from '@backstage/core-plugin-api';
+import { useCoderClient } from '../api/CoderClient';
 import { CODER_QUERY_KEY_PREFIX } from '../api/queryOptions';
 import { BackstageHttpError } from '../api/errors';
 import {
-  CoderTokenAuth,
   type AuthTokenStateSnapshot,
+  CoderTokenAuth,
 } from '../api/CoderTokenAuth';
 import { coderAuthApiRef } from '../api/Auth';
 
@@ -68,10 +69,12 @@ export function useCoderTokenAuth(): CoderTokenUiAuth {
     authApi.getStateSnapshot,
   );
 
-  const isQueryEnabled = Boolean(safeApiSnapshot.currentToken);
-  const authValidityQuery = useQuery({
-    queryKey: [...tokenAuthQueryKey, safeApiSnapshot.currentToken],
-    queryFn: () => authApi.validateToken(safeApiSnapshot.currentToken),
+  const coderClient = useCoderClient();
+  const isQueryEnabled = Boolean(safeApiSnapshot.token);
+
+  const authValidityQuery = useQuery<boolean>({
+    queryKey: [...tokenAuthQueryKey, safeApiSnapshot.token],
+    queryFn: coderClient.validateAuth,
     enabled: isQueryEnabled,
     keepPreviousData: isQueryEnabled,
     refetchOnWindowFocus: query => query.state.data !== false,
@@ -99,7 +102,7 @@ export function deriveStatusInfo(
   authStateSnapshot: AuthTokenStateSnapshot,
   authValidityQuery: UseQueryResult<boolean>,
 ): TokenAuthStatusInfo {
-  const { currentToken, initialToken, isInsideGracePeriod } = authStateSnapshot;
+  const { token, initialToken, isInsideGracePeriod } = authStateSnapshot;
   const isInitializing =
     initialToken !== '' &&
     authValidityQuery.isLoading &&
@@ -116,7 +119,7 @@ export function deriveStatusInfo(
 
   // Checking the token here is more direct than trying to check the query
   // object's state transitions; React Query has no simple isEnabled property
-  if (!currentToken) {
+  if (!token) {
     return {
       status: 'tokenMissing',
       token: undefined,
@@ -145,7 +148,7 @@ export function deriveStatusInfo(
       authValidityQuery.isSuccess && !authValidityQuery.isPaused;
     if (canTrustAuthThisRender) {
       return {
-        token: currentToken,
+        token: token,
         status: 'authenticated',
         error: undefined,
       };
@@ -153,7 +156,7 @@ export function deriveStatusInfo(
 
     if (isInsideGracePeriod) {
       return {
-        token: currentToken,
+        token: token,
         status: 'distrustedWithGracePeriod',
         error: undefined,
       };

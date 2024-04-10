@@ -15,8 +15,8 @@ export const coderPlugin = createPlugin({
   apis: [
     createApiFactory({
       api: coderAuthApiRef,
-      deps: { discoveryApi: discoveryApiRef },
-      factory: ({ discoveryApi }) => new CoderTokenAuth(discoveryApi),
+      deps: {},
+      factory: () => new CoderTokenAuth(),
     }),
 
     createApiFactory({
