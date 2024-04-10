@@ -177,9 +177,9 @@ export class CoderTokenAuth implements CoderTokenAuthApi {
       const isValid = await validationMethod(this.#token);
       this.setIsTokenValid(isValid);
       return isValid;
-    } catch {
+    } catch (err) {
       this.setIsTokenValid(false);
-      return false;
+      throw err;
     }
   };
 }
