@@ -6,7 +6,10 @@ import { BackstageHttpError } from './errors';
 import type { CoderAuthApi } from './Auth';
 import { CODER_API_REF_ID_PREFIX } from '../typesConstants';
 import { StateSnapshotManager } from '../utils/StateSnapshotManager';
-import type { Workspace } from 'coder/site/src/api/typesGenerated';
+import type {
+  Workspace,
+  WorkspacesResponse,
+} from 'coder/site/src/api/typesGenerated';
 import type { CoderWorkspacesConfig } from '../hooks/useCoderWorkspacesConfig';
 
 type CoderClientConfigOptions = Readonly<{
@@ -73,11 +76,21 @@ export class CoderClient implements CoderClientApi {
     // Wire up API namespace and patch in additional function(s) for end-user
     // convenience. Cannot inline function definitions inside this.api
     // assignment because of funky JavaScript `this` rules
+    const getWorkspaces: typeof this.api.getWorkspaces = async options => {
+      const response = await this.api.getWorkspaces(options);
+      const remapped: WorkspacesResponse = {
+        ...response,
+        workspaces: this.remapWorkspaceUrls(response.workspaces),
+      };
+
+      return remapped;
+    };
+
     const getWorkspacesByRepo: typeof this.getWorkspacesByRepo = (
       coderQuery,
       config,
     ) => this.getWorkspacesByRepo(coderQuery, config);
-    this.api = { ...coderSdkApi, getWorkspacesByRepo };
+    this.api = { ...coderSdkApi, getWorkspaces, getWorkspacesByRepo };
 
     // Wire up Backstage APIs to be aware of Axios, and keep it aware of the
     // most up-to-date state
@@ -129,9 +142,11 @@ export class CoderClient implements CoderClientApi {
     return latestBase;
   }
 
-  private remapWorkspaceUrls(
-    workspaces: readonly Workspace[],
-  ): readonly Workspace[] {
+  // Can't make return type readonly, because of an obscure TypeScript edge
+  // case. The SDK type for WorkspaceResponse has readonly properties, but the
+  // values themselves are not, so you can't assign a readonly array to the
+  // response type without TS complaining
+  private remapWorkspaceUrls(workspaces: readonly Workspace[]): Workspace[] {
     const { assetsRoute } = this.getStateSnapshot();
 
     return workspaces.map(ws => {
