@@ -110,15 +110,16 @@ export class CoderClient implements CoderClientApi {
     // Wire up Backstage APIs and Axios to be aware of each other
     axios.interceptors.request.use(this.interceptAxiosRequest);
 
-    // Call DiscoveryApi to populate initial endpoint path, so that the path
-    // can be accessed synchronously from the UI
-    void this.getProxyEndpoint();
-
     // Hook up snapshot manager so that external systems can be made aware when
     // state changes in a render-safe way
     this.snapshotManager = new StateSnapshotManager({
       initialSnapshot: this.prepareNewStateSnapshot(),
     });
+
+    // Call DiscoveryApi to populate initial endpoint path, so that the path
+    // can be accessed synchronously from the UI. Should be called last after
+    // all other initialization steps
+    void this.getProxyEndpoint();
   }
 
   get isAuthValid(): boolean {
@@ -175,7 +176,7 @@ export class CoderClient implements CoderClientApi {
   // ConfigApi nowadays, and that you call it before each request. But the
   // problem is that the Discovery API has no synchronous methods for getting
   // endpoints, meaning that there's no great built-in way to access that data
-  // synchronously. Have to cache the return value for UI logic
+  // from the UI's render logic. Have to cache the return value to close the gap
   private getProxyEndpoint = async (): Promise<string> => {
     const latestBase = await this.discoveryApi.getBaseUrl('proxy');
     const withProxy = `${latestBase}${this.options.proxyPrefix}`;
@@ -186,10 +187,15 @@ export class CoderClient implements CoderClientApi {
     return withProxy;
   };
 
-  // Can't make return type readonly, because of an obscure TypeScript edge
-  // case. The SDK type for WorkspaceResponse has readonly properties, but the
-  // values themselves are not, so you can't assign a readonly array to the
-  // response type without TS complaining
+  /**
+   * @todo 2024-04-11 Update type definition once this PR is finalized:
+   * @see {@link https://github.com/coder/coder/pull/12947}
+   *
+   * Can't make return type readonly, because of an obscure TypeScript edge
+   * case. The SDK type for WorkspaceResponse has readonly properties, but the
+   * values themselves are mutable, so you can't assign a readonly array to the
+   * response type without TS complaining
+   */
   private remapWorkspaceUrls = (
     workspaces: readonly Workspace[],
   ): Workspace[] => {
