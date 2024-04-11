@@ -1,3 +1,26 @@
+/**
+ * @file This class is a little chaotic. It's basically in charge of juggling
+ * and coordinating several different systems together:
+ *
+ * 1. Backstage APIs (API classes/factories, as well as proxies)
+ * 2. React (making sure that mutable class state can be turned into immutable
+ *    state snapshots that are available synchronously from the first render)
+ * 3. The custom auth API(s)
+ * 4. The Coder SDK
+ * 5. The global Axios instance (which we need, because it's what the Coder SDK
+ *    uses)
+ *
+ * All while being easy for the end-user to drop into their own Backstage
+ * deployment.
+ *
+ * ---
+ *
+ * @todo Whenever we do make a full, proper Coder SDK, make sure that it is
+ * designed around the axios.create method and Axios instances. That way, we
+ * don't have to worry about Axios request conflicts when trying to set up
+ * interceptors. We do not want to throw everything into the global Axios
+ * instance and be forced to pray that things don't break
+ */
 import axios, { AxiosError } from 'axios';
 import * as coderSdkApi from 'coder/site/src/api/api';
 import { DiscoveryApi, createApiRef } from '@backstage/core-plugin-api';
@@ -32,8 +55,9 @@ export type CoderClientSnapshot = Readonly<{
   assetsRoute: string;
 }>;
 
+type CoderSdkApi = typeof coderSdkApi;
 export type CoderApiNamespace = Readonly<
-  typeof coderSdkApi & {
+  CoderSdkApi & {
     getWorkspacesByRepo: (
       coderQuery: string,
       config: CoderWorkspacesConfig,
@@ -85,7 +109,6 @@ export class CoderClient implements CoderClientApi {
 
       return remapped;
     };
-
     const getWorkspacesByRepo: typeof this.getWorkspacesByRepo = (
       coderQuery,
       config,
