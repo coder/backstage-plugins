@@ -36,6 +36,7 @@ import type {
 import type { CoderWorkspacesConfig } from '../hooks/useCoderWorkspacesConfig';
 
 type CoderClientConfigOptions = Readonly<{
+  proxyPrefix: string;
   apiRoutePrefix: string;
   authHeaderKey: string;
   assetsRoutePrefix: string;
@@ -43,8 +44,9 @@ type CoderClientConfigOptions = Readonly<{
 }>;
 
 export const defaultCoderClientConfigOptions = {
-  apiRoutePrefix: '/coder/api/v2',
-  assetsRoutePrefix: '/coder',
+  proxyPrefix: '/coder',
+  apiRoutePrefix: '/api/v2',
+  assetsRoutePrefix: '/', // Deliberately left as single slash
   authHeaderKey: 'Coder-Session-Token',
   requestTimeoutMs: 20_000,
 } as const satisfies CoderClientConfigOptions;
@@ -83,7 +85,7 @@ export class CoderClient implements CoderClientApi {
   private readonly options: CoderClientConfigOptions;
   private readonly snapshotManager: StateSnapshotManager<CoderClientSnapshot>;
 
-  private latestBaseEndpoint: string;
+  private latestProxyEndpoint: string;
   readonly api: CoderApiNamespace;
 
   constructor(
@@ -94,14 +96,14 @@ export class CoderClient implements CoderClientApi {
     // Instantiate config properties via constructor's function signature
     this.discoveryApi = discoveryApi;
     this.authApi = authApi;
-    this.latestBaseEndpoint = '';
+    this.latestProxyEndpoint = '';
     this.options = { ...defaultCoderClientConfigOptions, ...(options ?? {}) };
 
     // Wire up API namespace and patch in additional function(s) for end-user
     // convenience. Cannot inline function definitions inside this.api
     // assignment because of funky JavaScript `this` rules
-    const getWorkspaces: typeof this.api.getWorkspaces = async options => {
-      const response = await this.api.getWorkspaces(options);
+    const getWorkspaces: CoderSdkApi['getWorkspaces'] = async options => {
+      const response = await coderSdkApi.getWorkspaces(options);
       const remapped: WorkspacesResponse = {
         ...response,
         workspaces: this.remapWorkspaceUrls(response.workspaces),
@@ -115,22 +117,30 @@ export class CoderClient implements CoderClientApi {
     ) => this.getWorkspacesByRepo(coderQuery, config);
     this.api = { ...coderSdkApi, getWorkspaces, getWorkspacesByRepo };
 
-    // Wire up Backstage APIs to be aware of Axios, and keep it aware of the
-    // most up-to-date state
+    // Wire up Backstage APIs and Axios to be aware of each other. Request
+    // configs are created on the per-request basis, so mutating a config for
+    // one request won't mess up future non-Coder requests that also uses Axios
     axios.interceptors.request.use(async config => {
-      config.baseURL = await this.getBaseProxyEndpoint();
-      config.headers[this.options.authHeaderKey] = this.authApi.token;
+      const { apiRoutePrefix, authHeaderKey } = this.options;
+
+      const isCoderApiRequest = config.url?.startsWith(apiRoutePrefix) ?? false;
+      if (!isCoderApiRequest) {
+        return config;
+      }
+
+      config.baseURL = await this.getProxyEndpoint();
+      config.headers[authHeaderKey] = this.authApi.token;
       return config;
     });
 
     // Call DiscoveryApi to populate initial endpoint path, so that the path
     // can be accessed synchronously from the UI
-    void this.getBaseProxyEndpoint();
+    void this.getProxyEndpoint();
 
     // Hook up snapshot manager so that external systems can be made aware when
     // state changes in a render-safe way
     this.snapshotManager = new StateSnapshotManager({
-      initialSnapshot: this.prepareNewSnapshot(),
+      initialSnapshot: this.prepareNewStateSnapshot(),
     });
   }
 
@@ -138,17 +148,19 @@ export class CoderClient implements CoderClientApi {
     return this.authApi.isTokenValid;
   }
 
-  private prepareNewSnapshot(): CoderClientSnapshot {
-    const { apiRoutePrefix, assetsRoutePrefix } = this.options;
+  private prepareNewStateSnapshot(): CoderClientSnapshot {
+    const base = this.latestProxyEndpoint;
+    const { proxyPrefix, apiRoutePrefix, assetsRoutePrefix } = this.options;
+
     return {
       isAuthValid: this.authApi.isTokenValid,
-      apiRoute: `${this.latestBaseEndpoint}${apiRoutePrefix}`,
-      assetsRoute: `${this.latestBaseEndpoint}${assetsRoutePrefix}`,
+      apiRoute: `${base}${proxyPrefix}${apiRoutePrefix}`,
+      assetsRoute: `${base}${proxyPrefix}${assetsRoutePrefix}`,
     };
   }
 
-  private notifySubscriptions(): void {
-    const newSnapshot = this.prepareNewSnapshot();
+  private notifySubscriptionsOfStateChange(): void {
+    const newSnapshot = this.prepareNewStateSnapshot();
     this.snapshotManager.updateSnapshot(newSnapshot);
   }
 
@@ -157,12 +169,14 @@ export class CoderClient implements CoderClientApi {
   // problem is that the Discovery API has no synchronous methods for getting
   // endpoints, meaning that there's no great built-in way to access that data
   // synchronously. Have to cache the return value for UI logic
-  private async getBaseProxyEndpoint(): Promise<string> {
+  private async getProxyEndpoint(): Promise<string> {
     const latestBase = await this.discoveryApi.getBaseUrl('proxy');
-    this.latestBaseEndpoint = latestBase;
-    this.notifySubscriptions();
+    const withProxy = `${latestBase}${this.options.proxyPrefix}`;
 
-    return latestBase;
+    this.latestProxyEndpoint = withProxy;
+    this.notifySubscriptionsOfStateChange();
+
+    return withProxy;
   }
 
   // Can't make return type readonly, because of an obscure TypeScript edge
