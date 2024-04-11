@@ -9,11 +9,7 @@ import { type Theme, makeStyles } from '@material-ui/core';
 import { useId } from '../../hooks/hookPolyfills';
 
 import { useCoderAppConfig } from '../CoderProvider';
-import type {
-  Workspace,
-  WorkspaceAgentStatus,
-  WorkspaceStatus,
-} from '../../typesConstants';
+import type { CoderSdkTypes } from '../../api/CoderClient';
 import { WorkspacesListIcon } from './WorkspacesListIcon';
 import { VisuallyHidden } from '../VisuallyHidden';
 
@@ -125,7 +121,7 @@ type StyleKeyClassName = `${Exclude<StyleKey, 'root'>}ClassName`;
 type Props = Readonly<
   Omit<LiHTMLAttributes<HTMLLIElement>, 'children'> &
     Partial<Record<StyleKeyClassName, string>> & {
-      workspace: Workspace;
+      workspace: CoderSdkTypes.Workspace;
     }
 >;
 
@@ -240,8 +236,12 @@ export const WorkspacesListItem = ({
   );
 };
 
-const deletingStatuses: readonly WorkspaceStatus[] = ['deleting', 'deleted'];
-const offlineStatuses: readonly WorkspaceStatus[] = [
+const deletingStatuses: readonly CoderSdkTypes.WorkspaceStatus[] = [
+  'deleting',
+  'deleted',
+];
+
+const offlineStatuses: readonly CoderSdkTypes.WorkspaceStatus[] = [
   'stopped',
   'stopping',
   'pending',
@@ -256,7 +256,9 @@ type AvailabilityStatus =
   | 'failed'
   | 'deleting';
 
-function getAvailabilityStatus(workspace: Workspace): AvailabilityStatus {
+function getAvailabilityStatus(
+  workspace: CoderSdkTypes.Workspace,
+): AvailabilityStatus {
   const currentStatus = workspace.latest_build.status;
 
   if (currentStatus === 'failed') {
@@ -301,9 +303,9 @@ function stopClickEventBubbling(event: MouseEvent | KeyboardEvent): void {
 }
 
 function getWorkspaceAgentStatuses(
-  workspace: Workspace,
-): readonly WorkspaceAgentStatus[] {
-  const uniqueStatuses: WorkspaceAgentStatus[] = [];
+  workspace: CoderSdkTypes.Workspace,
+): readonly CoderSdkTypes.WorkspaceAgentStatus[] {
+  const uniqueStatuses: CoderSdkTypes.WorkspaceAgentStatus[] = [];
 
   for (const resource of workspace.latest_build.resources) {
     if (resource.agents === undefined) {
