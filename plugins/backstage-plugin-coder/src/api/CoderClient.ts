@@ -5,7 +5,7 @@
  * 1. Backstage APIs (API classes/factories, as well as proxies)
  * 2. React (making sure that mutable class state can be turned into immutable
  *    state snapshots that are available synchronously from the first render)
- * 3. The custom auth API(s)
+ * 3. The custom auth API(s) that we build out for Backstage
  * 4. The Coder SDK
  * 5. The global Axios instance (which we need, because it's what the Coder SDK
  *    uses)
@@ -21,7 +21,7 @@
  * interceptors. We do not want to throw everything into the global Axios
  * instance and be forced to pray that things don't break
  */
-import axios, { AxiosError } from 'axios';
+import axios, { type InternalAxiosRequestConfig, AxiosError } from 'axios';
 import * as coderSdkApi from 'coder/site/src/api/api';
 import { DiscoveryApi, createApiRef } from '@backstage/core-plugin-api';
 import { BackstageHttpError } from './errors';
@@ -57,9 +57,9 @@ export type CoderClientSnapshot = Readonly<{
   assetsRoute: string;
 }>;
 
-type CoderSdkApi = typeof coderSdkApi;
-export type CoderApiNamespace = Readonly<
-  CoderSdkApi & {
+type RawCoderSdkApi = typeof coderSdkApi;
+export type CoderSdkApi = Readonly<
+  RawCoderSdkApi & {
     getWorkspacesByRepo: (
       coderQuery: string,
       config: CoderWorkspacesConfig,
@@ -70,7 +70,7 @@ export type CoderApiNamespace = Readonly<
 type SubscriptionCallback = (newSnapshot: CoderClientSnapshot) => void;
 
 export type CoderClientApi = Readonly<{
-  api: CoderApiNamespace;
+  sdkApi: CoderSdkApi;
   isAuthValid: boolean;
   validateAuth: () => Promise<boolean>;
 
@@ -86,52 +86,29 @@ export class CoderClient implements CoderClientApi {
   private readonly snapshotManager: StateSnapshotManager<CoderClientSnapshot>;
 
   private latestProxyEndpoint: string;
-  readonly api: CoderApiNamespace;
+  readonly sdkApi: CoderSdkApi;
 
   constructor(
     discoveryApi: DiscoveryApi,
     authApi: CoderAuthApi,
     options?: Partial<CoderClientConfigOptions>,
   ) {
-    // Instantiate config properties via constructor's function signature
+    // The "easy setup" part - initialize internal properties
     this.discoveryApi = discoveryApi;
     this.authApi = authApi;
     this.latestProxyEndpoint = '';
     this.options = { ...defaultCoderClientConfigOptions, ...(options ?? {}) };
 
-    // Wire up API namespace and patch in additional function(s) for end-user
-    // convenience. Cannot inline function definitions inside this.api
-    // assignment because of funky JavaScript `this` rules
-    const getWorkspaces: CoderSdkApi['getWorkspaces'] = async options => {
-      const response = await coderSdkApi.getWorkspaces(options);
-      const remapped: WorkspacesResponse = {
-        ...response,
-        workspaces: this.remapWorkspaceUrls(response.workspaces),
-      };
-
-      return remapped;
+    // Wire up API namespace and patch in additional functions for end-user
+    // convenience
+    this.sdkApi = {
+      ...coderSdkApi,
+      getWorkspaces: this.getWorkspaces,
+      getWorkspacesByRepo: this.getWorkspacesByRepo,
     };
-    const getWorkspacesByRepo: typeof this.getWorkspacesByRepo = (
-      coderQuery,
-      config,
-    ) => this.getWorkspacesByRepo(coderQuery, config);
-    this.api = { ...coderSdkApi, getWorkspaces, getWorkspacesByRepo };
 
-    // Wire up Backstage APIs and Axios to be aware of each other. Request
-    // configs are created on the per-request basis, so mutating a config for
-    // one request won't mess up future non-Coder requests that also uses Axios
-    axios.interceptors.request.use(async config => {
-      const { apiRoutePrefix, authHeaderKey } = this.options;
-
-      const isCoderApiRequest = config.url?.startsWith(apiRoutePrefix) ?? false;
-      if (!isCoderApiRequest) {
-        return config;
-      }
-
-      config.baseURL = await this.getProxyEndpoint();
-      config.headers[authHeaderKey] = this.authApi.token;
-      return config;
-    });
+    // Wire up Backstage APIs and Axios to be aware of each other
+    axios.interceptors.request.use(this.interceptAxiosRequest);
 
     // Call DiscoveryApi to populate initial endpoint path, so that the path
     // can be accessed synchronously from the UI
@@ -148,7 +125,37 @@ export class CoderClient implements CoderClientApi {
     return this.authApi.isTokenValid;
   }
 
-  private prepareNewStateSnapshot(): CoderClientSnapshot {
+  /* ***************************************************************************
+   * There is some funky (but necessary) stuff going on in this class - a lot of
+   * the methods are passed around to other systems. Just to be on the safe
+   * side, all methods (public and private) should be defined as arrow
+   * functions, to ensure the methods can't ever lose their `this` contexts
+   *
+   * This technically defeats some of the memory optimizations you would
+   * normally get with class methods (arrow methods will be rebuilt from
+   * scratch each time the class is instantiated), but because CoderClient will
+   * likely be instantiated only once for the entire app's lifecycle, that won't
+   * matter much at all
+   ****************************************************************************/
+
+  // Request configs are created on the per-request basis, so mutating a config
+  // won't mess up future non-Coder requests that also uses Axios
+  private interceptAxiosRequest = async (
+    config: InternalAxiosRequestConfig,
+  ): Promise<InternalAxiosRequestConfig> => {
+    const { apiRoutePrefix, authHeaderKey } = this.options;
+
+    const isCoderApiRequest = config.url?.startsWith(apiRoutePrefix) ?? false;
+    if (!isCoderApiRequest) {
+      return config;
+    }
+
+    config.baseURL = await this.getProxyEndpoint();
+    config.headers[authHeaderKey] = this.authApi.token;
+    return config;
+  };
+
+  private prepareNewStateSnapshot = (): CoderClientSnapshot => {
     const base = this.latestProxyEndpoint;
     const { proxyPrefix, apiRoutePrefix, assetsRoutePrefix } = this.options;
 
@@ -157,19 +164,19 @@ export class CoderClient implements CoderClientApi {
       apiRoute: `${base}${proxyPrefix}${apiRoutePrefix}`,
       assetsRoute: `${base}${proxyPrefix}${assetsRoutePrefix}`,
     };
-  }
+  };
 
-  private notifySubscriptionsOfStateChange(): void {
+  private notifySubscriptionsOfStateChange = (): void => {
     const newSnapshot = this.prepareNewStateSnapshot();
     this.snapshotManager.updateSnapshot(newSnapshot);
-  }
+  };
 
   // Backstage officially recommends that you use the DiscoveryApi over the
   // ConfigApi nowadays, and that you call it before each request. But the
   // problem is that the Discovery API has no synchronous methods for getting
   // endpoints, meaning that there's no great built-in way to access that data
   // synchronously. Have to cache the return value for UI logic
-  private async getProxyEndpoint(): Promise<string> {
+  private getProxyEndpoint = async (): Promise<string> => {
     const latestBase = await this.discoveryApi.getBaseUrl('proxy');
     const withProxy = `${latestBase}${this.options.proxyPrefix}`;
 
@@ -177,13 +184,15 @@ export class CoderClient implements CoderClientApi {
     this.notifySubscriptionsOfStateChange();
 
     return withProxy;
-  }
+  };
 
   // Can't make return type readonly, because of an obscure TypeScript edge
   // case. The SDK type for WorkspaceResponse has readonly properties, but the
   // values themselves are not, so you can't assign a readonly array to the
   // response type without TS complaining
-  private remapWorkspaceUrls(workspaces: readonly Workspace[]): Workspace[] {
+  private remapWorkspaceUrls = (
+    workspaces: readonly Workspace[],
+  ): Workspace[] => {
     const { assetsRoute } = this.getStateSnapshot();
 
     return workspaces.map(ws => {
@@ -197,13 +206,23 @@ export class CoderClient implements CoderClientApi {
         template_icon: `${assetsRoute}${templateIconUrl}`,
       };
     });
-  }
+  };
 
-  private async getWorkspacesByRepo(
+  private getWorkspaces: RawCoderSdkApi['getWorkspaces'] = async options => {
+    const response = await coderSdkApi.getWorkspaces(options);
+    const remapped: WorkspacesResponse = {
+      ...response,
+      workspaces: this.remapWorkspaceUrls(response.workspaces),
+    };
+
+    return remapped;
+  };
+
+  private getWorkspacesByRepo = async (
     coderQuery: string,
     config: CoderWorkspacesConfig,
-  ): Promise<readonly Workspace[]> {
-    const { workspaces } = await this.api.getWorkspaces({
+  ): Promise<readonly Workspace[]> => {
+    const { workspaces } = await this.sdkApi.getWorkspaces({
       q: coderQuery,
       limit: 0,
     });
@@ -211,7 +230,7 @@ export class CoderClient implements CoderClientApi {
     const remappedWorkspaces = this.remapWorkspaceUrls(workspaces);
     const paramResults = await Promise.allSettled(
       remappedWorkspaces.map(ws =>
-        this.api.getWorkspaceBuildParameters(ws.latest_build.id),
+        this.sdkApi.getWorkspaceBuildParameters(ws.latest_build.id),
       ),
     );
 
@@ -237,12 +256,7 @@ export class CoderClient implements CoderClientApi {
     }
 
     return matchedWorkspaces;
-  }
-
-  /* ***************************************************************************
-   * All public functions should be defined as arrow functions to ensure they
-   * can be passed around React without risk of losing their "this" context
-   ****************************************************************************/
+  };
 
   unsubscribe = (callback: SubscriptionCallback): void => {
     this.snapshotManager.unsubscribe(callback);
@@ -262,7 +276,7 @@ export class CoderClient implements CoderClientApi {
     try {
       // Dummy request; just need something that all users would have access
       // to, and that doesn't require a body
-      await this.api.getUserLoginType();
+      await this.sdkApi.getUserLoginType();
       dispatchNewStatus(true);
       return true;
     } catch (err) {

@@ -1,17 +1,17 @@
 import { useSyncExternalStore } from 'use-sync-external-store/shim';
 import { useApi } from '@backstage/core-plugin-api';
 import {
-  type CoderApiNamespace,
+  type CoderSdkApi,
   type CoderClientSnapshot,
   coderClientApiRef,
 } from '../api/CoderClient';
 
-type UseCoderClientSnapshot = Readonly<{
-  api: CoderApiNamespace;
+export type ReactCoderClient = Readonly<{
+  api: CoderSdkApi;
   state: CoderClientSnapshot;
 }>;
 
-export function useCoderClient(): UseCoderClientSnapshot {
+export function useCoderClient(): ReactCoderClient {
   const clientApi = useApi(coderClientApiRef);
   const safeApiStateSnapshot = useSyncExternalStore(
     clientApi.subscribe,
@@ -20,6 +20,6 @@ export function useCoderClient(): UseCoderClientSnapshot {
 
   return {
     state: safeApiStateSnapshot,
-    api: clientApi.api,
+    api: clientApi.sdkApi,
   };
 }

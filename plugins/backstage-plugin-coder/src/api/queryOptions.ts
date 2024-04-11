@@ -1,7 +1,7 @@
 import { type UseQueryOptions } from '@tanstack/react-query';
 import type { Workspace } from '../typesConstants';
-import { CoderClient } from './CoderClient';
 import { CoderWorkspacesConfig } from '../hooks/useCoderWorkspacesConfig';
+import type { ReactCoderClient } from '../hooks/useCoderClient';
 
 export const CODER_QUERY_KEY_PREFIX = 'coder-backstage-plugin';
 const PENDING_REFETCH_INTERVAL = 5_000;
@@ -21,7 +21,7 @@ function getSharedWorkspacesQueryKey(coderQuery: string) {
 }
 
 type WorkspacesInputs = Readonly<{
-  client: CoderClient;
+  client: ReactCoderClient;
   coderQuery: string;
 }>;
 
@@ -45,7 +45,7 @@ export function workspaces({
 }
 
 type NeoWorkspacesByRepoInputs = Readonly<{
-  client: CoderClient;
+  client: ReactCoderClient;
   coderQuery: string;
   workspacesConfig: CoderWorkspacesConfig;
 }>;
