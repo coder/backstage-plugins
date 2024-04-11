@@ -1,7 +1,6 @@
 import { useSyncExternalStore } from 'use-sync-external-store/shim';
 import { type UseQueryResult, useQuery } from '@tanstack/react-query';
 import { useApi } from '@backstage/core-plugin-api';
-import { useCoderClient } from './useCoderClient';
 import { CODER_QUERY_KEY_PREFIX } from '../api/queryOptions';
 import { BackstageHttpError } from '../api/errors';
 import {
@@ -9,6 +8,7 @@ import {
   CoderTokenAuth,
 } from '../api/CoderTokenAuth';
 import { coderAuthApiRef } from '../api/Auth';
+import { coderClientApiRef } from '../api/CoderClient';
 
 export const tokenAuthQueryKey = [
   CODER_QUERY_KEY_PREFIX,
@@ -69,12 +69,14 @@ export function useCoderTokenAuth(): CoderTokenUiAuth {
     authApi.getStateSnapshot,
   );
 
-  const coderClient = useCoderClient();
+  // Using the raw Coder client because it has some methods on it that we
+  // deliberately don't expose to users using the main useCoderClient hook
+  const rawCoderClient = useApi(coderClientApiRef);
   const isQueryEnabled = Boolean(safeApiSnapshot.token);
 
   const authValidityQuery = useQuery<boolean>({
     queryKey: [...tokenAuthQueryKey, safeApiSnapshot.token],
-    queryFn: coderClient.validateAuth,
+    queryFn: rawCoderClient.validateAuth,
     enabled: isQueryEnabled,
     keepPreviousData: isQueryEnabled,
     refetchOnWindowFocus: query => query.state.data !== false,
