@@ -23,12 +23,11 @@ export type CoderAuthApi<
   TPayload extends AuthSubscriptionPayload = AuthSubscriptionPayload,
 > = TPayload & {
   /**
-   * Gives back a "state setter" that lets you dispatch a new auth status to
-   * the an Auth class implementation.
+   * Gives back a "state setter" that lets a different class dispatch a new auth
+   * status to the auth class implementation.
    *
-   * Dispatching should only go through if the auth class's token does not
-   * change between the validator being created, and it being called. If the
-   * token does change, you will need to make a new validator.
+   * Use this to send the new status you think the auth should have. The auth
+   * will decide whether it will let the dispatch go through and update state.
    */
   getAuthValidator: () => AuthValidatorDispatch;
 
