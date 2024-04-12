@@ -110,6 +110,12 @@ export function defaultDidSnapshotsChange<TSnapshot extends ReadonlyJsonValue>(
   return false;
 }
 
+/**
+ * @todo Might eventually make sense to give the class the ability to merge
+ * snapshots more surgically and maximize structural sharing (which should be
+ * safe since the snapshots are immutable). But we can worry about that when it
+ * actually becomes a performance issue
+ */
 export class StateSnapshotManager<
   TSnapshot extends ReadonlyJsonValue = ReadonlyJsonValue,
 > implements SnapshotManagerApi<TSnapshot>
