@@ -88,6 +88,19 @@ export class CoderClient implements CoderClientApi {
   private latestProxyEndpoint: string;
   readonly sdkApi: CoderSdkApi;
 
+  /* ***************************************************************************
+   * There is some funky (but necessary) stuff going on in this class - a lot of
+   * the class methods are passed directly to other systems. Just to be on the
+   * safe side, all methods (public and private) should be defined as arrow
+   * functions, to ensure the methods can't ever lose their `this` contexts
+   *
+   * This technically defeats some of the memory optimizations you would
+   * normally get with class methods (arrow methods will be rebuilt from
+   * scratch each time the class is instantiated), but because CoderClient will
+   * likely be instantiated only once for the entire app's lifecycle, that won't
+   * matter much at all
+   ****************************************************************************/
+
   constructor(
     discoveryApi: DiscoveryApi,
     authApi: CoderAuthApi,
@@ -126,19 +139,6 @@ export class CoderClient implements CoderClientApi {
     return this.authApi.isTokenValid;
   }
 
-  /* ***************************************************************************
-   * There is some funky (but necessary) stuff going on in this class - a lot of
-   * the methods are passed around to other systems. Just to be on the safe
-   * side, all methods (public and private) should be defined as arrow
-   * functions, to ensure the methods can't ever lose their `this` contexts
-   *
-   * This technically defeats some of the memory optimizations you would
-   * normally get with class methods (arrow methods will be rebuilt from
-   * scratch each time the class is instantiated), but because CoderClient will
-   * likely be instantiated only once for the entire app's lifecycle, that won't
-   * matter much at all
-   ****************************************************************************/
-
   // Request configs are created on the per-request basis, so mutating a config
   // won't mess up future non-Coder requests that also uses Axios
   private interceptAxiosRequest = async (
@@ -158,12 +158,12 @@ export class CoderClient implements CoderClientApi {
 
   private prepareNewStateSnapshot = (): CoderClientSnapshot => {
     const base = this.latestProxyEndpoint;
-    const { proxyPrefix, apiRoutePrefix, assetsRoutePrefix } = this.options;
+    const { apiRoutePrefix, assetsRoutePrefix } = this.options;
 
     return {
       isAuthValid: this.authApi.isTokenValid,
-      apiRoute: `${base}${proxyPrefix}${apiRoutePrefix}`,
-      assetsRoute: `${base}${proxyPrefix}${assetsRoutePrefix}`,
+      apiRoute: `${base}${apiRoutePrefix}`,
+      assetsRoute: `${base}${assetsRoutePrefix}`,
     };
   };
 
