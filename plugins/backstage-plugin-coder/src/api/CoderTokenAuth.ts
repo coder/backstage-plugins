@@ -13,7 +13,7 @@ type ConfigOptions = Readonly<{
 
 export const defaultTokenAuthConfigOptions = {
   localStorage: window.localStorage,
-  localStorageKey: 'coder-backstage-plugin/token',
+  localStorageKey: 'backstage-plugin-coder/token',
   gracePeriodTimeoutMs: 6_000,
 } as const satisfies ConfigOptions;
 
@@ -89,7 +89,7 @@ export class CoderTokenAuth implements CoderTokenAuthApi {
     };
   }
 
-  private notifySubscriptions(): void {
+  private notifySubscriptionsOfStateChange(): void {
     const newSnapshot = this.prepareNewSnapshot();
     this.snapshotManager.updateSnapshot(newSnapshot);
   }
@@ -101,7 +101,7 @@ export class CoderTokenAuth implements CoderTokenAuthApi {
 
     this.#token = newToken;
     this.setIsTokenValid(false);
-    this.notifySubscriptions();
+    this.notifySubscriptionsOfStateChange();
   }
 
   private setIsTokenValid(newIsTokenValidValue: boolean): void {
@@ -119,7 +119,7 @@ export class CoderTokenAuth implements CoderTokenAuthApi {
     }
 
     this.#isTokenValid = newIsTokenValidValue;
-    this.notifySubscriptions();
+    this.notifySubscriptionsOfStateChange();
 
     if (this.#isTokenValid) {
       this.writeTokenToLocalStorage();
@@ -168,7 +168,7 @@ export class CoderTokenAuth implements CoderTokenAuthApi {
     this.writeTokenToLocalStorage();
   };
 
-  getAuthValidator = (): AuthValidatorDispatch => {
+  getAuthStateSetter = (): AuthValidatorDispatch => {
     const tokenOnSetup = this.#token;
     let allowUpdate = true;
 

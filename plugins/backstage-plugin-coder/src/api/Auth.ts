@@ -29,7 +29,7 @@ export type CoderAuthApi<
    * Use this to send the new status you think the auth should have. The auth
    * will decide whether it will let the dispatch go through and update state.
    */
-  getAuthValidator: () => AuthValidatorDispatch;
+  getAuthStateSetter: () => AuthValidatorDispatch;
 
   /**
    * Subscribes an external system to auth changes.
@@ -45,7 +45,7 @@ export type CoderAuthApi<
   unsubscribe: (callback: AuthSubscriptionCallback<TPayload>) => void;
 
   /**
-   * Lets an external system get an fully immutable snapshot of the current auth
+   * Lets an external system get a fully immutable snapshot of the current auth
    * state.
    */
   getStateSnapshot: () => AuthSubscriptionPayload;

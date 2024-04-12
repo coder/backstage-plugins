@@ -277,7 +277,7 @@ export class CoderClient implements CoderClientApi {
   };
 
   validateAuth = async (): Promise<boolean> => {
-    const dispatchNewStatus = this.authApi.getAuthValidator();
+    const dispatchNewStatus = this.authApi.getAuthStateSetter();
 
     try {
       // Dummy request; just need something that all users would have access
