@@ -7,8 +7,7 @@
  *    state snapshots that are available synchronously from the first render)
  * 3. The custom auth API(s) that we build out for Backstage
  * 4. The Coder SDK
- * 5. The global Axios instance (which we need, because it's what the Coder SDK
- *    uses)
+ * 5. Axios (which we need, because it's what the Coder SDK uses)
  *
  * All while being easy for the end-user to drop into their own Backstage
  * deployment.
@@ -22,8 +21,8 @@
  * instance and be forced to pray that things don't break
  */
 import axios, { type InternalAxiosRequestConfig, AxiosError } from 'axios';
-import * as coderSdkApi from 'coder/site/src/api/api';
-import { DiscoveryApi, createApiRef } from '@backstage/core-plugin-api';
+import * as coderSdkApi from './coder-mirror/api/api';
+import { type DiscoveryApi, createApiRef } from '@backstage/core-plugin-api';
 import { BackstageHttpError } from './errors';
 
 import type { CoderAuthApi } from './Auth';
@@ -32,7 +31,7 @@ import { StateSnapshotManager } from '../utils/StateSnapshotManager';
 import type {
   Workspace,
   WorkspacesResponse,
-} from 'coder/site/src/api/typesGenerated';
+} from './coder-mirror/api/typesGenerated';
 import type { CoderWorkspacesConfig } from '../hooks/useCoderWorkspacesConfig';
 
 type CoderClientConfigOptions = Readonly<{
@@ -310,4 +309,4 @@ export const coderClientApiRef = createApiRef<CoderClient>({
   id: `${CODER_API_REF_ID_PREFIX}.coder-client`,
 });
 
-export type * as CoderSdkTypes from 'coder/site/src/api/typesGenerated';
+export type * as CoderSdkTypes from './coder-mirror/api/typesGenerated';
