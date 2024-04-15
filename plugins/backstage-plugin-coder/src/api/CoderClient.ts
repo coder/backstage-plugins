@@ -14,13 +14,10 @@
  *
  * ---
  *
- * @todo Whenever we do make a full, proper Coder SDK, make sure that it is
- * designed around the axios.create method and Axios instances. That way, we
- * don't have to worry about Axios request conflicts when trying to set up
- * interceptors. We do not want to throw everything into the global Axios
- * instance and be forced to pray that things don't break
+ * @todo Swap the fake Coder SDK from the ./code-mirror directory for the real
+ * Coder TypeScript SDK once we create it.
  */
-import axios, { type InternalAxiosRequestConfig, AxiosError } from 'axios';
+import { type InternalAxiosRequestConfig, AxiosError } from 'axios';
 import * as coderSdkApi from './coder-mirror/api/api';
 import { type DiscoveryApi, createApiRef } from '@backstage/core-plugin-api';
 import { BackstageHttpError } from './errors';
@@ -120,7 +117,7 @@ export class CoderClient implements CoderClientApi {
     };
 
     // Wire up Backstage APIs and Axios to be aware of each other
-    axios.interceptors.request.use(this.interceptAxiosRequest);
+    coderSdkApi.axios.interceptors.request.use(this.interceptAxiosRequest);
 
     // Hook up snapshot manager so that external systems can be made aware when
     // state changes in a render-safe way
