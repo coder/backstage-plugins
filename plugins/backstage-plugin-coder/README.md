@@ -47,7 +47,8 @@ the Dev Container.
 3. Add the `CoderProvider` to the application:
 
    ```tsx
-   // In packages/app/src/App.tsx
+   // packages/app/src/App.tsx
+   
    import {
      type CoderAppConfig,
      CoderProvider,
@@ -94,14 +95,26 @@ the Dev Container.
 4. Add the `CoderWorkspacesCard` card to the entity page in your app:
 
    ```tsx
-   // In packages/app/src/components/catalog/EntityPage.tsx
+   // packages/app/src/components/catalog/EntityPage.tsx
+   
    import { CoderWorkspacesCard } from '@coder/backstage-plugin-coder';
 
-   // ...
+   // We recommend placing the component inside of overviewContent
+   const overviewContent = (
+     <Grid container spacing={3} alignItems="stretch">
+       {entityWarningContent}
+       <Grid item md={6}>
+         <EntityAboutCard variant="gridItem" />
+       </Grid>
 
-   <Grid item md={6} xs={12}>
-     <CoderWorkspacesCard readEntityData />
-   </Grid>;
+       {/* Coder component should go inside Grid to help it work with MUI layouts */}
+       <Grid item md={6} xs={12}>
+         <CoderWorkspacesCard readEntityData />
+       </Grid>
+  
+       {/* Other elements for overviewContent go here */}
+     </Grid>
+   );
    ```
 
 ### `app-config.yaml` files
