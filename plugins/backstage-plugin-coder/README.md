@@ -48,7 +48,7 @@ the Dev Container.
 
    ```tsx
    // packages/app/src/App.tsx
-   
+
    import {
      type CoderAppConfig,
      CoderProvider,
@@ -96,7 +96,7 @@ the Dev Container.
 
    ```tsx
    // packages/app/src/components/catalog/EntityPage.tsx
-   
+
    import { CoderWorkspacesCard } from '@coder/backstage-plugin-coder';
 
    // We recommend placing the component inside of overviewContent
@@ -111,7 +111,7 @@ the Dev Container.
        <Grid item md={6} xs={12}>
          <CoderWorkspacesCard readEntityData />
        </Grid>
-  
+
        {/* Other elements for overviewContent go here */}
      </Grid>
    );
