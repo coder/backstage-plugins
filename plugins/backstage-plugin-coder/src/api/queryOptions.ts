@@ -32,6 +32,7 @@ export function workspaces({
   coderQuery,
 }: WorkspacesInputs): UseQueryOptions<readonly Workspace[]> {
   return {
+    enabled: client.state.isAuthValid,
     queryKey: getSharedWorkspacesQueryKey(coderQuery),
     keepPreviousData: coderQuery !== '',
     refetchInterval: getCoderWorkspacesRefetchInterval,
@@ -57,7 +58,8 @@ export function workspacesByRepo({
   coderQuery,
   workspacesConfig,
 }: NeoWorkspacesByRepoInputs) {
-  const enabled = coderQuery !== '';
+  const enabled = client.state.isAuthValid && coderQuery !== '';
+
   return {
     queryKey: [...getSharedWorkspacesQueryKey(coderQuery), workspacesConfig],
     queryFn: async () =>
