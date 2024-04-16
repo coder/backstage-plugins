@@ -13,7 +13,8 @@ export function useCoderWorkspacesQuery({
   workspacesConfig,
 }: QueryInput) {
   const client = useCoderClient();
-  const hasRepoData = workspacesConfig && workspacesConfig.repoUrl;
+  const hasRepoData =
+    workspacesConfig !== undefined && Boolean(workspacesConfig.repoUrl);
 
   const queryOptions = hasRepoData
     ? workspacesByRepo({ client, coderQuery, workspacesConfig })
