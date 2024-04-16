@@ -5,17 +5,31 @@ import type { ReactCoderClient } from '../hooks/useCoderClient';
 
 export const CODER_QUERY_KEY_PREFIX = 'coder-backstage-plugin';
 const PENDING_REFETCH_INTERVAL_MS = 5_000;
+const BACKGROUND_REFETCH_INTERVAL_MS = 60_000;
 
 function getCoderWorkspacesRefetchInterval(
   workspaces?: readonly Workspace[],
 ): number | false {
-  const areAnyWorkspacesPending = workspaces?.some(
-    ws => ws.latest_build.status === 'pending',
-  );
+  if (workspaces === undefined) {
+    // Boolean false indicates that no periodic refetching should happen (but
+    // a refetch can still happen in the background in response to user action)
+    return false;
+  }
 
-  // Boolean false indicates that no periodic refetching should happen (but
-  // a refetch can still happen in the background in response to user action)
-  return areAnyWorkspacesPending ? PENDING_REFETCH_INTERVAL_MS : false;
+  const areAnyWorkspacesPending = workspaces.some(ws => {
+    if (ws.latest_build.status === 'pending') {
+      return true;
+    }
+
+    return ws.latest_build.resources.some(resource => {
+      const agents = resource.agents;
+      return agents?.some(agent => agent.status === 'connecting') ?? false;
+    });
+  });
+
+  return areAnyWorkspacesPending
+    ? PENDING_REFETCH_INTERVAL_MS
+    : BACKGROUND_REFETCH_INTERVAL_MS;
 }
 
 function getSharedWorkspacesQueryKey(coderQuery: string) {
