@@ -1,13 +1,13 @@
 import { useSyncExternalStore } from 'use-sync-external-store/shim';
 import { useApi } from '@backstage/core-plugin-api';
 import {
-  type CoderSdkApi,
+  type BackstageCoderSdkApi,
   type CoderClientSnapshot,
   coderClientApiRef,
 } from '../api/CoderClient';
 
 export type ReactCoderClient = Readonly<{
-  api: CoderSdkApi;
+  api: BackstageCoderSdkApi;
   state: CoderClientSnapshot;
 }>;
 
