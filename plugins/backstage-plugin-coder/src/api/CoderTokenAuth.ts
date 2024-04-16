@@ -173,7 +173,7 @@ export class CoderTokenAuth implements CoderTokenAuthApi {
   getAuthStateSetter = (): AuthValidatorDispatch => {
     const tokenOnSetup = this.#token;
     let allowUpdate = true;
-    let unsubscribeTimeoutId: number | undefined = undefined;
+    let disableUpdatesTimeoutId: number | undefined = undefined;
 
     const onChange = (newSnapshot: AuthTokenStateSnapshot) => {
       if (!allowUpdate || newSnapshot.token === tokenOnSetup) {
@@ -182,14 +182,14 @@ export class CoderTokenAuth implements CoderTokenAuthApi {
 
       allowUpdate = false;
       this.snapshotManager.unsubscribe(onChange);
-      window.clearTimeout(unsubscribeTimeoutId);
+      window.clearTimeout(disableUpdatesTimeoutId);
     };
 
     this.snapshotManager.subscribe(onChange);
 
     // Have to make sure that we eventually unsubscribe so that the onChange
     // callback can be garbage-collected, and we don't have a memory leak
-    unsubscribeTimeoutId = window.setTimeout(() => {
+    disableUpdatesTimeoutId = window.setTimeout(() => {
       allowUpdate = false;
       this.snapshotManager.unsubscribe(onChange);
     }, AUTH_SETTER_TIMEOUT_MS);
