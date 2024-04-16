@@ -61,7 +61,7 @@ export function workspaces({
   };
 }
 
-type NeoWorkspacesByRepoInputs = Readonly<{
+type WorkspacesByRepoInputs = Readonly<{
   client: ReactCoderClient;
   coderQuery: string;
   workspacesConfig: CoderWorkspacesConfig;
@@ -71,7 +71,7 @@ export function workspacesByRepo({
   client,
   coderQuery,
   workspacesConfig,
-}: NeoWorkspacesByRepoInputs) {
+}: WorkspacesByRepoInputs) {
   const enabled = client.state.isAuthValid && coderQuery !== '';
 
   return {
