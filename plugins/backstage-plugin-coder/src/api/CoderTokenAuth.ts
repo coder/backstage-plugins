@@ -1,6 +1,8 @@
 import type { AuthValidatorDispatch, CoderAuthApi } from './Auth';
 import { StateSnapshotManager } from '../utils/StateSnapshotManager';
 
+const AUTH_SETTER_TIMEOUT_MS = 20_000;
+
 type ConfigOptions = Readonly<{
   localStorage: typeof window.localStorage;
   localStorageKey: string;
@@ -171,6 +173,7 @@ export class CoderTokenAuth implements CoderTokenAuthApi {
   getAuthStateSetter = (): AuthValidatorDispatch => {
     const tokenOnSetup = this.#token;
     let allowUpdate = true;
+    let unsubscribeTimeoutId: number | undefined = undefined;
 
     const onChange = (newSnapshot: AuthTokenStateSnapshot) => {
       if (!allowUpdate || newSnapshot.token === tokenOnSetup) {
@@ -179,15 +182,22 @@ export class CoderTokenAuth implements CoderTokenAuthApi {
 
       allowUpdate = false;
       this.snapshotManager.unsubscribe(onChange);
+      window.clearTimeout(unsubscribeTimeoutId);
     };
 
     this.snapshotManager.subscribe(onChange);
+
+    // Have to make sure that we eventually unsubscribe so that the onChange
+    // callback can be garbage-collected, and we don't have a memory leak
+    unsubscribeTimeoutId = window.setTimeout(() => {
+      allowUpdate = false;
+      this.snapshotManager.unsubscribe(onChange);
+    }, AUTH_SETTER_TIMEOUT_MS);
+
     return newStatus => {
       if (allowUpdate) {
         this.setIsTokenValid(newStatus);
       }
-
-      this.snapshotManager.unsubscribe(onChange);
     };
   };
 }
