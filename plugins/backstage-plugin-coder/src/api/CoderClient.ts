@@ -6,29 +6,30 @@
  * 2. React (making sure that mutable class state can be turned into immutable
  *    state snapshots that are available synchronously from the first render)
  * 3. The custom auth API(s) that we build out for Backstage
- * 4. The Coder SDK
+ * 4. The Coder SDK (either the eventual real one, or the fake stopgap)
  * 5. Axios (which we need, because it's what the Coder SDK uses)
  *
  * All while being easy for the end-user to drop into their own Backstage
  * deployment.
- *
- * ---
- *
- * @todo Swap the fake Coder SDK from the ./code-mirror directory for the real
- * Coder TypeScript SDK once we create it.
  */
-import { type InternalAxiosRequestConfig, AxiosError } from 'axios';
-import * as coderSdkApi from './coder-mirror/api/api';
-import { type DiscoveryApi, createApiRef } from '@backstage/core-plugin-api';
+import globalAxios, {
+  type InternalAxiosRequestConfig,
+  AxiosError,
+} from 'axios';
+import {
+  type DiscoveryApi,
+  type IdentityApi,
+  createApiRef,
+} from '@backstage/core-plugin-api';
 import { BackstageHttpError } from './errors';
 
 import type { CoderAuthApi } from './Auth';
-import { CODER_API_REF_ID_PREFIX } from '../typesConstants';
-import { StateSnapshotManager } from '../utils/StateSnapshotManager';
-import type {
+import {
+  CODER_API_REF_ID_PREFIX,
   Workspace,
-  WorkspacesResponse,
-} from './coder-mirror/api/typesGenerated';
+  WorkspaceBuildParameter,
+} from '../typesConstants';
+import { StateSnapshotManager } from '../utils/StateSnapshotManager';
 import type { CoderWorkspacesConfig } from '../hooks/useCoderWorkspacesConfig';
 
 type CoderClientConfigOptions = Readonly<{
@@ -53,8 +54,50 @@ export type CoderClientSnapshot = Readonly<{
   assetsRoute: string;
 }>;
 
-type RawCoderSdkApi = typeof coderSdkApi;
-export type CoderSdkApi = Readonly<
+/**
+ * @todo Replace these type definitions with the full Coder SDK API once we have
+ * that built out and ready to import into other projects. Be sure to export out
+ * all type definitions from the API under a single namespace, too. (e.g.,
+ * export type * as CoderSdkTypes from 'coder-ts-sdk')
+ *
+ * The types for RawCoderSdkApi should only include functions/values that exist
+ * on the current "pseudo-SDK" found in the main coder/coder repo, and that are
+ * likely to carry over to the full SDK.
+ *
+ * @see {@link https://github.com/coder/coder/tree/main/site/src/api}
+ */
+type WorkspacesRequest = Readonly<{
+  after_id?: string;
+  limit?: number;
+  offset?: number;
+  q?: string;
+}>;
+
+type WorkspacesResponse = Readonly<{
+  workspaces: readonly Workspace[];
+  count: number;
+}>;
+
+type UserLoginType = Readonly<{
+  login_type: '' | 'github' | 'none' | 'oidc' | 'password' | 'token';
+}>;
+
+/**
+ * This should eventually be the real Coder SDK.
+ */
+type RawCoderSdkApi = {
+  getUserLoginType: () => Promise<UserLoginType>;
+  getWorkspaces: (options: WorkspacesRequest) => Promise<WorkspacesResponse>;
+  getWorkspaceBuildParameters: (
+    input: string,
+  ) => Promise<readonly WorkspaceBuildParameter[]>;
+};
+
+/**
+ * A version of the main Coder SDK API, with additional Backstage-specific
+ * methods and properties.
+ */
+export type BackstageCoderSdkApi = Readonly<
   RawCoderSdkApi & {
     getWorkspacesByRepo: (
       coderQuery: string,
@@ -66,7 +109,7 @@ export type CoderSdkApi = Readonly<
 type SubscriptionCallback = (newSnapshot: CoderClientSnapshot) => void;
 
 export type CoderClientApi = Readonly<{
-  sdkApi: CoderSdkApi;
+  sdkApi: BackstageCoderSdkApi;
   isAuthValid: boolean;
   validateAuth: () => Promise<boolean>;
 
@@ -75,14 +118,33 @@ export type CoderClientApi = Readonly<{
   subscribe: (callback: SubscriptionCallback) => () => void;
 }>;
 
+/**
+ * @todo Using an Axios instance to ensure that even if another user is using
+ * Axios, there's no risk of our request intercepting logic messing up non-Coder
+ * requests.
+ *
+ * However, the current version of the SDK does NOT have this behavior. Make
+ * sure that it does when it finally gets built out.
+ */
+const axiosInstance = globalAxios.create();
+
+type CoderClientConstructorInputs = Partial<CoderClientConfigOptions> & {
+  apis: Readonly<{
+    discoveryApi: DiscoveryApi;
+    identityApi: IdentityApi;
+    authApi: CoderAuthApi;
+  }>;
+};
+
 export class CoderClient implements CoderClientApi {
   private readonly discoveryApi: DiscoveryApi;
   private readonly authApi: CoderAuthApi;
+
   private readonly options: CoderClientConfigOptions;
   private readonly snapshotManager: StateSnapshotManager<CoderClientSnapshot>;
 
   private latestProxyEndpoint: string;
-  readonly sdkApi: CoderSdkApi;
+  readonly sdkApi: BackstageCoderSdkApi;
 
   /* ***************************************************************************
    * There is some funky (but necessary) stuff going on in this class - a lot of
@@ -97,27 +159,32 @@ export class CoderClient implements CoderClientApi {
    * matter much at all
    ****************************************************************************/
 
-  constructor(
-    discoveryApi: DiscoveryApi,
-    authApi: CoderAuthApi,
-    options?: Partial<CoderClientConfigOptions>,
-  ) {
+  constructor(inputs: CoderClientConstructorInputs) {
     // The "easy setup" part - initialize internal properties
+    const { apis, ...options } = inputs;
+    const { discoveryApi, authApi } = apis;
+
     this.discoveryApi = discoveryApi;
     this.authApi = authApi;
     this.latestProxyEndpoint = '';
     this.options = { ...defaultCoderClientConfigOptions, ...(options ?? {}) };
 
-    // Wire up API namespace and patch in additional functions for end-user
-    // convenience
+    /**
+     * Wire up API namespace.
+     *
+     * @todo All methods are defined locally in the class, but this should
+     * eventually be updated so that 99% of methods come from the SDK, with a
+     * few extra methods patched in for Backstage convenience
+     */
     this.sdkApi = {
-      ...coderSdkApi,
+      getUserLoginType: this.getUserLoginType,
+      getWorkspaceBuildParameters: this.getWorkspaceBuildParameters,
       getWorkspaces: this.getWorkspaces,
       getWorkspacesByRepo: this.getWorkspacesByRepo,
     };
 
     // Wire up Backstage APIs and Axios to be aware of each other
-    coderSdkApi.axios.interceptors.request.use(this.interceptAxiosRequest);
+    axiosInstance.interceptors.request.use(this.interceptAxiosRequest);
 
     // Hook up snapshot manager so that external systems can be made aware when
     // state changes in a render-safe way
@@ -140,13 +207,7 @@ export class CoderClient implements CoderClientApi {
   private interceptAxiosRequest = async (
     config: InternalAxiosRequestConfig,
   ): Promise<InternalAxiosRequestConfig> => {
-    const { apiRoutePrefix, authHeaderKey } = this.options;
-
-    const isCoderApiRequest = config.url?.startsWith(apiRoutePrefix) ?? false;
-    if (!isCoderApiRequest) {
-      return config;
-    }
-
+    const { authHeaderKey } = this.options;
     config.baseURL = await this.getProxyEndpoint();
     config.headers[authHeaderKey] = this.authApi.token;
     return config;
@@ -183,14 +244,16 @@ export class CoderClient implements CoderClientApi {
     return withProxy;
   };
 
+  private getUserLoginType = async (): Promise<UserLoginType> => {
+    const response = await axiosInstance.get<UserLoginType>(
+      '/api/v2/users/me/login-type',
+    );
+
+    return response.data;
+  };
+
   /**
-   * @todo 2024-04-11 Update type definition once this PR is finalized:
-   * @see {@link https://github.com/coder/coder/pull/12947}
-   *
-   * Can't make return type readonly, because of an obscure TypeScript edge
-   * case. The SDK type for WorkspaceResponse has readonly properties, but the
-   * values themselves are mutable, so you can't assign a readonly array to the
-   * response type without TS complaining
+   * Remaps URLs from the raw API response into proxy-based URLs
    */
   private remapWorkspaceUrls = (
     workspaces: readonly Workspace[],
@@ -210,11 +273,33 @@ export class CoderClient implements CoderClientApi {
     });
   };
 
-  private getWorkspaces: RawCoderSdkApi['getWorkspaces'] = async options => {
-    const response = await coderSdkApi.getWorkspaces(options);
+  private getWorkspaceBuildParameters = async (
+    workspaceBuildId: string,
+  ): Promise<readonly WorkspaceBuildParameter[]> => {
+    const response = await axiosInstance.get<
+      readonly WorkspaceBuildParameter[]
+    >(`/api/v2/workspacebuilds/${workspaceBuildId}/parameters`);
+
+    return response.data;
+  };
+
+  private getWorkspaces = async (
+    options: WorkspacesRequest,
+  ): Promise<WorkspacesResponse> => {
+    const urlParams = new URLSearchParams({
+      q: options.q ?? '',
+      limit: String(options.limit || 0),
+      offset: String(options.offset || 0),
+      after_id: options.after_id ?? '',
+    });
+
+    const { data } = await axiosInstance.get<WorkspacesResponse>(
+      `/workspaces?${urlParams.toString()}`,
+    );
+
     const remapped: WorkspacesResponse = {
-      ...response,
-      workspaces: this.remapWorkspaceUrls(response.workspaces),
+      ...data,
+      workspaces: this.remapWorkspaceUrls(data.workspaces),
     };
 
     return remapped;
@@ -224,7 +309,7 @@ export class CoderClient implements CoderClientApi {
     coderQuery: string,
     config: CoderWorkspacesConfig,
   ): Promise<readonly Workspace[]> => {
-    const { workspaces } = await this.sdkApi.getWorkspaces({
+    const { workspaces } = await this.getWorkspaces({
       q: coderQuery,
       limit: 0,
     });
@@ -305,5 +390,3 @@ export class CoderClient implements CoderClientApi {
 export const coderClientApiRef = createApiRef<CoderClient>({
   id: `${CODER_API_REF_ID_PREFIX}.coder-client`,
 });
-
-export type * as CoderSdkTypes from './coder-mirror/api/typesGenerated';
