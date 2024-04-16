@@ -1,19 +1,21 @@
 import { type UseQueryOptions } from '@tanstack/react-query';
-import type { CoderSdkTypes } from './CoderClient';
+import type { Workspace } from '../typesConstants';
 import { CoderWorkspacesConfig } from '../hooks/useCoderWorkspacesConfig';
 import type { ReactCoderClient } from '../hooks/useCoderClient';
 
 export const CODER_QUERY_KEY_PREFIX = 'coder-backstage-plugin';
-const PENDING_REFETCH_INTERVAL = 5_000;
+const PENDING_REFETCH_INTERVAL_MS = 5_000;
 
 function getCoderWorkspacesRefetchInterval(
-  workspaces?: readonly CoderSdkTypes.Workspace[],
+  workspaces?: readonly Workspace[],
 ): number | false {
   const areAnyWorkspacesPending = workspaces?.some(
     ws => ws.latest_build.status === 'pending',
   );
 
-  return areAnyWorkspacesPending ? PENDING_REFETCH_INTERVAL : false;
+  // Boolean false indicates that no periodic refetching should happen (but
+  // a refetch can still happen in the background in response to user action)
+  return areAnyWorkspacesPending ? PENDING_REFETCH_INTERVAL_MS : false;
 }
 
 function getSharedWorkspacesQueryKey(coderQuery: string) {
@@ -28,7 +30,7 @@ type WorkspacesInputs = Readonly<{
 export function workspaces({
   client,
   coderQuery,
-}: WorkspacesInputs): UseQueryOptions<readonly CoderSdkTypes.Workspace[]> {
+}: WorkspacesInputs): UseQueryOptions<readonly Workspace[]> {
   return {
     queryKey: getSharedWorkspacesQueryKey(coderQuery),
     keepPreviousData: coderQuery !== '',
