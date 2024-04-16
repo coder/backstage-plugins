@@ -203,7 +203,10 @@ export class CoderClient implements CoderClientApi {
     config: InternalAxiosRequestConfig,
   ): Promise<InternalAxiosRequestConfig> => {
     const { authHeaderKey } = this.options;
-    config.baseURL = await this.getProxyEndpoint();
+    const proxyEndpoint = await this.getProxyEndpoint();
+    const baseUrl = `${proxyEndpoint}${this.options.apiRoutePrefix}`;
+
+    config.baseURL = baseUrl;
     config.headers[authHeaderKey] = this.authApi.token;
     return config;
   };
@@ -241,16 +244,13 @@ export class CoderClient implements CoderClientApi {
 
   private getUserLoginType = async (): Promise<UserLoginType> => {
     const response = await axiosInstance.get<UserLoginType>(
-      '/api/v2/users/me/login-type',
+      '/users/me/login-type',
     );
 
     return response.data;
   };
 
-  /**
-   * Remaps URLs from the raw API response into proxy-based URLs
-   */
-  private remapWorkspaceUrls = (
+  private remapWorkspaceIconUrls = (
     workspaces: readonly Workspace[],
   ): Workspace[] => {
     const { assetsRoute } = this.getStateSnapshot();
@@ -271,9 +271,10 @@ export class CoderClient implements CoderClientApi {
   private getWorkspaceBuildParameters = async (
     workspaceBuildId: string,
   ): Promise<readonly WorkspaceBuildParameter[]> => {
-    const response = await axiosInstance.get<
-      readonly WorkspaceBuildParameter[]
-    >(`/api/v2/workspacebuilds/${workspaceBuildId}/parameters`);
+    type Res = readonly WorkspaceBuildParameter[];
+    const response = await axiosInstance.get<Res>(
+      `/workspacebuilds/${workspaceBuildId}/parameters`,
+    );
 
     return response.data;
   };
@@ -284,8 +285,6 @@ export class CoderClient implements CoderClientApi {
     const urlParams = new URLSearchParams({
       q: options.q ?? '',
       limit: String(options.limit || 0),
-      offset: String(options.offset || 0),
-      after_id: options.after_id ?? '',
     });
 
     const { data } = await axiosInstance.get<WorkspacesResponse>(
@@ -294,7 +293,7 @@ export class CoderClient implements CoderClientApi {
 
     const remapped: WorkspacesResponse = {
       ...data,
-      workspaces: this.remapWorkspaceUrls(data.workspaces),
+      workspaces: this.remapWorkspaceIconUrls(data.workspaces),
     };
 
     return remapped;
@@ -309,7 +308,7 @@ export class CoderClient implements CoderClientApi {
       limit: 0,
     });
 
-    const remappedWorkspaces = this.remapWorkspaceUrls(workspaces);
+    const remappedWorkspaces = this.remapWorkspaceIconUrls(workspaces);
     const paramResults = await Promise.allSettled(
       remappedWorkspaces.map(ws =>
         this.sdkApi.getWorkspaceBuildParameters(ws.latest_build.id),
