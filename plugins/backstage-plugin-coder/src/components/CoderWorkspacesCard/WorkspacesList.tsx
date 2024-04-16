@@ -1,15 +1,15 @@
 import React, { type HTMLAttributes, type ReactNode, Fragment } from 'react';
 
 import { type Theme, makeStyles } from '@material-ui/core';
-import type { CoderSdkTypes } from '../../api/CoderClient';
+import type { Workspace } from '../../typesConstants';
 import { useWorkspacesCardContext } from './Root';
 import { WorkspacesListItem } from './WorkspacesListItem';
 import { Placeholder } from './Placeholder';
 
 type RenderListItemInput = Readonly<{
-  workspace: CoderSdkTypes.Workspace;
+  workspace: Workspace;
   index: number;
-  workspaces: readonly CoderSdkTypes.Workspace[];
+  workspaces: readonly Workspace[];
 }>;
 
 export type WorkspacesListProps = Readonly<

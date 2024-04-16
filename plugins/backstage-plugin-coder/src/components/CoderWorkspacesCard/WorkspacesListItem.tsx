@@ -9,9 +9,13 @@ import { type Theme, makeStyles } from '@material-ui/core';
 import { useId } from '../../hooks/hookPolyfills';
 
 import { useCoderAppConfig } from '../CoderProvider';
-import type { CoderSdkTypes } from '../../api/CoderClient';
 import { WorkspacesListIcon } from './WorkspacesListIcon';
 import { VisuallyHidden } from '../VisuallyHidden';
+import {
+  Workspace,
+  WorkspaceAgentStatus,
+  WorkspaceStatus,
+} from '../../typesConstants';
 
 type StyleKey =
   | 'root'
@@ -121,7 +125,7 @@ type StyleKeyClassName = `${Exclude<StyleKey, 'root'>}ClassName`;
 type Props = Readonly<
   Omit<LiHTMLAttributes<HTMLLIElement>, 'children'> &
     Partial<Record<StyleKeyClassName, string>> & {
-      workspace: CoderSdkTypes.Workspace;
+      workspace: Workspace;
     }
 >;
 
@@ -236,12 +240,9 @@ export const WorkspacesListItem = ({
   );
 };
 
-const deletingStatuses: readonly CoderSdkTypes.WorkspaceStatus[] = [
-  'deleting',
-  'deleted',
-];
+const deletingStatuses: readonly WorkspaceStatus[] = ['deleting', 'deleted'];
 
-const offlineStatuses: readonly CoderSdkTypes.WorkspaceStatus[] = [
+const offlineStatuses: readonly WorkspaceStatus[] = [
   'stopped',
   'stopping',
   'pending',
@@ -256,9 +257,7 @@ type AvailabilityStatus =
   | 'failed'
   | 'deleting';
 
-function getAvailabilityStatus(
-  workspace: CoderSdkTypes.Workspace,
-): AvailabilityStatus {
+function getAvailabilityStatus(workspace: Workspace): AvailabilityStatus {
   const currentStatus = workspace.latest_build.status;
 
   if (currentStatus === 'failed') {
@@ -303,9 +302,9 @@ function stopClickEventBubbling(event: MouseEvent | KeyboardEvent): void {
 }
 
 function getWorkspaceAgentStatuses(
-  workspace: CoderSdkTypes.Workspace,
-): readonly CoderSdkTypes.WorkspaceAgentStatus[] {
-  const uniqueStatuses: CoderSdkTypes.WorkspaceAgentStatus[] = [];
+  workspace: Workspace,
+): readonly WorkspaceAgentStatus[] {
+  const uniqueStatuses: WorkspaceAgentStatus[] = [];
 
   for (const resource of workspace.latest_build.resources) {
     if (resource.agents === undefined) {

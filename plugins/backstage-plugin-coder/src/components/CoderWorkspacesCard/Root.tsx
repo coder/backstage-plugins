@@ -15,14 +15,12 @@ import {
   type CoderWorkspacesConfig,
 } from '../../hooks/useCoderWorkspacesConfig';
 
-import type { CoderSdkTypes } from '../../api/CoderClient';
+import type { Workspace } from '../../typesConstants';
 import { useCoderWorkspacesQuery } from '../../hooks/useCoderWorkspacesQuery';
 import { Card } from '../Card';
 import { CoderAuthWrapper } from '../CoderAuthWrapper';
 
-export type WorkspacesQuery = UseQueryResult<
-  readonly CoderSdkTypes.Workspace[]
->;
+export type WorkspacesQuery = UseQueryResult<readonly Workspace[]>;
 
 export type WorkspacesCardContext = Readonly<{
   queryFilter: string;
