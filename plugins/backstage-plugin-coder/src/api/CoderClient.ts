@@ -182,7 +182,7 @@ export class CoderClient implements CoderClientApi {
     axiosInstance.interceptors.request.use(this.interceptAxiosRequest);
 
     // Hook up snapshot manager so that external systems can be made aware when
-    // state changes in a render-safe way
+    // state changes, all in a render-safe way
     this.snapshotManager = new StateSnapshotManager({
       initialSnapshot: this.prepareNewStateSnapshot(),
     });
