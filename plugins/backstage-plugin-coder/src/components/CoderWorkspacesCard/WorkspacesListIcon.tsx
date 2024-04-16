@@ -57,7 +57,7 @@ export const WorkspacesListIcon = ({
 }: WorkspaceListIconProps) => {
   const [hasError, setHasError] = useState(false);
   const coderClient = useCoderClient();
-  const { assetsRoute } = coderClient.apiEndpoints;
+  const { assetsRoute } = coderClient.state;
 
   const styles = useStyles({
     isEmoji: src.startsWith(`${assetsRoute}/emoji`),
