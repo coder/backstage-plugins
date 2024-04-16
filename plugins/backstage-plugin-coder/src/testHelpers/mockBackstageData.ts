@@ -266,11 +266,17 @@ export function setupCoderClient(): CoderClientSetupInfo {
     },
   };
 
-  const mockAuthApi = new CoderTokenAuth(mockDiscoveryApi, {
+  const mockAuthApi = new CoderTokenAuth({
     localStorage: mockLocalStorage as Storage,
   });
 
-  const mockCoderClientApi = new CoderClient(mockDiscoveryApi, mockAuthApi);
+  const mockCoderClientApi = new CoderClient({
+    apis: {
+      discoveryApi: mockDiscoveryApi,
+      authApi: mockAuthApi,
+    },
+  });
+
   return {
     discoveryApi: mockDiscoveryApi,
     authApi: mockAuthApi,
@@ -296,6 +302,7 @@ export function getMockApiList(): readonly [
     [scmIntegrationsApiRef, mockSourceControl],
     [configApiRef, mockConfigApi],
     [discoveryApiRef, discoveryApi],
+
     [coderAuthApiRef, authApi],
     [coderClientApiRef, coderClientApi],
   ];

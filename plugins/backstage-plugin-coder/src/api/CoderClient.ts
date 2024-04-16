@@ -16,11 +16,7 @@ import globalAxios, {
   type InternalAxiosRequestConfig,
   AxiosError,
 } from 'axios';
-import {
-  type DiscoveryApi,
-  type IdentityApi,
-  createApiRef,
-} from '@backstage/core-plugin-api';
+import { type DiscoveryApi, createApiRef } from '@backstage/core-plugin-api';
 import { BackstageHttpError } from './errors';
 
 import type { CoderAuthApi } from './Auth';
@@ -131,7 +127,6 @@ const axiosInstance = globalAxios.create();
 type CoderClientConstructorInputs = Partial<CoderClientConfigOptions> & {
   apis: Readonly<{
     discoveryApi: DiscoveryApi;
-    identityApi: IdentityApi;
     authApi: CoderAuthApi;
   }>;
 };
