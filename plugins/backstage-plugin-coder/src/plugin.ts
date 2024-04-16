@@ -3,6 +3,7 @@ import {
   createComponentExtension,
   createApiFactory,
   discoveryApiRef,
+  identityApiRef,
 } from '@backstage/core-plugin-api';
 import { rootRouteRef } from './routes';
 import { CoderTokenAuth } from './api/CoderTokenAuth';
@@ -21,9 +22,19 @@ export const coderPlugin = createPlugin({
 
     createApiFactory({
       api: coderClientApiRef,
-      deps: { discoveryApi: discoveryApiRef, authApi: coderAuthApiRef },
-      factory: ({ discoveryApi, authApi }) => {
-        return new CoderClient(discoveryApi, authApi);
+      deps: {
+        discoveryApi: discoveryApiRef,
+        authApi: coderAuthApiRef,
+        identityApi: identityApiRef,
+      },
+      factory: ({ discoveryApi, authApi, identityApi }) => {
+        return new CoderClient({
+          apis: {
+            discoveryApi,
+            authApi,
+            identityApi,
+          },
+        });
       },
     }),
   ],
