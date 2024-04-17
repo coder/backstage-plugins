@@ -76,8 +76,7 @@ export function workspacesByRepo({
 
   return {
     queryKey: [...getSharedWorkspacesQueryKey(coderQuery), workspacesConfig],
-    queryFn: async () =>
-      client.api.getWorkspacesByRepo(coderQuery, workspacesConfig),
+    queryFn: () => client.api.getWorkspacesByRepo(coderQuery, workspacesConfig),
     enabled,
     keepPreviousData: enabled,
     refetchInterval: getCoderWorkspacesRefetchInterval,
