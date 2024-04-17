@@ -114,6 +114,7 @@ export class CoderTokenAuth implements CoderTokenAuthApi {
     if (this.#isTokenValid && !newIsTokenValidValue) {
       this.#distrustGracePeriodTimeoutId = window.setTimeout(() => {
         this.#isInsideGracePeriod = false;
+        this.notifySubscriptionsOfStateChange();
       }, this.options.gracePeriodTimeoutMs);
     } else {
       window.clearTimeout(this.#distrustGracePeriodTimeoutId);
@@ -172,26 +173,33 @@ export class CoderTokenAuth implements CoderTokenAuthApi {
 
   getAuthStateSetter = (): AuthValidatorDispatch => {
     const tokenOnSetup = this.#token;
-    let allowUpdate = tokenOnSetup !== '';
+    if (tokenOnSetup === '') {
+      return () => {
+        // Do nothing - setter is fully inert because there's no token loaded to
+        // validate, and token changes would disable the function anyway
+      };
+    }
+
+    let allowUpdate = true;
     let disableUpdatesTimeoutId: number | undefined = undefined;
 
-    const onChange = (newSnapshot: AuthTokenStateSnapshot) => {
+    const onTokenChange = (newSnapshot: AuthTokenStateSnapshot) => {
       if (!allowUpdate || newSnapshot.token === tokenOnSetup) {
         return;
       }
 
       allowUpdate = false;
-      this.snapshotManager.unsubscribe(onChange);
+      this.snapshotManager.unsubscribe(onTokenChange);
       window.clearTimeout(disableUpdatesTimeoutId);
     };
 
-    this.snapshotManager.subscribe(onChange);
+    this.snapshotManager.subscribe(onTokenChange);
 
     // Have to make sure that we eventually unsubscribe so that the onChange
     // callback can be garbage-collected, and we don't have a memory leak
     disableUpdatesTimeoutId = window.setTimeout(() => {
       allowUpdate = false;
-      this.snapshotManager.unsubscribe(onChange);
+      this.snapshotManager.unsubscribe(onTokenChange);
     }, AUTH_SETTER_TIMEOUT_MS);
 
     return newStatus => {

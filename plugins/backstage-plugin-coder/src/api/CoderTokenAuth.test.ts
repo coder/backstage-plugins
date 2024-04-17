@@ -145,7 +145,7 @@ describe(`${CoderTokenAuth.name}`, () => {
       );
     });
 
-    it.only("Will eventually leave 'grace period' state when auth validity flips from true to false with no other dispatches", async () => {
+    it("Will eventually leave 'grace period' state when auth validity flips from true to false", async () => {
       const { auth } = setupAuth();
       auth.registerNewToken('blah');
       const dispatchNewStatus = auth.getAuthStateSetter();
