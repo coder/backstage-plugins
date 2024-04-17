@@ -307,3 +307,38 @@ export function getMockApiList(): readonly [
     [coderClientApiRef, coderClientApi],
   ];
 }
+
+export function getMockLocalStorage(
+  initialData: Record<string, string> = {},
+): Storage {
+  let dataStore: Map<string, string | undefined> = new Map(
+    Object.entries(initialData),
+  );
+
+  return {
+    get length() {
+      return dataStore.size;
+    },
+
+    getItem: key => {
+      return dataStore.get(key) ?? null;
+    },
+
+    setItem: (key, value) => {
+      dataStore.set(key, value);
+    },
+
+    removeItem: key => {
+      dataStore.delete(key);
+    },
+
+    clear: () => {
+      dataStore = new Map();
+    },
+
+    key: keyIndex => {
+      const keys = [...dataStore.keys()];
+      return keys[keyIndex] ?? null;
+    },
+  };
+}
