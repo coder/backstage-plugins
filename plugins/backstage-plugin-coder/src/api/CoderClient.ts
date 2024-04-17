@@ -74,7 +74,7 @@ type WorkspacesResponse = Readonly<{
   count: number;
 }>;
 
-type UserLoginType = Readonly<{
+export type UserLoginType = Readonly<{
   login_type: '' | 'github' | 'none' | 'oidc' | 'password' | 'token';
 }>;
 
