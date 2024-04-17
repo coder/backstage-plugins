@@ -10,14 +10,22 @@ afterEach(() => {
   jest.useRealTimers();
 });
 
-const localStorageKey = 'backstage-plugin-coder/test';
+const defaultLocalStorageKey = 'backstage-plugin-coder/test';
+
+type SetupAuthInputs = Readonly<{
+  initialData?: Record<string, string>;
+  localStorageKey?: string;
+}>;
 
 type SetupAuthResult = Readonly<{
   localStorage: Storage;
   auth: CoderTokenAuth;
 }>;
 
-function setupAuth(initialData: Record<string, string> = {}): SetupAuthResult {
+function setupAuth(inputs?: SetupAuthInputs): SetupAuthResult {
+  const { initialData, localStorageKey = defaultLocalStorageKey } =
+    inputs ?? {};
+
   const localStorage = getMockLocalStorage(initialData);
   const auth = new CoderTokenAuth({ localStorageKey, localStorage });
 
@@ -121,11 +129,23 @@ describe(`${CoderTokenAuth.name}`, () => {
       expect(onChange).not.toHaveBeenCalled();
     });
 
-    it("The state setter automatically 'turns off' after a set amount of time (will start rejecting dispatches)", () => {
-      expect.hasAssertions();
+    it("The state setter automatically 'goes inert' after a set amount of time (will start rejecting dispatches)", async () => {
+      const { auth } = setupAuth();
+      auth.registerNewToken('blah');
+
+      const dispatchNewStatus = auth.getAuthStateSetter();
+      await jest.advanceTimersByTimeAsync(60_000);
+      dispatchNewStatus(true);
+
+      const snapshot = auth.getStateSnapshot();
+      expect(snapshot).toEqual(
+        expect.objectContaining<Partial<AuthTokenStateSnapshot>>({
+          isTokenValid: false,
+        }),
+      );
     });
 
-    it.only("Will enter a 'grace period' state if the auth validity flips from true to false, but will eventually become false", async () => {
+    it.only("Will eventually leave 'grace period' state when auth validity flips from true to false with no other dispatches", async () => {
       const { auth } = setupAuth();
       auth.registerNewToken('blah');
       const dispatchNewStatus = auth.getAuthStateSetter();
@@ -162,9 +182,13 @@ describe(`${CoderTokenAuth.name}`, () => {
   describe('localStorage', () => {
     it('Will read from localStorage when first initialized', () => {
       const testValue = 'blah';
-      const { auth } = setupAuth({ [localStorageKey]: testValue });
-      const initialStateSnapshot = auth.getStateSnapshot();
+      const { auth } = setupAuth({
+        initialData: {
+          [defaultLocalStorageKey]: testValue,
+        },
+      });
 
+      const initialStateSnapshot = auth.getStateSnapshot();
       expect(initialStateSnapshot).toEqual(
         expect.objectContaining<Partial<AuthTokenStateSnapshot>>({
           initialToken: testValue,
@@ -176,19 +200,39 @@ describe(`${CoderTokenAuth.name}`, () => {
 
     it('Will immediately update localStorage when token is cleared', () => {
       const { auth, localStorage } = setupAuth({
-        [localStorageKey]: 'blah',
+        initialData: {
+          [defaultLocalStorageKey]: 'blah',
+        },
       });
 
       auth.clearToken();
-      expect(localStorage.getItem(localStorageKey)).toEqual('');
+      expect(localStorage.getItem(defaultLocalStorageKey)).toEqual('');
     });
 
     it('Will write to localStorage when the auth validity flips to true', () => {
-      expect.hasAssertions();
+      const testToken = 'blah';
+      const { auth, localStorage } = setupAuth();
+
+      auth.registerNewToken(testToken);
+      const dispatchNewStatus = auth.getAuthStateSetter();
+      dispatchNewStatus(true);
+
+      expect(localStorage.getItem(defaultLocalStorageKey)).toEqual(testToken);
     });
 
     it('Lets the user define a custom local storage key', () => {
-      expect.hasAssertions();
+      const customKey = 'blah';
+      const testToken = 'blah blah';
+
+      const { auth, localStorage } = setupAuth({
+        localStorageKey: customKey,
+      });
+
+      auth.registerNewToken(testToken);
+      const dispatchNewStatus = auth.getAuthStateSetter();
+      dispatchNewStatus(true);
+
+      expect(localStorage.getItem(customKey)).toEqual(testToken);
     });
   });
 });
