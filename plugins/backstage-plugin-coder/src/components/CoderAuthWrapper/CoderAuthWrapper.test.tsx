@@ -2,7 +2,10 @@ import React from 'react';
 import { screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { CoderProviderWithMockAuth } from '../../testHelpers/setup';
-import type { CoderTokenAuthUiStatus } from '../../hooks/useCoderTokenAuth';
+import type {
+  CoderTokenAuthUiStatus,
+  CoderTokenUiAuth,
+} from '../../hooks/useCoderTokenAuth';
 import {
   mockAppConfig,
   mockAuthStates,
@@ -10,7 +13,6 @@ import {
 } from '../../testHelpers/mockBackstageData';
 import { CoderAuthWrapper } from './CoderAuthWrapper';
 import { renderInTestApp } from '@backstage/test-utils';
-import { CoderTokenAuth } from '../../api/CoderTokenAuth';
 
 type RenderInputs = Readonly<{
   authStatus: CoderTokenAuthUiStatus;
@@ -24,7 +26,7 @@ async function renderAuthWrapper({
   const ejectToken = jest.fn();
   const registerNewToken = jest.fn();
 
-  const auth: CoderTokenAuth = {
+  const auth: CoderTokenUiAuth = {
     ...mockAuthStates[authStatus],
     ejectToken,
     registerNewToken,
