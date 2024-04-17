@@ -43,7 +43,7 @@ describe(`${CoderTokenAuth.name}`, () => {
       expect(onChange).toHaveBeenCalled();
     });
 
-    it('Lets external systems UN-subscribe to auth changes', () => {
+    it('Lets external systems *un*subscribe to auth changes', () => {
       const onChange = jest.fn();
       const { auth } = setupAuth();
       auth.subscribe(onChange);
@@ -117,7 +117,7 @@ describe(`${CoderTokenAuth.name}`, () => {
       expect(onChange).not.toHaveBeenCalled();
     });
 
-    it('If token changes after setter is created, no state dispatches will go through', () => {
+    it('Disables the state setter if the token changes after the setter was created', () => {
       const onChange = jest.fn();
       const { auth } = setupAuth();
 
@@ -129,7 +129,7 @@ describe(`${CoderTokenAuth.name}`, () => {
       expect(onChange).not.toHaveBeenCalled();
     });
 
-    it("The state setter automatically 'goes inert' after a set amount of time (will start rejecting dispatches)", async () => {
+    it("Makes the state setter 'go inert' after a set amount of time (will start rejecting dispatches)", async () => {
       const { auth } = setupAuth();
       auth.registerNewToken('blah');
 
@@ -168,7 +168,10 @@ describe(`${CoderTokenAuth.name}`, () => {
         }),
       );
 
+      // Giving the timeout logic a wide berth so that we have some wiggle room
+      // to adjust the grace period timeout without needing to change the test
       await jest.advanceTimersByTimeAsync(60_000);
+
       const snapshot3 = auth.getStateSnapshot();
       expect(snapshot3).toEqual(
         expect.objectContaining<Partial<AuthTokenStateSnapshot>>({
@@ -209,7 +212,7 @@ describe(`${CoderTokenAuth.name}`, () => {
       expect(localStorage.getItem(defaultLocalStorageKey)).toEqual('');
     });
 
-    it('Will write to localStorage when the auth validity flips to true', () => {
+    it('Will write to localStorage when the token is confirmed to be valid', () => {
       const testToken = 'blah';
       const { auth, localStorage } = setupAuth();
 
