@@ -172,7 +172,7 @@ export class CoderTokenAuth implements CoderTokenAuthApi {
 
   getAuthStateSetter = (): AuthValidatorDispatch => {
     const tokenOnSetup = this.#token;
-    let allowUpdate = true;
+    let allowUpdate = tokenOnSetup !== '';
     let disableUpdatesTimeoutId: number | undefined = undefined;
 
     const onChange = (newSnapshot: AuthTokenStateSnapshot) => {
