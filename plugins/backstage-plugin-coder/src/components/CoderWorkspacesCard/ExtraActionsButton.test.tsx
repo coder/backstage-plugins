@@ -6,7 +6,7 @@ import {
   mockAuthStates,
   mockCoderWorkspacesConfig,
 } from '../../testHelpers/mockBackstageData';
-import type { CoderAuth } from '../CoderProvider';
+import type { CoderTokenUiAuth } from '../../hooks/useCoderTokenAuth';
 import { CardContext, WorkspacesCardContext } from './Root';
 import { ExtraActionsButton } from './ExtraActionsButton';
 
@@ -30,7 +30,10 @@ type RenderInputs = Readonly<{
 
 async function renderButton({ buttonText }: RenderInputs) {
   const ejectToken = jest.fn();
-  const auth: CoderAuth = { ...mockAuthStates.authenticated, ejectToken };
+  const auth: CoderTokenUiAuth = {
+    ...mockAuthStates.authenticated,
+    ejectToken,
+  };
 
   /**
    * Pretty sure there has to be a more elegant and fault-tolerant way of
