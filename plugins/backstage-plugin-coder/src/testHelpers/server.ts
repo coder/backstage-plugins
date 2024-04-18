@@ -3,9 +3,9 @@ import {
   type DefaultBodyType,
   type ResponseResolver,
   type RestContext,
-  RestHandler,
+  type RestHandler,
+  type RestRequest,
   rest,
-  RestRequest,
 } from 'msw';
 import { setupServer } from 'msw/node';
 /* eslint-enable @backstage/no-undeclared-imports */
@@ -67,7 +67,7 @@ function wrappedGet<TBody extends DefaultBodyType = any>(
   return rest.get(path, wrapped);
 }
 
-const handlers: readonly RestHandler[] = [
+const mainTestHandlers: readonly RestHandler[] = [
   wrappedGet(`${root}/workspaces`, (req, res, ctx) => {
     const queryText = String(req.url.searchParams.get('q'));
 
@@ -114,4 +114,4 @@ const handlers: readonly RestHandler[] = [
   }),
 ];
 
-export const server = setupServer(...handlers);
+export const server = setupServer(...mainTestHandlers);
