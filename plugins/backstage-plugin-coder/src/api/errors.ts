@@ -1,4 +1,4 @@
-import type { AxiosResponse } from 'axios';
+import type { AxiosHeaderValue, AxiosResponse } from 'axios';
 
 /**
  * Makes it easier to expose HTTP responses in the event of errors and also
@@ -17,16 +17,16 @@ export class BackstageHttpError extends Error {
     return value instanceof BackstageHttpError;
   }
 
-  get status() {
+  get status(): number {
     return this.#failedResponse.status;
   }
 
-  get ok() {
+  get ok(): boolean {
     const status = this.#failedResponse.status;
     return !(status >= 200 && status <= 299);
   }
 
-  get contentType() {
+  get contentType(): AxiosHeaderValue | undefined {
     return this.#failedResponse.headers['Content-Type'];
   }
 }
