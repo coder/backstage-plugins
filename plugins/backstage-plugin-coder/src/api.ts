@@ -20,11 +20,6 @@ export const ASSETS_ROUTE_PREFIX = PROXY_ROUTE_PREFIX;
 export const CODER_AUTH_HEADER_KEY = 'Coder-Session-Token';
 export const REQUEST_TIMEOUT_MS = 20_000;
 
-// No idea why Backstage doesn't have a formal type for this built in
-type UserCredentials = Readonly<{
-  token?: string;
-}>;
-
 async function getCoderApiRequestInit(
   authToken: string,
   identity: IdentityApi,
@@ -33,21 +28,19 @@ async function getCoderApiRequestInit(
     [CODER_AUTH_HEADER_KEY]: authToken,
   };
 
-  let credentials: UserCredentials;
   try {
-    credentials = await identity.getCredentials();
+    const credentials = await identity.getCredentials();
+    if (credentials.token) {
+      headers.Authorization = `Bearer ${credentials.token}`;
+    }
   } catch (err) {
     if (err instanceof Error) {
       throw err;
     }
 
     throw new Error(
-      'Unable to parse user information from Backstage APIs. Please ensure that your Backstage deployment is integrated to use the built-in Identity API',
+      "Unable to parse user information for Coder requests. Please ensure that your Backstage deployment is integrated to use Backstage's Identity API",
     );
-  }
-
-  if (credentials.token) {
-    headers.Authorization = `bearer ${credentials.token}`;
   }
 
   return {
