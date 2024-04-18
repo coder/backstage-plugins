@@ -58,6 +58,7 @@ export const mockBackstageProxyEndpoint = `${mockBackstageUrlRoot}${API_ROUTE_PR
 
 export const mockBackstageAssetsEndpoint = `${mockBackstageUrlRoot}${ASSETS_ROUTE_PREFIX}`;
 
+export const mockBearerToken = 'This-is-an-opaque-value-by-design';
 export const mockCoderAuthToken = 'ZG0HRy2gGN-mXljc1s5FqtE8WUJ4sUc5X';
 
 export const mockYamlConfig = {
@@ -229,7 +230,7 @@ export function getMockIdentityApi(): IdentityApi {
     },
     getCredentials: async () => {
       return {
-        token: '',
+        token: mockBearerToken,
       };
     },
   };
