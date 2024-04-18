@@ -4,6 +4,7 @@ import { workspaces, workspacesByRepo } from '../api';
 import { useCoderAuth } from '../components/CoderProvider/CoderAuthProvider';
 import { useBackstageEndpoints } from './useBackstageEndpoints';
 import { CoderWorkspacesConfig } from './useCoderWorkspacesConfig';
+import { identityApiRef, useApi } from '@backstage/core-plugin-api';
 
 type QueryInput = Readonly<{
   coderQuery: string;
@@ -15,12 +16,19 @@ export function useCoderWorkspacesQuery({
   workspacesConfig,
 }: QueryInput) {
   const auth = useCoderAuth();
+  const identity = useApi(identityApiRef);
   const { baseUrl } = useBackstageEndpoints();
   const hasRepoData = workspacesConfig && workspacesConfig.repoUrl;
 
   const queryOptions = hasRepoData
-    ? workspacesByRepo({ coderQuery, auth, baseUrl, workspacesConfig })
-    : workspaces({ coderQuery, auth, baseUrl });
+    ? workspacesByRepo({
+        coderQuery,
+        identity,
+        auth,
+        baseUrl,
+        workspacesConfig,
+      })
+    : workspaces({ coderQuery, identity, auth, baseUrl });
 
   return useQuery(queryOptions);
 }
