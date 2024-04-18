@@ -1,5 +1,9 @@
 import { getMockLocalStorage } from '../testHelpers/mockBackstageData';
-import { type AuthTokenStateSnapshot, CoderTokenAuth } from './CoderTokenAuth';
+import {
+  type AuthTokenStateSnapshot,
+  CoderTokenAuth,
+  AUTH_SETTER_TIMEOUT_MS,
+} from './CoderTokenAuth';
 
 beforeEach(() => {
   jest.useFakeTimers();
@@ -10,10 +14,14 @@ afterEach(() => {
   jest.useRealTimers();
 });
 
+// Aggressively short time to ensure that the class can accept any arbitrary
+// timeout value. The auth logic is 90% synchronous, so this has no real risks
+const defaultGracePeriodTimeoutMs = 1_000;
 const defaultLocalStorageKey = 'backstage-plugin-coder/test';
 
 type SetupAuthInputs = Readonly<{
   initialData?: Record<string, string>;
+  gracePeriodTimeoutMs?: number;
   localStorageKey?: string;
 }>;
 
@@ -23,11 +31,18 @@ type SetupAuthResult = Readonly<{
 }>;
 
 function setupAuth(inputs?: SetupAuthInputs): SetupAuthResult {
-  const { initialData, localStorageKey = defaultLocalStorageKey } =
-    inputs ?? {};
+  const {
+    initialData,
+    localStorageKey = defaultLocalStorageKey,
+    gracePeriodTimeoutMs = defaultGracePeriodTimeoutMs,
+  } = inputs ?? {};
 
   const localStorage = getMockLocalStorage(initialData);
-  const auth = new CoderTokenAuth({ localStorageKey, localStorage });
+  const auth = new CoderTokenAuth({
+    localStorage,
+    localStorageKey,
+    gracePeriodTimeoutMs,
+  });
 
   return { auth, localStorage };
 }
@@ -132,9 +147,10 @@ describe(`${CoderTokenAuth.name}`, () => {
     it("Makes the state setter 'go inert' after a set amount of time (will start rejecting dispatches)", async () => {
       const { auth } = setupAuth();
       auth.registerNewToken('blah');
-
       const dispatchNewStatus = auth.getAuthStateSetter();
-      await jest.advanceTimersByTimeAsync(60_000);
+
+      // Give an extra 100ms to give code time to flush state changes
+      await jest.advanceTimersByTimeAsync(AUTH_SETTER_TIMEOUT_MS + 100);
       dispatchNewStatus(true);
 
       const snapshot = auth.getStateSnapshot();
@@ -168,10 +184,7 @@ describe(`${CoderTokenAuth.name}`, () => {
         }),
       );
 
-      // Giving the timeout logic a wide berth so that we have some wiggle room
-      // to adjust the grace period timeout without needing to change the test
-      await jest.advanceTimersByTimeAsync(60_000);
-
+      await jest.advanceTimersByTimeAsync(defaultGracePeriodTimeoutMs);
       const snapshot3 = auth.getStateSnapshot();
       expect(snapshot3).toEqual(
         expect.objectContaining<Partial<AuthTokenStateSnapshot>>({

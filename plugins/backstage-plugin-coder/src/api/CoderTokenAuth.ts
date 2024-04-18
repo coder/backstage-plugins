@@ -1,7 +1,7 @@
 import type { AuthValidatorDispatch, CoderAuthApi } from './Auth';
 import { StateSnapshotManager } from '../utils/StateSnapshotManager';
 
-const AUTH_SETTER_TIMEOUT_MS = 20_000;
+export const AUTH_SETTER_TIMEOUT_MS = 20_000;
 
 type ConfigOptions = Readonly<{
   localStorage: typeof window.localStorage;
