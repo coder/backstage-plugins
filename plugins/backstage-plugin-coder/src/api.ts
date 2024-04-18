@@ -20,23 +20,34 @@ export const ASSETS_ROUTE_PREFIX = PROXY_ROUTE_PREFIX;
 export const CODER_AUTH_HEADER_KEY = 'Coder-Session-Token';
 export const REQUEST_TIMEOUT_MS = 20_000;
 
-async function getBearerToken(
-  identity: IdentityApi,
-): Promise<string | undefined> {
-  const credentials = await identity.getCredentials();
-  return credentials.token;
-}
+// No idea why Backstage doesn't have a formal type for this built in
+type UserCredentials = Readonly<{
+  token?: string;
+}>;
 
-function getCoderApiRequestInit(
+async function getCoderApiRequestInit(
   authToken: string,
-  bearerToken: string | undefined,
-): RequestInit {
+  identity: IdentityApi,
+): Promise<RequestInit> {
   const headers: HeadersInit = {
     [CODER_AUTH_HEADER_KEY]: authToken,
   };
 
-  if (bearerToken) {
-    headers.Authorization = `bearer ${bearerToken}`;
+  let credentials: UserCredentials;
+  try {
+    credentials = await identity.getCredentials();
+  } catch (err) {
+    if (err instanceof Error) {
+      throw err;
+    }
+
+    throw new Error(
+      'Unable to parse user information from Backstage APIs. Please ensure that your Backstage deployment is integrated to use the built-in Identity API',
+    );
+  }
+
+  if (credentials.token) {
+    headers.Authorization = `bearer ${credentials.token}`;
   }
 
   return {
@@ -92,10 +103,10 @@ async function getWorkspaces(
     limit: '0',
   });
 
-  const bearerToken = await getBearerToken(identity);
+  const requestInit = await getCoderApiRequestInit(auth.token, identity);
   const response = await fetch(
     `${baseUrl}${API_ROUTE_PREFIX}/workspaces?${urlParams.toString()}`,
-    getCoderApiRequestInit(auth.token, bearerToken),
+    requestInit,
   );
 
   if (!response.ok) {
@@ -140,10 +151,10 @@ async function getWorkspaceBuildParameters(inputs: BuildParamsFetchInputs) {
   const { baseUrl, auth, workspaceBuildId, identity } = inputs;
   assertValidCoderAuth(auth);
 
-  const bearerToken = await getBearerToken(identity);
+  const requestInit = await getCoderApiRequestInit(auth.token, identity);
   const res = await fetch(
     `${baseUrl}${API_ROUTE_PREFIX}/workspacebuilds/${workspaceBuildId}/parameters`,
-    getCoderApiRequestInit(auth.token, bearerToken),
+    requestInit,
   );
 
   if (!res.ok) {
@@ -283,13 +294,13 @@ type AuthValidationInputs = Readonly<{
 
 async function isAuthValid(inputs: AuthValidationInputs): Promise<boolean> {
   const { baseUrl, authToken, identity } = inputs;
-  const bearerToken = await getBearerToken(identity);
 
   // In this case, the request doesn't actually matter. Just need to make any
   // kind of dummy request to validate the auth
+  const requestInit = await getCoderApiRequestInit(authToken, identity);
   const response = await fetch(
     `${baseUrl}${API_ROUTE_PREFIX}/users/me`,
-    getCoderApiRequestInit(authToken, bearerToken),
+    requestInit,
   );
 
   if (response.status >= 400 && response.status !== 401) {
