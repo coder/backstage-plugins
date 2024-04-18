@@ -12,7 +12,11 @@ import {
 import React from 'react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { scmIntegrationsApiRef } from '@backstage/integration-react';
-import { configApiRef, errorApiRef } from '@backstage/core-plugin-api';
+import {
+  configApiRef,
+  errorApiRef,
+  identityApiRef,
+} from '@backstage/core-plugin-api';
 import { EntityProvider } from '@backstage/plugin-catalog-react';
 import {
   type CoderAuth,
@@ -30,6 +34,7 @@ import {
   getMockConfigApi,
   mockAuthStates,
   BackstageEntity,
+  getMockIdentityApi,
 } from './mockBackstageData';
 import { CoderErrorBoundary } from '../plugin';
 
@@ -159,6 +164,7 @@ export const renderHookAsCoderEntity = async <
   const mockErrorApi = getMockErrorApi();
   const mockSourceControl = getMockSourceControl();
   const mockConfigApi = getMockConfigApi();
+  const mockIdentityApi = getMockIdentityApi();
   const mockQueryClient = getMockQueryClient();
 
   const renderHookValue = renderHook(hook, {
@@ -168,6 +174,7 @@ export const renderHookAsCoderEntity = async <
         <TestApiProvider
           apis={[
             [errorApiRef, mockErrorApi],
+            [identityApiRef, mockIdentityApi],
             [scmIntegrationsApiRef, mockSourceControl],
             [configApiRef, mockConfigApi],
           ]}
@@ -215,11 +222,13 @@ export async function renderInCoderEnvironment({
   const mockErrorApi = getMockErrorApi();
   const mockSourceControl = getMockSourceControl();
   const mockConfigApi = getMockConfigApi();
+  const mockIdentityApi = getMockIdentityApi();
 
   const mainMarkup = (
     <TestApiProvider
       apis={[
         [errorApiRef, mockErrorApi],
+        [identityApiRef, mockIdentityApi],
         [scmIntegrationsApiRef, mockSourceControl],
         [configApiRef, mockConfigApi],
       ]}
