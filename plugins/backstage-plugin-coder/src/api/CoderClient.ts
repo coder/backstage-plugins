@@ -147,6 +147,8 @@ export class CoderClient implements CoderClientApi {
   private latestProxyEndpoint: string;
   readonly sdkApi: BackstageCoderSdkApi;
 
+  private debugOnlyConfigTracker: Set<InternalAxiosRequestConfig> = new Set();
+
   /* ***************************************************************************
    * There is some funky (but necessary) stuff going on in this class - a lot of
    * the class methods are passed directly to other systems. Just to be on the
@@ -194,6 +196,14 @@ export class CoderClient implements CoderClientApi {
       initialSnapshot: this.prepareNewStateSnapshot(),
     });
 
+    // Set up logic for syncing client snapshots to auth state changes
+    this.authApi.subscribe(newAuthSnapshot => {
+      const latestClientSnapshot = this.getStateSnapshot();
+      if (newAuthSnapshot.isTokenValid !== latestClientSnapshot.isAuthValid) {
+        this.notifySubscriptionsOfStateChange();
+      }
+    });
+
     // Call DiscoveryApi to populate initial endpoint path, so that the path
     // can be accessed synchronously from the UI. Should be called last after
     // all other initialization steps
@@ -211,6 +221,13 @@ export class CoderClient implements CoderClientApi {
   ): Promise<InternalAxiosRequestConfig> => {
     const { authHeaderKey, apiRoutePrefix } = this.options;
     const boundAuthToken = this.authApi.token;
+
+    this.debugOnlyConfigTracker.add(config);
+    console.log({
+      configsCaught: this.debugOnlyConfigTracker.size,
+      tokenToBeLoaded: boundAuthToken,
+      oldToken: config.headers[authHeaderKey],
+    });
 
     const proxyEndpoint = await this.getProxyEndpoint();
     config.baseURL = `${proxyEndpoint}${apiRoutePrefix}`;
