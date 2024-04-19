@@ -6,7 +6,7 @@ import {
   getMockIdentityApi,
   mockCoderAuthToken,
 } from '../testHelpers/mockBackstageData';
-import { CoderClient } from './CoderClient';
+import { CoderClient, CoderClientSnapshot } from './CoderClient';
 import { CoderTokenAuth } from './CoderTokenAuth';
 
 type TokenAuthSetupOutput = Readonly<{
@@ -40,7 +40,7 @@ describe(`${CoderClient.name}`, () => {
    * cases specifically for that.
    */
   describe('With token auth', () => {
-    describe.only('validateAuth method', () => {
+    describe('validateAuth method', () => {
       it('Will update the underlying auth instance when a query succeeds', async () => {
         const { clientApi, authApi } = setupCoderClientWithTokenAuth();
 
@@ -48,8 +48,16 @@ describe(`${CoderClient.name}`, () => {
         const validationResult = await clientApi.validateAuth();
 
         expect(validationResult).toBe(true);
-        expect(clientApi.isAuthValid).toBe(true);
         expect(authApi.isTokenValid).toBe(true);
+
+        const clientSnapshot = clientApi.getStateSnapshot();
+        expect(clientSnapshot).toEqual(
+          expect.objectContaining<Partial<CoderClientSnapshot>>({
+            isAuthValid: true,
+          }),
+        );
+
+        clientApi.cleanupClient();
       });
 
       it('Will update the underlying auth instance when a query fails', async () => {
@@ -59,8 +67,16 @@ describe(`${CoderClient.name}`, () => {
         const validationResult = await clientApi.validateAuth();
 
         expect(validationResult).toBe(false);
-        expect(clientApi.isAuthValid).toBe(false);
         expect(authApi.isTokenValid).toBe(false);
+
+        const clientSnapshot = clientApi.getStateSnapshot();
+        expect(clientSnapshot).toEqual(
+          expect.objectContaining<Partial<CoderClientSnapshot>>({
+            isAuthValid: false,
+          }),
+        );
+
+        clientApi.cleanupClient();
       });
     });
   });

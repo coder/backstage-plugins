@@ -116,6 +116,7 @@ export type CoderClientApi = Readonly<{
   getStateSnapshot: () => CoderClientSnapshot;
   unsubscribe: (callback: SubscriptionCallback) => void;
   subscribe: (callback: SubscriptionCallback) => () => void;
+  cleanupClient: () => void;
 }>;
 
 /**
@@ -143,11 +144,10 @@ export class CoderClient implements CoderClientApi {
 
   private readonly options: CoderClientConfigOptions;
   private readonly snapshotManager: StateSnapshotManager<CoderClientSnapshot>;
+  private readonly axiosInterceptorId: number;
 
   private latestProxyEndpoint: string;
   readonly sdkApi: BackstageCoderSdkApi;
-
-  private debugOnlyConfigTracker: Set<InternalAxiosRequestConfig> = new Set();
 
   /* ***************************************************************************
    * There is some funky (but necessary) stuff going on in this class - a lot of
@@ -188,7 +188,9 @@ export class CoderClient implements CoderClientApi {
     };
 
     // Wire up Backstage APIs and Axios to be aware of each other
-    axiosInstance.interceptors.request.use(this.interceptAxiosRequest);
+    this.axiosInterceptorId = axiosInstance.interceptors.request.use(
+      this.interceptAxiosRequest,
+    );
 
     // Hook up snapshot manager so that external systems can be made aware when
     // state changes, all in a render-safe way
@@ -220,18 +222,10 @@ export class CoderClient implements CoderClientApi {
     config: InternalAxiosRequestConfig,
   ): Promise<InternalAxiosRequestConfig> => {
     const { authHeaderKey, apiRoutePrefix } = this.options;
-    const boundAuthToken = this.authApi.token;
-
-    this.debugOnlyConfigTracker.add(config);
-    console.log({
-      configsCaught: this.debugOnlyConfigTracker.size,
-      tokenToBeLoaded: boundAuthToken,
-      oldToken: config.headers[authHeaderKey],
-    });
 
     const proxyEndpoint = await this.getProxyEndpoint();
     config.baseURL = `${proxyEndpoint}${apiRoutePrefix}`;
-    config.headers[authHeaderKey] = boundAuthToken;
+    config.headers[authHeaderKey] = this.authApi.token;
 
     const bearerToken = (await this.identityApi.getCredentials()).token;
     if (bearerToken) {
@@ -407,6 +401,10 @@ export class CoderClient implements CoderClientApi {
     }
 
     return false;
+  };
+
+  cleanupClient = () => {
+    axiosInstance.interceptors.request.eject(this.axiosInterceptorId);
   };
 }
 
