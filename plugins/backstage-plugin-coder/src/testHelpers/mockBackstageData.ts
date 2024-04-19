@@ -24,11 +24,13 @@ import {
   CoderTokenUiAuth,
 } from '../hooks/useCoderTokenAuth';
 import {
-  ApiRef,
-  DiscoveryApi,
+  type IdentityApi,
+  type ApiRef,
   configApiRef,
+  DiscoveryApi,
   discoveryApiRef,
   errorApiRef,
+  identityApiRef,
 } from '@backstage/core-plugin-api';
 import { CoderAuthApi, coderAuthApiRef } from '../api/Auth';
 import {
@@ -77,6 +79,7 @@ export const mockBackstageProxyEndpoint =
 export const mockBackstageAssetsEndpoint =
   `${mockBackstageUrlRoot}/api/proxy${defaultCoderClientConfigOptions.assetsRoutePrefix}` as const;
 
+export const mockBearerToken = 'This-is-an-opaque-value-by-design';
 export const mockCoderAuthToken = 'ZG0HRy2gGN-mXljc1s5FqtE8WUJ4sUc5X';
 
 export const mockYamlConfig = {
@@ -227,6 +230,33 @@ export function getMockErrorApi() {
   return errorApi;
 }
 
+export function getMockIdentityApi(): IdentityApi {
+  return {
+    signOut: async () => {
+      return void 'Not going to implement this';
+    },
+    getProfileInfo: async () => {
+      return {
+        displayName: 'Dobah',
+        email: 'i-love-my-dog-dobah@dog.ceo',
+        picture: undefined,
+      };
+    },
+    getBackstageIdentity: async () => {
+      return {
+        type: 'user',
+        userEntityRef: 'User:default/Dobah',
+        ownershipEntityRefs: [],
+      };
+    },
+    getCredentials: async () => {
+      return {
+        token: mockBearerToken,
+      };
+    },
+  };
+}
+
 /**
  * Exposes a mock ScmIntegrationRegistry to be used with scmIntegrationsApiRef
  * for mocking out code that relies on source code data.
@@ -249,13 +279,13 @@ export function getMockDiscoveryApi(): DiscoveryApi {
 }
 
 type CoderClientSetupInfo = Readonly<{
-  discoveryApi: DiscoveryApi;
   authApi: CoderAuthApi;
   coderClientApi: CoderClient;
 }>;
 
-export function setupCoderClient(): CoderClientSetupInfo {
-  const mockDiscoveryApi = getMockDiscoveryApi();
+export function setupCoderClient(
+  discoveryApi: DiscoveryApi,
+): CoderClientSetupInfo {
   const mockLocalStorage: Partial<Storage> = {
     getItem: key => {
       if (key === defaultTokenAuthConfigOptions.localStorageKey) {
@@ -272,13 +302,12 @@ export function setupCoderClient(): CoderClientSetupInfo {
 
   const mockCoderClientApi = new CoderClient({
     apis: {
-      discoveryApi: mockDiscoveryApi,
+      discoveryApi,
       authApi: mockAuthApi,
     },
   });
 
   return {
-    discoveryApi: mockDiscoveryApi,
     authApi: mockAuthApi,
     coderClientApi: mockCoderClientApi,
   };
@@ -295,14 +324,19 @@ export function getMockApiList(): readonly [
   const mockErrorApi = getMockErrorApi();
   const mockSourceControl = getMockSourceControl();
   const mockConfigApi = getMockConfigApi();
-  const { discoveryApi, authApi, coderClientApi } = setupCoderClient();
+  const mockIdentityApi = getMockIdentityApi();
+  const mockDiscoveryApi = getMockDiscoveryApi();
+  const { authApi, coderClientApi } = setupCoderClient(mockDiscoveryApi);
 
   return [
+    // APIs that Backstage ships with normally
     [errorApiRef, mockErrorApi],
     [scmIntegrationsApiRef, mockSourceControl],
     [configApiRef, mockConfigApi],
-    [discoveryApiRef, discoveryApi],
+    [identityApiRef, mockIdentityApi],
+    [discoveryApiRef, mockDiscoveryApi],
 
+    // Custom, Coder-specific APIs
     [coderAuthApiRef, authApi],
     [coderClientApiRef, coderClientApi],
   ];
@@ -321,6 +355,10 @@ export function getMockLocalStorage(
     },
 
     getItem: key => {
+      if (!dataStore.has(key)) {
+        return null;
+      }
+
       return dataStore.get(key) ?? null;
     },
 

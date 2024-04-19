@@ -7,6 +7,7 @@ import {
   configApiRef,
   discoveryApiRef,
   errorApiRef,
+  identityApiRef,
 } from '@backstage/core-plugin-api';
 
 import { CoderProvider } from './CoderProvider';
@@ -18,7 +19,9 @@ import {
 
 import {
   getMockConfigApi,
+  getMockDiscoveryApi,
   getMockErrorApi,
+  getMockIdentityApi,
   mockAppConfig,
   mockCoderAuthToken,
   setupCoderClient,
@@ -59,13 +62,15 @@ describe(`${CoderProvider.name}`, () => {
     // core to the functionality and can be hand-waved. In this case, you do
     // need to bring in the full CoderProvider to verify it's working
     const renderUseCoderAuth = async () => {
-      const { discoveryApi, authApi, coderClientApi } = setupCoderClient();
+      const discoveryApi = getMockDiscoveryApi();
+      const { authApi, coderClientApi } = setupCoderClient(discoveryApi);
 
       const renderResult = renderHook(useCoderTokenAuth, {
         wrapper: ({ children }) => (
           <TestApiProvider
             apis={[
               [errorApiRef, getMockErrorApi()],
+              [identityApiRef, getMockIdentityApi()],
               [configApiRef, getMockConfigApi()],
               [discoveryApiRef, discoveryApi],
               [coderAuthApiRef, authApi],
