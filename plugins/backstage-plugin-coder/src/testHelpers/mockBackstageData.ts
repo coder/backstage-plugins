@@ -285,6 +285,7 @@ type CoderClientSetupInfo = Readonly<{
 
 export function setupCoderClient(
   discoveryApi: DiscoveryApi,
+  identityApi: IdentityApi,
 ): CoderClientSetupInfo {
   const mockLocalStorage: Partial<Storage> = {
     getItem: key => {
@@ -302,6 +303,7 @@ export function setupCoderClient(
 
   const mockCoderClientApi = new CoderClient({
     apis: {
+      identityApi,
       discoveryApi,
       authApi: mockAuthApi,
     },
@@ -314,8 +316,11 @@ export function setupCoderClient(
 }
 
 /**
- * This is the main API setup test helper you should be using in the vast
- * majority of tests.
+ * Creates a list of mock Backstage API definitions that can be fed directly
+ * into some of the official Backstage test helpers.
+ *
+ * When trying to set up dependency injection for a Backstage test, this is the
+ * main test helper you should be using 99% of the time.
  */
 export function getMockApiList(): readonly [
   ApiRef<unknown>,
@@ -326,7 +331,11 @@ export function getMockApiList(): readonly [
   const mockConfigApi = getMockConfigApi();
   const mockIdentityApi = getMockIdentityApi();
   const mockDiscoveryApi = getMockDiscoveryApi();
-  const { authApi, coderClientApi } = setupCoderClient(mockDiscoveryApi);
+
+  const { authApi, coderClientApi } = setupCoderClient(
+    mockDiscoveryApi,
+    mockIdentityApi,
+  );
 
   return [
     // APIs that Backstage ships with normally

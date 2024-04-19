@@ -16,7 +16,11 @@ import globalAxios, {
   type InternalAxiosRequestConfig,
   AxiosError,
 } from 'axios';
-import { type DiscoveryApi, createApiRef } from '@backstage/core-plugin-api';
+import {
+  type DiscoveryApi,
+  type IdentityApi,
+  createApiRef,
+} from '@backstage/core-plugin-api';
 import { BackstageHttpError } from './errors';
 
 import type { CoderAuthApi } from './Auth';
@@ -79,7 +83,7 @@ export type UserLoginType = Readonly<{
 }>;
 
 /**
- * This should eventually be the real Coder SDK.
+ * @todo This should eventually be the real Coder SDK.
  */
 type RawCoderSdkApi = {
   getUserLoginType: () => Promise<UserLoginType>;
@@ -126,12 +130,14 @@ const axiosInstance = globalAxios.create();
 
 type CoderClientConstructorInputs = Partial<CoderClientConfigOptions> & {
   apis: Readonly<{
+    identityApi: IdentityApi;
     discoveryApi: DiscoveryApi;
     authApi: CoderAuthApi;
   }>;
 };
 
 export class CoderClient implements CoderClientApi {
+  private readonly identityApi: IdentityApi;
   private readonly discoveryApi: DiscoveryApi;
   private readonly authApi: CoderAuthApi;
 
@@ -155,17 +161,18 @@ export class CoderClient implements CoderClientApi {
    ****************************************************************************/
 
   constructor(inputs: CoderClientConstructorInputs) {
-    // The "easy setup" part - initialize internal properties
     const { apis, ...options } = inputs;
-    const { discoveryApi, authApi } = apis;
+    const { discoveryApi, identityApi, authApi } = apis;
 
+    // The "easy setup" part - initialize internal properties
+    this.identityApi = identityApi;
     this.discoveryApi = discoveryApi;
     this.authApi = authApi;
     this.latestProxyEndpoint = '';
     this.options = { ...defaultCoderClientConfigOptions, ...(options ?? {}) };
 
     /**
-     * Wire up API namespace.
+     * Wire up SDK API namespace.
      *
      * @todo All methods are defined locally in the class, but this should
      * eventually be updated so that 99% of methods come from the SDK, with a
@@ -203,11 +210,17 @@ export class CoderClient implements CoderClientApi {
     config: InternalAxiosRequestConfig,
   ): Promise<InternalAxiosRequestConfig> => {
     const { authHeaderKey } = this.options;
+
     const proxyEndpoint = await this.getProxyEndpoint();
     const baseUrl = `${proxyEndpoint}${this.options.apiRoutePrefix}`;
-
     config.baseURL = baseUrl;
     config.headers[authHeaderKey] = this.authApi.token;
+
+    const { token } = await this.identityApi.getCredentials();
+    if (token) {
+      config.headers.Authorization = `Bearer ${token}`;
+    }
+
     return config;
   };
 

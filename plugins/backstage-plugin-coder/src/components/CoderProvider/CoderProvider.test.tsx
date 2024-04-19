@@ -62,8 +62,13 @@ describe(`${CoderProvider.name}`, () => {
     // core to the functionality and can be hand-waved. In this case, you do
     // need to bring in the full CoderProvider to verify it's working
     const renderUseCoderAuth = async () => {
+      const identityApi = getMockIdentityApi();
       const discoveryApi = getMockDiscoveryApi();
-      const { authApi, coderClientApi } = setupCoderClient(discoveryApi);
+
+      const { authApi, coderClientApi } = setupCoderClient(
+        discoveryApi,
+        identityApi,
+      );
 
       const renderResult = renderHook(useCoderTokenAuth, {
         wrapper: ({ children }) => (
