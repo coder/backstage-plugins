@@ -209,16 +209,16 @@ export class CoderClient implements CoderClientApi {
   private interceptAxiosRequest = async (
     config: InternalAxiosRequestConfig,
   ): Promise<InternalAxiosRequestConfig> => {
-    const { authHeaderKey } = this.options;
+    const { authHeaderKey, apiRoutePrefix } = this.options;
+    const boundAuthToken = this.authApi.token;
 
     const proxyEndpoint = await this.getProxyEndpoint();
-    const baseUrl = `${proxyEndpoint}${this.options.apiRoutePrefix}`;
-    config.baseURL = baseUrl;
-    config.headers[authHeaderKey] = this.authApi.token;
+    config.baseURL = `${proxyEndpoint}${apiRoutePrefix}`;
+    config.headers[authHeaderKey] = boundAuthToken;
 
-    const { token } = await this.identityApi.getCredentials();
-    if (token) {
-      config.headers.Authorization = `Bearer ${token}`;
+    const bearerToken = (await this.identityApi.getCredentials()).token;
+    if (bearerToken) {
+      config.headers.Authorization = `Bearer ${bearerToken}`;
     }
 
     return config;
