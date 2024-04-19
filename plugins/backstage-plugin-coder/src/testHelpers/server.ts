@@ -36,6 +36,19 @@ export type RestResolverMiddleware<TBody extends DefaultBodyType = any> = (
 ) => RestResolver<TBody>;
 
 const defaultMiddleware = [
+  function validateCoderSessionToken(handler) {
+    return (req, res, ctx) => {
+      const headerKey = defaultCoderClientConfigOptions.authHeaderKey;
+      const token = req.headers.get(headerKey);
+
+      if (token === mockCoderAuthToken) {
+        return handler(req, res, ctx);
+      }
+
+      return res(ctx.status(401));
+    };
+  },
+
   function validateBearerToken(handler) {
     return (req, res, ctx) => {
       const tokenRe = /^Bearer (.+)$/;
@@ -107,20 +120,13 @@ const mainTestHandlers: readonly RestHandler[] = [
   ),
 
   // This is the dummy request used to verify a user's auth status
-  wrappedGet(`${root}/users/me/login-type`, (req, res, ctx) => {
-    const headerKey = defaultCoderClientConfigOptions.authHeaderKey;
-    const token = req.headers.get(headerKey);
-
-    if (token === mockCoderAuthToken) {
-      return res(
-        ctx.status(200),
-        ctx.json<UserLoginType>({
-          login_type: 'token',
-        }),
-      );
-    }
-
-    return res(ctx.status(401));
+  wrappedGet(`${root}/users/me/login-type`, (_req, res, ctx) => {
+    return res(
+      ctx.status(200),
+      ctx.json<UserLoginType>({
+        login_type: 'token',
+      }),
+    );
   }),
 ];
 
