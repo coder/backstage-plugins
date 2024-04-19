@@ -4,15 +4,17 @@ import { act, render, waitFor } from '@testing-library/react';
 import {
   getMockDiscoveryApi,
   getMockIdentityApi,
+  mockCoderAuthToken,
 } from '../testHelpers/mockBackstageData';
 import { CoderClient } from './CoderClient';
 import { CoderTokenAuth } from './CoderTokenAuth';
 
-function setupCoderClient() {
-  /**
-   * Once the OAuth implementation is done, it probably makes sense to have
-   * separate sets of integration test cases for token auth and OAuth.
-   */
+type TokenAuthSetupOutput = Readonly<{
+  clientApi: CoderClient;
+  authApi: CoderTokenAuth;
+}>;
+
+function setupCoderClientWithTokenAuth(): TokenAuthSetupOutput {
   const authApi = new CoderTokenAuth();
   const discoveryApi = getMockDiscoveryApi();
   const identityApi = getMockIdentityApi();
@@ -33,23 +35,39 @@ function setupCoderClient() {
  * should kick up any other issues.
  */
 describe(`${CoderClient.name}`, () => {
-  describe('validateAuth method', () => {
-    it.only('Will update the underlying auth instance when a query succeeds', async () => {
-      const { clientApi, authApi } = setupCoderClient();
-      await clientApi.validateAuth();
+  /**
+   * Once the OAuth implementation is done, it probably makes sense to have test
+   * cases specifically for that.
+   */
+  describe('With token auth', () => {
+    describe('validateAuth method', () => {
+      it('Will update the underlying auth instance when a query succeeds', async () => {
+        const { clientApi, authApi } = setupCoderClientWithTokenAuth();
 
-      expect(clientApi.isAuthValid).toBe(true);
-      expect(authApi.isTokenValid).toBe(true);
-    });
+        authApi.registerNewToken(mockCoderAuthToken);
+        const validationResult = await clientApi.validateAuth();
 
-    it('Will update the underlying auth instance when a query fails', async () => {
-      expect.hasAssertions();
+        expect(validationResult).toBe(true);
+        expect(clientApi.isAuthValid).toBe(true);
+        expect(authApi.isTokenValid).toBe(true);
+      });
+
+      it.only('Will update the underlying auth instance when a query fails', async () => {
+        const { clientApi, authApi } = setupCoderClientWithTokenAuth();
+
+        authApi.registerNewToken('Definitely not a valid token');
+        const validationResult = await clientApi.validateAuth();
+
+        expect(validationResult).toBe(false);
+        expect(clientApi.isAuthValid).toBe(false);
+        expect(authApi.isTokenValid).toBe(false);
+      });
     });
   });
 
   describe('State snapshot subscriptions', () => {
     it('Lets external systems subscribe to state changes', async () => {
-      const { clientApi } = setupCoderClient();
+      const { clientApi } = setupCoderClientWithTokenAuth();
       const onChange = jest.fn();
       clientApi.subscribe(onChange);
 
@@ -58,7 +76,7 @@ describe(`${CoderClient.name}`, () => {
     });
 
     it('Lets external systems UN-subscribe to state changes', async () => {
-      const { clientApi } = setupCoderClient();
+      const { clientApi } = setupCoderClientWithTokenAuth();
       const subscriber1 = jest.fn();
       const subscriber2 = jest.fn();
 
@@ -87,7 +105,7 @@ describe(`${CoderClient.name}`, () => {
     });
 
     it('Provides tools to let React components bind re-renders to state changes', async () => {
-      const { clientApi } = setupCoderClient();
+      const { clientApi } = setupCoderClientWithTokenAuth();
       const onRender = jest.fn();
 
       const DummyReactComponent = () => {
