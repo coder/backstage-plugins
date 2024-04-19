@@ -284,10 +284,9 @@ export class CoderClient implements CoderClientApi {
   private getWorkspaceBuildParameters = async (
     workspaceBuildId: string,
   ): Promise<readonly WorkspaceBuildParameter[]> => {
-    type Res = readonly WorkspaceBuildParameter[];
-    const response = await axiosInstance.get<Res>(
-      `/workspacebuilds/${workspaceBuildId}/parameters`,
-    );
+    const response = await axiosInstance.get<
+      readonly WorkspaceBuildParameter[]
+    >(`/workspacebuilds/${workspaceBuildId}/parameters`);
 
     return response.data;
   };

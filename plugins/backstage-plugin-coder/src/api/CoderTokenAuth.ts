@@ -26,9 +26,7 @@ export type AuthTokenStateSnapshot = Readonly<{
   isInsideGracePeriod: boolean;
 }>;
 
-type SubscriptionCallback<TSnapshot = AuthTokenStateSnapshot> = (
-  snapshot: TSnapshot,
-) => void;
+type SubscriptionCallback = (snapshot: AuthTokenStateSnapshot) => void;
 
 export interface CoderTokenAuthApi
   extends CoderAuthApi<AuthTokenStateSnapshot> {
@@ -146,9 +144,7 @@ export class CoderTokenAuth implements CoderTokenAuthApi {
    * can be passed around React without risk of losing their "this" context
    ****************************************************************************/
 
-  subscribe = (
-    callback: SubscriptionCallback<AuthTokenStateSnapshot>,
-  ): (() => void) => {
+  subscribe = (callback: SubscriptionCallback): (() => void) => {
     return this.snapshotManager.subscribe(callback);
   };
 
