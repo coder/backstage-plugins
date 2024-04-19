@@ -3,7 +3,11 @@ import { renderHook } from '@testing-library/react';
 import { act, waitFor } from '@testing-library/react';
 
 import { TestApiProvider, wrapInTestApp } from '@backstage/test-utils';
-import { configApiRef, errorApiRef } from '@backstage/core-plugin-api';
+import {
+  configApiRef,
+  errorApiRef,
+  identityApiRef,
+} from '@backstage/core-plugin-api';
 
 import { CoderProvider } from './CoderProvider';
 import { useCoderAppConfig } from './CoderAppConfigProvider';
@@ -12,6 +16,7 @@ import { type CoderAuth, useCoderAuth } from './CoderAuthProvider';
 import {
   getMockConfigApi,
   getMockErrorApi,
+  getMockIdentityApi,
   mockAppConfig,
   mockCoderAuthToken,
 } from '../../testHelpers/mockBackstageData';
@@ -87,6 +92,7 @@ describe(`${CoderProvider.name}`, () => {
           <TestApiProvider
             apis={[
               [errorApiRef, getMockErrorApi()],
+              [identityApiRef, getMockIdentityApi()],
               [configApiRef, getMockConfigApi()],
             ]}
           >

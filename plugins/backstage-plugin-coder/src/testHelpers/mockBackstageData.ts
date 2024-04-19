@@ -17,6 +17,7 @@ import {
 import { ScmIntegrationsApi } from '@backstage/integration-react';
 
 import { API_ROUTE_PREFIX, ASSETS_ROUTE_PREFIX } from '../api';
+import { IdentityApi } from '@backstage/core-plugin-api';
 
 /**
  * This is the key that Backstage checks from the entity data to determine the
@@ -57,6 +58,7 @@ export const mockBackstageProxyEndpoint = `${mockBackstageUrlRoot}${API_ROUTE_PR
 
 export const mockBackstageAssetsEndpoint = `${mockBackstageUrlRoot}${ASSETS_ROUTE_PREFIX}`;
 
+export const mockBearerToken = 'This-is-an-opaque-value-by-design';
 export const mockCoderAuthToken = 'ZG0HRy2gGN-mXljc1s5FqtE8WUJ4sUc5X';
 
 export const mockYamlConfig = {
@@ -205,6 +207,33 @@ export function getMockErrorApi() {
   const errorApi = new MockErrorApi({ collect: true });
   errorApi.post = jest.fn(errorApi.post);
   return errorApi;
+}
+
+export function getMockIdentityApi(): IdentityApi {
+  return {
+    signOut: async () => {
+      return void 'Not going to implement this';
+    },
+    getProfileInfo: async () => {
+      return {
+        displayName: 'Dobah',
+        email: 'i-love-my-dog-dobah@dog.ceo',
+        picture: undefined,
+      };
+    },
+    getBackstageIdentity: async () => {
+      return {
+        type: 'user',
+        userEntityRef: 'User:default/Dobah',
+        ownershipEntityRefs: [],
+      };
+    },
+    getCredentials: async () => {
+      return {
+        token: mockBearerToken,
+      };
+    },
+  };
 }
 
 /**

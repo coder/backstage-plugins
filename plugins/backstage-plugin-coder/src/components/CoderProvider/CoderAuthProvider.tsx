@@ -19,6 +19,7 @@ import {
   authValidation,
 } from '../../api';
 import { useBackstageEndpoints } from '../../hooks/useBackstageEndpoints';
+import { identityApiRef, useApi } from '@backstage/core-plugin-api';
 
 const TOKEN_STORAGE_KEY = 'coder-backstage-plugin/token';
 
@@ -98,6 +99,7 @@ export function useCoderAuth(): CoderAuth {
 type CoderAuthProviderProps = Readonly<PropsWithChildren<unknown>>;
 
 export const CoderAuthProvider = ({ children }: CoderAuthProviderProps) => {
+  const identity = useApi(identityApiRef);
   const { baseUrl } = useBackstageEndpoints();
   const [isInsideGracePeriod, setIsInsideGracePeriod] = useState(true);
 
@@ -108,7 +110,7 @@ export const CoderAuthProvider = ({ children }: CoderAuthProviderProps) => {
   const [readonlyInitialAuthToken] = useState(authToken);
 
   const authValidityQuery = useQuery({
-    ...authValidation({ baseUrl, authToken }),
+    ...authValidation({ baseUrl, authToken, identity }),
     refetchOnWindowFocus: query => query.state.data !== false,
   });
 

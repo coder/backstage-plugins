@@ -9,6 +9,7 @@ import {
   WorkspaceAgentStatus,
 } from './typesConstants';
 import { CoderAuth, assertValidCoderAuth } from './components/CoderProvider';
+import { IdentityApi } from '@backstage/core-plugin-api';
 
 export const CODER_QUERY_KEY_PREFIX = 'coder-backstage-plugin';
 
@@ -19,9 +20,31 @@ export const ASSETS_ROUTE_PREFIX = PROXY_ROUTE_PREFIX;
 export const CODER_AUTH_HEADER_KEY = 'Coder-Session-Token';
 export const REQUEST_TIMEOUT_MS = 20_000;
 
-function getCoderApiRequestInit(authToken: string): RequestInit {
+async function getCoderApiRequestInit(
+  authToken: string,
+  identity: IdentityApi,
+): Promise<RequestInit> {
+  const headers: HeadersInit = {
+    [CODER_AUTH_HEADER_KEY]: authToken,
+  };
+
+  try {
+    const credentials = await identity.getCredentials();
+    if (credentials.token) {
+      headers.Authorization = `Bearer ${credentials.token}`;
+    }
+  } catch (err) {
+    if (err instanceof Error) {
+      throw err;
+    }
+
+    throw new Error(
+      "Unable to parse user information for Coder requests. Please ensure that your Backstage deployment is integrated to use Backstage's Identity API",
+    );
+  }
+
   return {
-    headers: { [CODER_AUTH_HEADER_KEY]: authToken },
+    headers,
     signal: AbortSignal.timeout(REQUEST_TIMEOUT_MS),
   };
 }
@@ -53,6 +76,7 @@ export class BackstageHttpError extends Error {
 type FetchInputs = Readonly<{
   auth: CoderAuth;
   baseUrl: string;
+  identity: IdentityApi;
 }>;
 
 type WorkspacesFetchInputs = Readonly<
@@ -64,7 +88,7 @@ type WorkspacesFetchInputs = Readonly<
 async function getWorkspaces(
   fetchInputs: WorkspacesFetchInputs,
 ): Promise<readonly Workspace[]> {
-  const { baseUrl, coderQuery, auth } = fetchInputs;
+  const { baseUrl, coderQuery, auth, identity } = fetchInputs;
   assertValidCoderAuth(auth);
 
   const urlParams = new URLSearchParams({
@@ -72,9 +96,10 @@ async function getWorkspaces(
     limit: '0',
   });
 
+  const requestInit = await getCoderApiRequestInit(auth.token, identity);
   const response = await fetch(
     `${baseUrl}${API_ROUTE_PREFIX}/workspaces?${urlParams.toString()}`,
-    getCoderApiRequestInit(auth.token),
+    requestInit,
   );
 
   if (!response.ok) {
@@ -116,12 +141,13 @@ type BuildParamsFetchInputs = Readonly<
 >;
 
 async function getWorkspaceBuildParameters(inputs: BuildParamsFetchInputs) {
-  const { baseUrl, auth, workspaceBuildId } = inputs;
+  const { baseUrl, auth, workspaceBuildId, identity } = inputs;
   assertValidCoderAuth(auth);
 
+  const requestInit = await getCoderApiRequestInit(auth.token, identity);
   const res = await fetch(
     `${baseUrl}${API_ROUTE_PREFIX}/workspacebuilds/${workspaceBuildId}/parameters`,
-    getCoderApiRequestInit(auth.token),
+    requestInit,
   );
 
   if (!res.ok) {
@@ -256,16 +282,18 @@ export function workspacesByRepo(
 type AuthValidationInputs = Readonly<{
   baseUrl: string;
   authToken: string;
+  identity: IdentityApi;
 }>;
 
 async function isAuthValid(inputs: AuthValidationInputs): Promise<boolean> {
-  const { baseUrl, authToken } = inputs;
+  const { baseUrl, authToken, identity } = inputs;
 
   // In this case, the request doesn't actually matter. Just need to make any
   // kind of dummy request to validate the auth
+  const requestInit = await getCoderApiRequestInit(authToken, identity);
   const response = await fetch(
     `${baseUrl}${API_ROUTE_PREFIX}/users/me`,
-    getCoderApiRequestInit(authToken),
+    requestInit,
   );
 
   if (response.status >= 400 && response.status !== 401) {
