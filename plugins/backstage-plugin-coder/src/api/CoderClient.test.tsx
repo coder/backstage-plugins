@@ -40,7 +40,7 @@ describe(`${CoderClient.name}`, () => {
    * cases specifically for that.
    */
   describe('With token auth', () => {
-    describe('validateAuth method', () => {
+    describe.only('validateAuth method', () => {
       it('Will update the underlying auth instance when a query succeeds', async () => {
         const { clientApi, authApi } = setupCoderClientWithTokenAuth();
 
@@ -52,7 +52,7 @@ describe(`${CoderClient.name}`, () => {
         expect(authApi.isTokenValid).toBe(true);
       });
 
-      it.only('Will update the underlying auth instance when a query fails', async () => {
+      it('Will update the underlying auth instance when a query fails', async () => {
         const { clientApi, authApi } = setupCoderClientWithTokenAuth();
 
         authApi.registerNewToken('Definitely not a valid token');
