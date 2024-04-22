@@ -33,10 +33,7 @@ import {
   identityApiRef,
 } from '@backstage/core-plugin-api';
 import { CoderAuthApi, coderAuthApiRef } from '../api/Auth';
-import {
-  CoderTokenAuth,
-  defaultTokenAuthConfigOptions,
-} from '../api/CoderTokenAuth';
+import { CoderTokenAuth } from '../api/CoderTokenAuth';
 
 /**
  * This is the key that Backstage checks from the entity data to determine the
@@ -278,39 +275,42 @@ export function getMockDiscoveryApi(): DiscoveryApi {
   );
 }
 
-type CoderClientSetupInfo = Readonly<{
+type SetupCoderClientInputs = Readonly<{
+  discoveryApi?: DiscoveryApi;
+  identityApi?: IdentityApi;
+  authApi?: CoderAuthApi;
+}>;
+
+type SetupCoderClientResult = Readonly<{
   authApi: CoderAuthApi;
   coderClientApi: CoderClient;
 }>;
 
-export function setupCoderClient(
-  discoveryApi: DiscoveryApi,
-  identityApi: IdentityApi,
-): CoderClientSetupInfo {
-  const mockLocalStorage: Partial<Storage> = {
-    getItem: key => {
-      if (key === defaultTokenAuthConfigOptions.localStorageKey) {
-        return mockCoderAuthToken;
-      }
+const activeClients = new Set<CoderClient>();
+afterEach(() => {
+  activeClients.forEach(client => client.cleanupClient());
+  activeClients.clear();
+});
 
-      return null;
-    },
-  };
-
-  const mockAuthApi = new CoderTokenAuth({
-    localStorage: mockLocalStorage as Storage,
-  });
-
+/**
+ * Gives back a Coder Client, its underlying auth implementation, and also
+ * handles cleanup for the Coder client between test runs.
+ *
+ * It is strongly recommended that you create all Coder
+ */
+export function setupCoderClient({
+  authApi = getMockCoderTokenAuth(),
+  discoveryApi = getMockDiscoveryApi(),
+  identityApi = getMockIdentityApi(),
+}: SetupCoderClientInputs): SetupCoderClientResult {
   const mockCoderClientApi = new CoderClient({
-    apis: {
-      identityApi,
-      discoveryApi,
-      authApi: mockAuthApi,
-    },
+    apis: { identityApi, discoveryApi, authApi },
   });
+
+  activeClients.add(mockCoderClientApi);
 
   return {
-    authApi: mockAuthApi,
+    authApi,
     coderClientApi: mockCoderClientApi,
   };
 }
@@ -332,10 +332,10 @@ export function getMockApiList(): readonly [
   const mockIdentityApi = getMockIdentityApi();
   const mockDiscoveryApi = getMockDiscoveryApi();
 
-  const { authApi, coderClientApi } = setupCoderClient(
-    mockDiscoveryApi,
-    mockIdentityApi,
-  );
+  const { authApi, coderClientApi } = setupCoderClient({
+    discoveryApi: mockDiscoveryApi,
+    identityApi: mockIdentityApi,
+  });
 
   return [
     // APIs that Backstage ships with normally
@@ -388,4 +388,10 @@ export function getMockLocalStorage(
       return keys[keyIndex] ?? null;
     },
   };
+}
+
+export function getMockCoderTokenAuth(): CoderTokenAuth {
+  return new CoderTokenAuth({
+    localStorage: getMockLocalStorage(),
+  });
 }

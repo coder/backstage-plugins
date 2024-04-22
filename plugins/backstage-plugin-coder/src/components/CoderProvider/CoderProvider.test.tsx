@@ -65,10 +65,10 @@ describe(`${CoderProvider.name}`, () => {
       const identityApi = getMockIdentityApi();
       const discoveryApi = getMockDiscoveryApi();
 
-      const { authApi, coderClientApi } = setupCoderClient(
+      const { authApi, coderClientApi } = setupCoderClient({
         discoveryApi,
         identityApi,
-      );
+      });
 
       const renderResult = renderHook(useCoderTokenAuth, {
         wrapper: ({ children }) => (

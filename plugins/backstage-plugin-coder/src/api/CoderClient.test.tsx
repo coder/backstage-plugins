@@ -1,16 +1,17 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { useSyncExternalStore } from 'use-sync-external-store/shim';
 import { act, render, waitFor } from '@testing-library/react';
 import {
   getMockDiscoveryApi,
   getMockIdentityApi,
   mockCoderAuthToken,
+  setupCoderClient,
 } from '../testHelpers/mockBackstageData';
 import { CoderClient, CoderClientSnapshot } from './CoderClient';
 import { CoderTokenAuth } from './CoderTokenAuth';
 
 type TokenAuthSetupOutput = Readonly<{
-  clientApi: CoderClient;
+  coderClientApi: CoderClient;
   authApi: CoderTokenAuth;
 }>;
 
@@ -19,11 +20,13 @@ function setupCoderClientWithTokenAuth(): TokenAuthSetupOutput {
   const discoveryApi = getMockDiscoveryApi();
   const identityApi = getMockIdentityApi();
 
-  const clientApi = new CoderClient({
-    apis: { discoveryApi, identityApi, authApi },
+  const { coderClientApi } = setupCoderClient({
+    discoveryApi,
+    identityApi,
+    authApi,
   });
 
-  return { authApi, clientApi };
+  return { authApi, coderClientApi };
 }
 
 /**
@@ -42,57 +45,53 @@ describe(`${CoderClient.name}`, () => {
   describe('With token auth', () => {
     describe('validateAuth method', () => {
       it('Will update the underlying auth instance when a query succeeds', async () => {
-        const { clientApi, authApi } = setupCoderClientWithTokenAuth();
+        const { coderClientApi, authApi } = setupCoderClientWithTokenAuth();
 
         authApi.registerNewToken(mockCoderAuthToken);
-        const validationResult = await clientApi.validateAuth();
+        const validationResult = await coderClientApi.validateAuth();
 
         expect(validationResult).toBe(true);
         expect(authApi.isTokenValid).toBe(true);
 
-        const clientSnapshot = clientApi.getStateSnapshot();
+        const clientSnapshot = coderClientApi.getStateSnapshot();
         expect(clientSnapshot).toEqual(
           expect.objectContaining<Partial<CoderClientSnapshot>>({
             isAuthValid: true,
           }),
         );
-
-        clientApi.cleanupClient();
       });
 
       it('Will update the underlying auth instance when a query fails', async () => {
-        const { clientApi, authApi } = setupCoderClientWithTokenAuth();
+        const { coderClientApi, authApi } = setupCoderClientWithTokenAuth();
 
         authApi.registerNewToken('Definitely not a valid token');
-        const validationResult = await clientApi.validateAuth();
+        const validationResult = await coderClientApi.validateAuth();
 
         expect(validationResult).toBe(false);
         expect(authApi.isTokenValid).toBe(false);
 
-        const clientSnapshot = clientApi.getStateSnapshot();
+        const clientSnapshot = coderClientApi.getStateSnapshot();
         expect(clientSnapshot).toEqual(
           expect.objectContaining<Partial<CoderClientSnapshot>>({
             isAuthValid: false,
           }),
         );
-
-        clientApi.cleanupClient();
       });
     });
   });
 
   describe('State snapshot subscriptions', () => {
     it('Lets external systems subscribe to state changes', async () => {
-      const { clientApi } = setupCoderClientWithTokenAuth();
+      const { coderClientApi } = setupCoderClientWithTokenAuth();
       const onChange = jest.fn();
-      clientApi.subscribe(onChange);
+      coderClientApi.subscribe(onChange);
 
-      await clientApi.validateAuth();
+      await coderClientApi.validateAuth();
       expect(onChange).toHaveBeenCalled();
     });
 
     it('Lets external systems UN-subscribe to state changes', async () => {
-      const { clientApi } = setupCoderClientWithTokenAuth();
+      const { coderClientApi } = setupCoderClientWithTokenAuth();
       const subscriber1 = jest.fn();
       const subscriber2 = jest.fn();
 
@@ -108,36 +107,46 @@ describe(`${CoderClient.name}`, () => {
        * 4. Promise resolves, and the auth state changes, but the old subscriber
        *    should *NOT* get notified because it's unsubscribed now
        */
-      clientApi.subscribe(subscriber1);
-      clientApi.subscribe(subscriber2);
+      coderClientApi.subscribe(subscriber1);
+      coderClientApi.subscribe(subscriber2);
 
       // Important that there's no await here. Do not want to pause the thread
       // of execution until after subscriber2 unsubscribes.
-      void clientApi.validateAuth();
-      clientApi.unsubscribe(subscriber2);
+      void coderClientApi.validateAuth();
+      coderClientApi.unsubscribe(subscriber2);
 
       await waitFor(() => expect(subscriber1).toHaveBeenCalled());
       expect(subscriber2).not.toHaveBeenCalled();
     });
 
     it('Provides tools to let React components bind re-renders to state changes', async () => {
-      const { clientApi } = setupCoderClientWithTokenAuth();
-      const onRender = jest.fn();
+      const { coderClientApi } = setupCoderClientWithTokenAuth();
+      const onStateChange = jest.fn();
 
       const DummyReactComponent = () => {
         const reactiveStateSnapshot = useSyncExternalStore(
-          clientApi.subscribe,
-          clientApi.getStateSnapshot,
+          coderClientApi.subscribe,
+          coderClientApi.getStateSnapshot,
         );
 
-        onRender(reactiveStateSnapshot);
+        useEffect(() => {
+          onStateChange();
+        }, [reactiveStateSnapshot]);
+
         return null;
       };
 
-      render(<DummyReactComponent />);
-      expect(onRender).toHaveBeenCalledTimes(1);
-      await act(() => clientApi.validateAuth());
-      expect(onRender).toHaveBeenCalledTimes(2);
+      const { rerender } = render(<DummyReactComponent />);
+      expect(onStateChange).toHaveBeenCalledTimes(1);
+
+      await act(() => coderClientApi.validateAuth());
+      expect(onStateChange).toHaveBeenCalledTimes(2);
+
+      // Make sure that if the component re-renders from the top down (like a
+      // parent state change), that does not cause the snapshot to lose its
+      // stable reference
+      rerender(<DummyReactComponent />);
+      expect(onStateChange).toHaveBeenCalledTimes(2);
     });
   });
 });

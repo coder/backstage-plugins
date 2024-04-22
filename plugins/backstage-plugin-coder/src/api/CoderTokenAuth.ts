@@ -4,7 +4,7 @@ import { StateSnapshotManager } from '../utils/StateSnapshotManager';
 export const AUTH_SETTER_TIMEOUT_MS = 20_000;
 
 type ConfigOptions = Readonly<{
-  localStorage: typeof window.localStorage;
+  localStorage: Storage;
   localStorageKey: string;
 
   // Handles auth edge case where a previously-valid token can't be verified.
