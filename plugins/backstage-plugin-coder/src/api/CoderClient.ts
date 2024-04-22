@@ -145,6 +145,7 @@ export class CoderClient implements CoderClientApi {
   private readonly options: CoderClientConfigOptions;
   private readonly snapshotManager: StateSnapshotManager<CoderClientSnapshot>;
   private readonly axiosInterceptorId: number;
+  private readonly abortController: AbortController;
 
   private latestProxyEndpoint: string;
   readonly sdkApi: BackstageCoderSdkApi;
@@ -188,6 +189,7 @@ export class CoderClient implements CoderClientApi {
     };
 
     // Wire up Backstage APIs and Axios to be aware of each other
+    this.abortController = new AbortController();
     this.axiosInterceptorId = axiosInstance.interceptors.request.use(
       this.interceptAxiosRequest,
     );
@@ -226,6 +228,7 @@ export class CoderClient implements CoderClientApi {
     const proxyEndpoint = await this.getProxyEndpoint();
     config.baseURL = `${proxyEndpoint}${apiRoutePrefix}`;
     config.headers[authHeaderKey] = this.authApi.token;
+    config.signal = this.abortController.signal;
 
     const bearerToken = (await this.identityApi.getCredentials()).token;
     if (bearerToken) {
@@ -404,6 +407,7 @@ export class CoderClient implements CoderClientApi {
   };
 
   cleanupClient = () => {
+    this.abortController.abort();
     axiosInstance.interceptors.request.eject(this.axiosInterceptorId);
   };
 }
