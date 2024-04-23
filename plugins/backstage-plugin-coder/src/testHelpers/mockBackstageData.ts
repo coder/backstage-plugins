@@ -337,7 +337,8 @@ afterEach(() => {
  * Gives back a Coder Client, its underlying auth implementation, and also
  * handles cleanup for the Coder client between test runs.
  *
- * It is strongly recommended that you create all Coder
+ * It is strongly recommended that you create all Coder clients via this
+ * function.
  */
 export function setupCoderClient({
   authApi = getMockCoderTokenAuth(),
