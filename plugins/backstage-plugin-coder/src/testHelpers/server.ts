@@ -119,7 +119,13 @@ const mainTestHandlers: readonly RestHandler[] = [
     },
   ),
 
-  // This is the dummy request used to verify a user's auth status
+  // This is the old dummy request used to verify a user's auth status
+  wrappedGet(`${root}/users/me`, (_, res, ctx) => {
+    return res(ctx.status(200));
+  }),
+
+  // This is the new dummy request used to verify a user's auth status that the
+  // Coder SDK will use
   wrappedGet(`${root}/users/me/login-type`, (_req, res, ctx) => {
     return res(
       ctx.status(200),
