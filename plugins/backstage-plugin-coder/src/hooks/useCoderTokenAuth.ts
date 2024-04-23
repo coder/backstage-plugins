@@ -8,7 +8,7 @@ import {
   CoderTokenAuth,
 } from '../api/CoderTokenAuth';
 import { coderAuthApiRef } from '../api/Auth';
-import { coderClientApiRef } from '../api/CoderClient';
+import { useCoderClient } from './useCoderClient';
 
 export const tokenAuthQueryKey = [
   CODER_QUERY_KEY_PREFIX,
@@ -69,14 +69,12 @@ export function useCoderTokenAuth(): CoderTokenUiAuth {
     authApi.getStateSnapshot,
   );
 
-  // Using the raw Coder client because it has some methods on it that we
-  // deliberately don't expose to users using the main useCoderClient hook
-  const rawCoderClient = useApi(coderClientApiRef);
+  const coderClient = useCoderClient();
   const isQueryEnabled = Boolean(safeApiSnapshot.token);
 
   const authValidityQuery = useQuery<boolean>({
     queryKey: [...tokenAuthQueryKey, safeApiSnapshot.token],
-    queryFn: rawCoderClient.validateAuth,
+    queryFn: coderClient.internal.validateAuth,
     enabled: isQueryEnabled,
     keepPreviousData: isQueryEnabled,
     refetchOnWindowFocus: query => query.state.data !== false,
