@@ -7,13 +7,6 @@ import {
   CoderClient,
 } from '../api/CoderClient';
 
-/**
- * @private A collection of properties and methods that are used as
- * implementation details for the Coder plugin.
- *
- * These will never be documented - assume that any and all properties in here
- * can be changed/added/removed, even between patch releases.
- */
 type ClientHookInternals = Readonly<{
   validateAuth: CoderClient['validateAuth'];
 }>;
@@ -21,6 +14,14 @@ type ClientHookInternals = Readonly<{
 export type ReactCoderClient = Readonly<{
   api: BackstageCoderSdkApi;
   state: CoderClientSnapshot;
+
+  /**
+   * @private A collection of properties and methods that are used as
+   * implementation details for the Coder plugin.
+   *
+   * These will never be documented - assume that any and all properties in here
+   * can be changed/added/removed, even between patch releases.
+   */
   internals: ClientHookInternals;
 }>;
 
