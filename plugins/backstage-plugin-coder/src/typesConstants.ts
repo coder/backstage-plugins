@@ -9,6 +9,11 @@ import {
   optional,
 } from 'valibot';
 
+/**
+ * The prefix to use for all Backstage API refs created for the Coder plugin.
+ */
+export const CODER_API_REF_ID_PREFIX = 'backstage-plugin-coder';
+
 export type ReadonlyJsonValue =
   | string
   | number
