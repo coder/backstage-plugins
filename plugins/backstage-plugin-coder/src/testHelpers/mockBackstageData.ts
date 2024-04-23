@@ -1,5 +1,5 @@
 /* eslint-disable @backstage/no-undeclared-imports -- For test helpers only */
-import { ConfigReader } from '@backstage/core-app-api';
+import { ConfigReader, FrontendHostDiscovery } from '@backstage/core-app-api';
 import { MockConfigApi, MockErrorApi } from '@backstage/test-utils';
 import type { ScmIntegrationRegistry } from '@backstage/integration';
 /* eslint-enable @backstage/no-undeclared-imports */
@@ -17,7 +17,10 @@ import {
 import { ScmIntegrationsApi } from '@backstage/integration-react';
 
 import { API_ROUTE_PREFIX, ASSETS_ROUTE_PREFIX } from '../api';
-import { IdentityApi } from '@backstage/core-plugin-api';
+import { DiscoveryApi, IdentityApi } from '@backstage/core-plugin-api';
+import { CoderAuthApi } from '../api/Auth';
+import { CoderClient } from '../api/CoderClient';
+import { CoderTokenAuth } from '../api/CoderTokenAuth';
 
 /**
  * This is the key that Backstage checks from the entity data to determine the
@@ -283,5 +286,72 @@ export function getMockLocalStorage(
       const keys = [...dataStore.keys()];
       return keys[keyIndex] ?? null;
     },
+  };
+}
+
+export function getMockDiscoveryApi(): DiscoveryApi {
+  return FrontendHostDiscovery.fromConfig(
+    new ConfigReader({
+      backend: {
+        baseUrl: mockBackstageUrlRoot,
+      },
+    }),
+  );
+}
+
+export function getMockCoderTokenAuth(): CoderTokenAuth {
+  return new CoderTokenAuth({
+    localStorage: getMockLocalStorage(),
+  });
+}
+
+type SetupCoderClientInputs = Readonly<{
+  discoveryApi?: DiscoveryApi;
+  identityApi?: IdentityApi;
+  authApi?: CoderAuthApi;
+}>;
+
+type SetupCoderClientResult = Readonly<{
+  authApi: CoderAuthApi;
+  coderClientApi: CoderClient;
+}>;
+
+/**
+ * @todo 2024-04-23 - This is a workaround for making sure that the Axios
+ * instance doesn't get overloaded with different request interceptors from each
+ * test case.
+ *
+ * The SDK value we'll eventually be grabbing (and its Axios instance) are
+ * basically set up as a global singleton, which means that you get less ability
+ * to do test isolation. Better to make the updates upstream so that the SDK
+ * can be re-instantiated for different tests, and then have the garbage
+ * collector handle disposing all of the values.
+ */
+const activeClients = new Set<CoderClient>();
+afterEach(() => {
+  activeClients.forEach(client => client.cleanupClient());
+  activeClients.clear();
+});
+
+/**
+ * Gives back a Coder Client, its underlying auth implementation, and also
+ * handles cleanup for the Coder client between test runs.
+ *
+ * It is strongly recommended that you create all Coder
+ */
+export function setupCoderClient({
+  authApi = getMockCoderTokenAuth(),
+  discoveryApi = getMockDiscoveryApi(),
+  identityApi = getMockIdentityApi(),
+}: SetupCoderClientInputs): SetupCoderClientResult {
+  const mockCoderClientApi = new CoderClient({
+    apis: { identityApi, discoveryApi, authApi },
+  });
+
+  activeClients.add(mockCoderClientApi);
+
+  return {
+    authApi,
+    coderClientApi: mockCoderClientApi,
   };
 }

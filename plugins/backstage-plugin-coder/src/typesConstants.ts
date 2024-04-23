@@ -92,3 +92,28 @@ export type WorkspacesResponse = Output<typeof workspacesResponseSchema>;
 export type WorkspaceBuildParameter = Output<
   typeof workspaceBuildParameterSchema
 >;
+
+/**
+ * @todo Replace these type definitions with the full Coder SDK API once we have
+ * that built out and ready to import into other projects. Be sure to export out
+ * all type definitions from the API under a single namespace, too. (e.g.,
+ * export type * as CoderSdkTypes from 'coder-ts-sdk')
+ *
+ * The types for RawCoderSdkApi should only include functions/values that exist
+ * on the current "pseudo-SDK" found in the main coder/coder repo, and that are
+ * likely to carry over to the full SDK.
+ *
+ * @see {@link https://github.com/coder/coder/tree/main/site/src/api}
+ */
+export type WorkspacesRequest = Readonly<{
+  after_id?: string;
+  limit?: number;
+  offset?: number;
+  q?: string;
+}>;
+
+// Return value used for the dummy requests used to verify a user's auth status
+// for the Coder token auth logic
+export type UserLoginType = Readonly<{
+  login_type: '' | 'github' | 'none' | 'oidc' | 'password' | 'token';
+}>;

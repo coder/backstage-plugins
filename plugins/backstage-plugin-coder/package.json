@@ -41,6 +41,8 @@
     "@material-ui/icons": "^4.9.1",
     "@material-ui/lab": "4.0.0-alpha.61",
     "@tanstack/react-query": "4.36.1",
+    "axios": "^1.6.8",
+    "use-sync-external-store": "^1.2.0",
     "valibot": "^0.28.1"
   },
   "peerDependencies": {
