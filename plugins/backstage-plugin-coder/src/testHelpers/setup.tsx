@@ -13,8 +13,6 @@ import React from 'react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { EntityProvider } from '@backstage/plugin-catalog-react';
 import {
-  type CoderAuth,
-  type CoderAuthStatus,
   type CoderAppConfig,
   type CoderProviderProps,
   AuthContext,
@@ -28,7 +26,10 @@ import {
   getMockApiList,
 } from './mockBackstageData';
 import { CoderErrorBoundary } from '../plugin';
-import { CoderTokenAuthUiStatus } from '../hooks/useCoderTokenAuth';
+import {
+  CoderTokenAuthUiStatus,
+  CoderTokenUiAuth,
+} from '../hooks/useCoderTokenAuth';
 
 const initialAbortSignalTimeout = AbortSignal.timeout;
 beforeAll(() => {
@@ -106,7 +107,7 @@ export function getMockQueryClient(): QueryClient {
 
 type MockAuthProps = Readonly<
   CoderProviderProps & {
-    auth?: CoderAuth;
+    auth?: CoderTokenUiAuth;
 
     /**
      * Shortcut property for injecting an auth object. Can conflict with the
@@ -142,7 +143,7 @@ type RenderHookAsCoderEntityOptions<TProps extends NonNullable<unknown>> = Omit<
   RenderHookOptions<TProps>,
   'wrapper'
 > & {
-  authStatus?: CoderAuthStatus;
+  authStatus?: CoderTokenAuthUiStatus;
 };
 
 export const renderHookAsCoderEntity = async <
@@ -185,7 +186,7 @@ type RenderInCoderEnvironmentInputs = Readonly<{
   entity?: BackstageEntity;
   appConfig?: CoderAppConfig;
   queryClient?: QueryClient;
-  auth?: CoderAuth;
+  auth?: CoderTokenUiAuth;
 }>;
 
 export async function renderInCoderEnvironment({
