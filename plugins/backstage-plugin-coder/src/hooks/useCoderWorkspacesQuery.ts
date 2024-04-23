@@ -1,10 +1,7 @@
 import { useQuery } from '@tanstack/react-query';
-
-import { workspaces, workspacesByRepo } from '../api';
-import { useCoderAuth } from '../components/CoderProvider/CoderAuthProvider';
-import { useBackstageEndpoints } from './useBackstageEndpoints';
-import { CoderWorkspacesConfig } from './useCoderWorkspacesConfig';
-import { identityApiRef, useApi } from '@backstage/core-plugin-api';
+import { workspacesByRepo, workspaces } from '../api/queryOptions';
+import type { CoderWorkspacesConfig } from './useCoderWorkspacesConfig';
+import { useCoderClient } from './useCoderClient';
 
 type QueryInput = Readonly<{
   coderQuery: string;
@@ -15,20 +12,13 @@ export function useCoderWorkspacesQuery({
   coderQuery,
   workspacesConfig,
 }: QueryInput) {
-  const auth = useCoderAuth();
-  const identity = useApi(identityApiRef);
-  const { baseUrl } = useBackstageEndpoints();
-  const hasRepoData = workspacesConfig && workspacesConfig.repoUrl;
+  const client = useCoderClient();
+  const hasRepoData =
+    workspacesConfig !== undefined && Boolean(workspacesConfig.repoUrl);
 
   const queryOptions = hasRepoData
-    ? workspacesByRepo({
-        coderQuery,
-        identity,
-        auth,
-        baseUrl,
-        workspacesConfig,
-      })
-    : workspaces({ coderQuery, identity, auth, baseUrl });
+    ? workspacesByRepo({ client, coderQuery, workspacesConfig })
+    : workspaces({ client, coderQuery });
 
   return useQuery(queryOptions);
 }
