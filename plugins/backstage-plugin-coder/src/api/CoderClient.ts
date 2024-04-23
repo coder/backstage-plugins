@@ -147,7 +147,7 @@ export class CoderClient implements CoderClientApi {
     this.discoveryApi = discoveryApi;
     this.authApi = authApi;
     this.latestProxyEndpoint = '';
-    this.options = { ...defaultCoderClientConfigOptions, ...(options ?? {}) };
+    this.options = { ...defaultCoderClientConfigOptions, ...options };
 
     /**
      * Wire up SDK API namespace.
