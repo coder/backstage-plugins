@@ -18,8 +18,10 @@ export type ReactCoderClient = Readonly<{
    * These will never be documented - assume that any and all properties in here
    * can be changed/added/removed, even between patch releases.
    */
-  __internal: Readonly<{
-    validateAuth: CoderClient['validateAuth'];
+  internal: Readonly<{
+    __FOR_INTERNAL_PLUGIN_USE_ONLY: Readonly<{
+      validateAuth: CoderClient['validateAuth'];
+    }>;
   }>;
 }>;
 
@@ -33,8 +35,10 @@ export function useCoderClient(): ReactCoderClient {
   return {
     api: clientApi.sdkApi,
     state: safeApiStateSnapshot,
-    __internal: {
-      validateAuth: clientApi.validateAuth,
+    internal: {
+      __FOR_INTERNAL_PLUGIN_USE_ONLY: {
+        validateAuth: clientApi.validateAuth,
+      },
     },
   };
 }
