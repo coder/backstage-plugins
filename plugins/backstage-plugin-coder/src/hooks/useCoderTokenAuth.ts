@@ -74,7 +74,7 @@ export function useCoderTokenAuth(): CoderTokenUiAuth {
 
   const authValidityQuery = useQuery<boolean>({
     queryKey: [...tokenAuthQueryKey, safeApiSnapshot.token],
-    queryFn: coderClient.internal.__FOR_INTERNAL_PLUGIN_USE_ONLY.validateAuth,
+    queryFn: coderClient.internals.validateAuth,
     enabled: isQueryEnabled,
     keepPreviousData: isQueryEnabled,
     refetchOnWindowFocus: query => query.state.data !== false,

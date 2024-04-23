@@ -7,22 +7,21 @@ import {
   CoderClient,
 } from '../api/CoderClient';
 
+/**
+ * @private A collection of properties and methods that are used as
+ * implementation details for the Coder plugin.
+ *
+ * These will never be documented - assume that any and all properties in here
+ * can be changed/added/removed, even between patch releases.
+ */
+type ClientHookInternals = Readonly<{
+  validateAuth: CoderClient['validateAuth'];
+}>;
+
 export type ReactCoderClient = Readonly<{
   api: BackstageCoderSdkApi;
   state: CoderClientSnapshot;
-
-  /**
-   * @private A collection of properties and methods that are used as
-   * implementation details for the Coder plugin.
-   *
-   * These will never be documented - assume that any and all properties in here
-   * can be changed/added/removed, even between patch releases.
-   */
-  internal: Readonly<{
-    __FOR_INTERNAL_PLUGIN_USE_ONLY: Readonly<{
-      validateAuth: CoderClient['validateAuth'];
-    }>;
-  }>;
+  internals: ClientHookInternals;
 }>;
 
 export function useCoderClient(): ReactCoderClient {
@@ -35,10 +34,6 @@ export function useCoderClient(): ReactCoderClient {
   return {
     api: clientApi.sdkApi,
     state: safeApiStateSnapshot,
-    internal: {
-      __FOR_INTERNAL_PLUGIN_USE_ONLY: {
-        validateAuth: clientApi.validateAuth,
-      },
-    },
+    internals: { validateAuth: clientApi.validateAuth },
   };
 }
