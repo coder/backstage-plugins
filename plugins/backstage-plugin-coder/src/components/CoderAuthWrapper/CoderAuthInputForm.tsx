@@ -1,10 +1,10 @@
 import React, { type FormEvent, useState } from 'react';
 import { useId } from '../../hooks/hookPolyfills';
+import { useCoderAppConfig } from '../CoderProvider';
 import {
-  type CoderAuthStatus,
-  useCoderAppConfig,
-  useCoderAuth,
-} from '../CoderProvider';
+  type CoderTokenAuthUiStatus,
+  useCoderTokenAuth,
+} from '../../hooks/useCoderTokenAuth';
 
 import { CoderLogo } from '../CoderLogo';
 import { Link, LinkButton } from '@backstage/core-components';
@@ -49,7 +49,7 @@ export const CoderAuthInputForm = () => {
   const hookId = useId();
   const styles = useStyles();
   const appConfig = useCoderAppConfig();
-  const { status, registerNewToken } = useCoderAuth();
+  const { status, registerNewToken } = useCoderTokenAuth();
 
   const onSubmit = (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -197,7 +197,7 @@ const useInvalidStatusStyles = makeStyles(theme => ({
 }));
 
 type InvalidStatusProps = Readonly<{
-  authStatus: CoderAuthStatus;
+  authStatus: CoderTokenAuthUiStatus;
   bannerId: string;
 }>;
 

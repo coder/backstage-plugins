@@ -2,7 +2,10 @@ import React from 'react';
 import { screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { CoderProviderWithMockAuth } from '../../testHelpers/setup';
-import type { CoderAuth, CoderAuthStatus } from '../CoderProvider';
+import type {
+  CoderTokenAuthUiStatus,
+  CoderTokenUiAuth,
+} from '../../hooks/useCoderTokenAuth';
 import {
   mockAppConfig,
   mockAuthStates,
@@ -12,7 +15,7 @@ import { CoderAuthWrapper } from './CoderAuthWrapper';
 import { renderInTestApp } from '@backstage/test-utils';
 
 type RenderInputs = Readonly<{
-  authStatus: CoderAuthStatus;
+  authStatus: CoderTokenAuthUiStatus;
   childButtonText?: string;
 }>;
 
@@ -23,7 +26,7 @@ async function renderAuthWrapper({
   const ejectToken = jest.fn();
   const registerNewToken = jest.fn();
 
-  const auth: CoderAuth = {
+  const auth: CoderTokenUiAuth = {
     ...mockAuthStates[authStatus],
     ejectToken,
     registerNewToken,
@@ -85,7 +88,7 @@ describe(`${CoderAuthWrapper.name}`, () => {
     it("Is displayed when the user's auth status cannot be verified", async () => {
       const buttonText = 'Not sure if you should be able to see me';
       const distrustedTextMatcher = /Unable to verify token authenticity/;
-      const distrustedStatuses: readonly CoderAuthStatus[] = [
+      const distrustedStatuses: readonly CoderTokenAuthUiStatus[] = [
         'distrusted',
         'noInternetConnection',
         'deploymentUnavailable',
@@ -149,7 +152,7 @@ describe(`${CoderAuthWrapper.name}`, () => {
     it("Is displayed when the token either doesn't exist or is definitely not valid", async () => {
       const buttonText = "You're not allowed to gaze upon my visage";
       const tokenFormMatcher = /Please enter a new token/;
-      const statusesForInvalidUser: readonly CoderAuthStatus[] = [
+      const statusesForInvalidUser: readonly CoderTokenAuthUiStatus[] = [
         'invalid',
         'tokenMissing',
       ];
@@ -192,7 +195,7 @@ describe(`${CoderAuthWrapper.name}`, () => {
     });
 
     it('Lets the user dismiss any notifications for invalid/authenticating states', async () => {
-      const authStatuses: readonly CoderAuthStatus[] = [
+      const authStatuses: readonly CoderTokenAuthUiStatus[] = [
         'invalid',
         'authenticating',
       ];
