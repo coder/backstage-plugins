@@ -5,21 +5,35 @@ import type { ScmIntegrationRegistry } from '@backstage/integration';
 /* eslint-enable @backstage/no-undeclared-imports */
 
 import { useEntity } from '@backstage/plugin-catalog-react';
-import {
-  type CoderAppConfig,
-  type CoderAuth,
-  type CoderAuthStatus,
-} from '../components/CoderProvider';
+import { type CoderAppConfig } from '../components/CoderProvider';
 import {
   CoderWorkspacesConfig,
   type YamlConfig,
 } from '../hooks/useCoderWorkspacesConfig';
-import { ScmIntegrationsApi } from '@backstage/integration-react';
 
-import { API_ROUTE_PREFIX, ASSETS_ROUTE_PREFIX } from '../api';
-import { DiscoveryApi, IdentityApi } from '@backstage/core-plugin-api';
-import { CoderAuthApi } from '../api/Auth';
-import { CoderClient } from '../api/CoderClient';
+import {
+  CoderClient,
+  coderClientApiRef,
+  defaultCoderClientConfigOptions,
+} from '../api/CoderClient';
+import {
+  ScmIntegrationsApi,
+  scmIntegrationsApiRef,
+} from '@backstage/integration-react';
+import {
+  CoderTokenAuthUiStatus,
+  CoderTokenUiAuth,
+} from '../hooks/useCoderTokenAuth';
+import {
+  type IdentityApi,
+  type ApiRef,
+  configApiRef,
+  DiscoveryApi,
+  discoveryApiRef,
+  errorApiRef,
+  identityApiRef,
+} from '@backstage/core-plugin-api';
+import { CoderAuthApi, coderAuthApiRef } from '../api/Auth';
 import { CoderTokenAuth } from '../api/CoderTokenAuth';
 
 /**
@@ -57,9 +71,11 @@ export const mockBackstageUrlRoot = 'http://localhost:7007';
  * The actual endpoint to hit when trying to mock out a server request during
  * testing.
  */
-export const mockBackstageProxyEndpoint = `${mockBackstageUrlRoot}${API_ROUTE_PREFIX}`;
+export const mockBackstageProxyEndpoint =
+  `${mockBackstageUrlRoot}/api/proxy${defaultCoderClientConfigOptions.proxyPrefix}${defaultCoderClientConfigOptions.apiRoutePrefix}` as const;
 
-export const mockBackstageAssetsEndpoint = `${mockBackstageUrlRoot}${ASSETS_ROUTE_PREFIX}`;
+export const mockBackstageAssetsEndpoint =
+  `${mockBackstageUrlRoot}/api/proxy${defaultCoderClientConfigOptions.assetsRoutePrefix}` as const;
 
 export const mockBearerToken = 'This-is-an-opaque-value-by-design';
 export const mockCoderAuthToken = 'ZG0HRy2gGN-mXljc1s5FqtE8WUJ4sUc5X';
@@ -140,7 +156,7 @@ const authedState = {
   isAuthenticated: true,
   registerNewToken: jest.fn(),
   ejectToken: jest.fn(),
-} as const satisfies Partial<CoderAuth>;
+} as const satisfies Partial<CoderTokenUiAuth>;
 
 const notAuthedState = {
   token: undefined,
@@ -149,7 +165,7 @@ const notAuthedState = {
   isAuthenticated: false,
   registerNewToken: jest.fn(),
   ejectToken: jest.fn(),
-} as const satisfies Partial<CoderAuth>;
+} as const satisfies Partial<CoderTokenUiAuth>;
 
 export const mockAuthStates = {
   authenticated: {
@@ -196,7 +212,7 @@ export const mockAuthStates = {
     ...notAuthedState,
     status: 'deploymentUnavailable',
   },
-} as const satisfies Record<CoderAuthStatus, CoderAuth>;
+} as const satisfies Record<CoderTokenAuthUiStatus, CoderTokenUiAuth>;
 
 export function getMockConfigApi() {
   return new MockConfigApi({
@@ -355,4 +371,40 @@ export function setupCoderClient({
     authApi,
     coderClientApi: mockCoderClientApi,
   };
+}
+
+/**
+ * Creates a list of mock Backstage API definitions that can be fed directly
+ * into some of the official Backstage test helpers.
+ *
+ * When trying to set up dependency injection for a Backstage test, this is the
+ * main test helper you should be using 99% of the time.
+ */
+export function getMockApiList(): readonly [
+  ApiRef<unknown>,
+  Partial<unknown>,
+][] {
+  const mockErrorApi = getMockErrorApi();
+  const mockSourceControl = getMockSourceControl();
+  const mockConfigApi = getMockConfigApi();
+  const mockIdentityApi = getMockIdentityApi();
+  const mockDiscoveryApi = getMockDiscoveryApi();
+
+  const { authApi, coderClientApi } = setupCoderClient({
+    discoveryApi: mockDiscoveryApi,
+    identityApi: mockIdentityApi,
+  });
+
+  return [
+    // APIs that Backstage ships with normally
+    [errorApiRef, mockErrorApi],
+    [scmIntegrationsApiRef, mockSourceControl],
+    [configApiRef, mockConfigApi],
+    [identityApiRef, mockIdentityApi],
+    [discoveryApiRef, mockDiscoveryApi],
+
+    // Custom, Coder-specific APIs
+    [coderAuthApiRef, authApi],
+    [coderClientApiRef, coderClientApi],
+  ];
 }
