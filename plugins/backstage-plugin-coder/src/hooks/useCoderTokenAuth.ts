@@ -1,3 +1,4 @@
+import { useMemo } from 'react';
 import { useSyncExternalStore } from 'use-sync-external-store/shim';
 import { type UseQueryResult, useQuery } from '@tanstack/react-query';
 import { useApi } from '@backstage/core-plugin-api';
@@ -80,14 +81,18 @@ export function useCoderTokenAuth(): CoderTokenUiAuth {
     refetchOnWindowFocus: query => query.state.data !== false,
   });
 
-  const info = deriveStatusInfo(safeApiSnapshot, authValidityQuery);
-  return {
-    ...info,
-    tokenLoadedOnMount: safeApiSnapshot.initialToken !== '',
-    isAuthenticated: validCoderStatuses.includes(info.status),
-    registerNewToken: authApi.registerNewToken,
-    ejectToken: authApi.clearToken,
-  };
+  const uiAuth = useMemo<CoderTokenUiAuth>(() => {
+    const info = deriveStatusInfo(safeApiSnapshot, authValidityQuery);
+    return {
+      ...info,
+      tokenLoadedOnMount: safeApiSnapshot.initialToken !== '',
+      isAuthenticated: validCoderStatuses.includes(info.status),
+      registerNewToken: authApi.registerNewToken,
+      ejectToken: authApi.clearToken,
+    };
+  }, [authApi, safeApiSnapshot, authValidityQuery]);
+
+  return uiAuth;
 }
 
 /**
