@@ -9,11 +9,13 @@ import { type Theme, makeStyles } from '@material-ui/core';
 import { useId } from '../../hooks/hookPolyfills';
 
 import { useCoderAppConfig } from '../CoderProvider';
-import { getWorkspaceAgentStatuses } from '../../api';
-
-import type { Workspace, WorkspaceStatus } from '../../typesConstants';
 import { WorkspacesListIcon } from './WorkspacesListIcon';
 import { VisuallyHidden } from '../VisuallyHidden';
+import type {
+  Workspace,
+  WorkspaceAgentStatus,
+  WorkspaceStatus,
+} from '../../typesConstants';
 
 type StyleKey =
   | 'root'
@@ -239,6 +241,7 @@ export const WorkspacesListItem = ({
 };
 
 const deletingStatuses: readonly WorkspaceStatus[] = ['deleting', 'deleted'];
+
 const offlineStatuses: readonly WorkspaceStatus[] = [
   'stopped',
   'stopping',
@@ -296,6 +299,27 @@ function stopClickEventBubbling(event: MouseEvent | KeyboardEvent): void {
   if (shouldStopBubbling) {
     event.stopPropagation();
   }
+}
+
+function getWorkspaceAgentStatuses(
+  workspace: Workspace,
+): readonly WorkspaceAgentStatus[] {
+  const uniqueStatuses: WorkspaceAgentStatus[] = [];
+
+  for (const resource of workspace.latest_build.resources) {
+    if (resource.agents === undefined) {
+      continue;
+    }
+
+    for (const agent of resource.agents) {
+      const status = agent.status;
+      if (!uniqueStatuses.includes(status)) {
+        uniqueStatuses.push(status);
+      }
+    }
+  }
+
+  return uniqueStatuses;
 }
 
 function toUppercase(s: string): string {

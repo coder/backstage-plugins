@@ -1,6 +1,6 @@
 import React, { ForwardedRef, HTMLAttributes, useState } from 'react';
-import { useBackstageEndpoints } from '../../hooks/useBackstageEndpoints';
 import { Theme, makeStyles } from '@material-ui/core';
+import { useCoderClient } from '../../hooks/useCoderClient';
 
 type WorkspaceListIconProps = Readonly<
   Omit<HTMLAttributes<HTMLDivElement>, 'children' | 'aria-hidden'> & {
@@ -56,10 +56,11 @@ export const WorkspacesListIcon = ({
   ...delegatedProps
 }: WorkspaceListIconProps) => {
   const [hasError, setHasError] = useState(false);
-  const { assetsProxyUrl } = useBackstageEndpoints();
+  const coderClient = useCoderClient();
+  const { assetsRoute } = coderClient.state;
 
   const styles = useStyles({
-    isEmoji: src.startsWith(`${assetsProxyUrl}/emoji`),
+    isEmoji: src.startsWith(`${assetsRoute}/emoji`),
   });
 
   return (

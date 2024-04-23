@@ -25,5 +25,12 @@ function useIdPolyfill(): string {
   return readonlyId;
 }
 
+type ReactWithModernHooks = typeof React & {
+  // Added in React 18
+  useId?: () => string;
+};
+
+const recastReact = React as ReactWithModernHooks;
+
 export const useId =
-  typeof React.useId === 'undefined' ? useIdPolyfill : React.useId;
+  typeof recastReact.useId === 'undefined' ? useIdPolyfill : recastReact.useId;

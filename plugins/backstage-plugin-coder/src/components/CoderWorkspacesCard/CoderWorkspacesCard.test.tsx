@@ -11,12 +11,12 @@ import {
   mockWorkspaceWithMatch2,
   mockWorkspacesList,
 } from '../../testHelpers/mockCoderAppData';
-import { type CoderAuthStatus } from '../CoderProvider';
+import { CoderTokenAuthUiStatus } from '../../hooks/useCoderTokenAuth';
 import { CoderWorkspacesCard } from './CoderWorkspacesCard';
 import userEvent from '@testing-library/user-event';
 
 type RenderInputs = Readonly<{
-  authStatus?: CoderAuthStatus;
+  authStatus?: CoderTokenAuthUiStatus;
   readEntityData?: boolean;
 }>;
 
