@@ -4,29 +4,45 @@ import { act, render, waitFor } from '@testing-library/react';
 import {
   getMockDiscoveryApi,
   getMockIdentityApi,
+  mockBackstageUrlRoot,
   mockCoderAuthToken,
   setupCoderClient,
 } from '../testHelpers/mockBackstageData';
-import { CoderClient, CoderClientSnapshot } from './CoderClient';
+import {
+  CoderClient,
+  CoderClientSnapshot,
+  defaultCoderClientConfigOptions,
+} from './CoderClient';
 import { CoderTokenAuth } from './CoderTokenAuth';
+import type { DiscoveryApi, IdentityApi } from '@backstage/core-plugin-api';
+import { CoderAuthApi } from './Auth';
+import { server, wrappedGet } from '../testHelpers/server';
 
-type TokenAuthSetupOutput = Readonly<{
-  coderClientApi: CoderClient;
-  authApi: CoderTokenAuth;
+type SetupClientInput = Readonly<{
+  authApi?: CoderAuthApi;
+  discoveryApi?: DiscoveryApi;
 }>;
 
-function setupCoderClientWithTokenAuth(): TokenAuthSetupOutput {
-  const authApi = new CoderTokenAuth();
-  const discoveryApi = getMockDiscoveryApi();
-  const identityApi = getMockIdentityApi();
+type SetupClientOutput = Readonly<{
+  discoveryApi: DiscoveryApi;
+  identityApi: IdentityApi;
+  coderClientApi: CoderClient;
+}>;
 
+function setupClient(options?: SetupClientInput): SetupClientOutput {
+  const {
+    authApi = new CoderTokenAuth(),
+    discoveryApi = getMockDiscoveryApi(),
+  } = options ?? {};
+
+  const identityApi = getMockIdentityApi();
   const { coderClientApi } = setupCoderClient({
     discoveryApi,
     identityApi,
     authApi,
   });
 
-  return { authApi, coderClientApi };
+  return { discoveryApi, identityApi, coderClientApi };
 }
 
 /**
@@ -45,7 +61,8 @@ describe(`${CoderClient.name}`, () => {
   describe('With token auth', () => {
     describe('validateAuth method', () => {
       it('Will update the underlying auth instance when a query succeeds', async () => {
-        const { coderClientApi, authApi } = setupCoderClientWithTokenAuth();
+        const authApi = new CoderTokenAuth();
+        const { coderClientApi } = setupClient({ authApi });
 
         authApi.registerNewToken(mockCoderAuthToken);
         const validationResult = await coderClientApi.validateAuth();
@@ -62,7 +79,8 @@ describe(`${CoderClient.name}`, () => {
       });
 
       it('Will update the underlying auth instance when a query fails', async () => {
-        const { coderClientApi, authApi } = setupCoderClientWithTokenAuth();
+        const authApi = new CoderTokenAuth();
+        const { coderClientApi } = setupClient({ authApi });
 
         authApi.registerNewToken('Definitely not a valid token');
         const validationResult = await coderClientApi.validateAuth();
@@ -82,7 +100,7 @@ describe(`${CoderClient.name}`, () => {
 
   describe('State snapshot subscriptions', () => {
     it('Lets external systems subscribe to state changes', async () => {
-      const { coderClientApi } = setupCoderClientWithTokenAuth();
+      const { coderClientApi } = setupClient();
       const onChange = jest.fn();
       coderClientApi.subscribe(onChange);
 
@@ -91,7 +109,9 @@ describe(`${CoderClient.name}`, () => {
     });
 
     it('Lets external systems UN-subscribe to state changes', async () => {
-      const { coderClientApi } = setupCoderClientWithTokenAuth();
+      const authApi = new CoderTokenAuth();
+      const { coderClientApi } = setupClient({ authApi });
+
       const subscriber1 = jest.fn();
       const subscriber2 = jest.fn();
 
@@ -120,7 +140,7 @@ describe(`${CoderClient.name}`, () => {
     });
 
     it('Provides tools to let React components bind re-renders to state changes', async () => {
-      const { coderClientApi } = setupCoderClientWithTokenAuth();
+      const { coderClientApi } = setupClient();
       const onStateChange = jest.fn();
 
       const DummyReactComponent = () => {
@@ -147,6 +167,45 @@ describe(`${CoderClient.name}`, () => {
       // stable reference
       rerender(<DummyReactComponent />);
       expect(onStateChange).toHaveBeenCalledTimes(2);
+    });
+
+    it('Will notify external systems when the DiscoveryApi base URL has changed between requests', async () => {
+      // The Backstage docs say that the values returned by the Discovery API
+      // can change over time, which is why they want you to call it fresh
+      // before every request, but none of their public interfaces allow you to
+      // test that super well
+      let currentBaseUrl = mockBackstageUrlRoot;
+      const mockDiscoveryApi: DiscoveryApi = {
+        getBaseUrl: async () => currentBaseUrl,
+      };
+
+      const authApi = new CoderTokenAuth();
+      const { coderClientApi } = setupClient({
+        discoveryApi: mockDiscoveryApi,
+      });
+
+      const onChange = jest.fn();
+      coderClientApi.subscribe(onChange);
+      authApi.registerNewToken(mockCoderAuthToken);
+
+      const newBaseUrl = 'https://www.zombo.com/api/you-can-do-anything';
+      const serverRouteUrl = `${newBaseUrl}${defaultCoderClientConfigOptions.proxyPrefix}${defaultCoderClientConfigOptions.apiRoutePrefix}/users/me/login-type`;
+
+      server.use(
+        wrappedGet(serverRouteUrl, (_, res, ctx) => {
+          return res(ctx.status(200));
+        }),
+      );
+
+      currentBaseUrl = newBaseUrl;
+      await coderClientApi.validateAuth();
+
+      expect(onChange).toHaveBeenCalledWith(
+        expect.objectContaining<Partial<CoderClientSnapshot>>({
+          assetsRoute: expect.stringContaining(newBaseUrl),
+          apiRoute: expect.stringContaining(newBaseUrl),
+        }),
+      );
     });
   });
 });

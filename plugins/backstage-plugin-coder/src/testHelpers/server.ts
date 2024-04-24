@@ -75,7 +75,7 @@ export function wrapInDefaultMiddleware<TBody extends DefaultBodyType = any>(
   }, resolver);
 }
 
-function wrappedGet<TBody extends DefaultBodyType = any>(
+export function wrappedGet<TBody extends DefaultBodyType = any>(
   path: string,
   resolver: RestResolver<TBody>,
 ): RestHandler {
