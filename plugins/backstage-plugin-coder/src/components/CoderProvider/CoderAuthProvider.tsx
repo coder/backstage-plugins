@@ -2,18 +2,19 @@
  * @file This provider is in a weird spot, because technically, it isn't needed,
  * but it makes testing easier and more often than not makes performance better.
  *
- * All the hook logic for generating the reactAuth value can safely be extracted
+ * All the hook logic for generating the uiAuth value can "safely" be extracted
  * out into a custom hook that doesn't go through context, and nothing would
  * break. But because the hook has to take the value from the current auth API
- * class, and aggregate it with React Query, a couple of things would change:
+ * class, and blend it with React Query data, a couple of things would change:
  *
- * 1. Every component using the hook would duplicate the work, even though the
- *    values would be exactly the same. Not great for performance.
+ * 1. Every component using the hook would duplicate the blending work, even
+ *    though the results would be exactly the same. Not great for performance.
  * 2. The components would be a lot harder to test, because you would lose
  *    access to React Context for dependency injection.
  *
- * This is a weird hybrid hook for now, but think carefully before trying to
- * move the token auth logic outside the provider.
+ * This is a weird hybrid hook for now, where we're only using Context out of
+ * convenience. It would be cool if we could get rid of Context, but make sure
+ * nothing breaks in the process.
  */
 import React, {
   type PropsWithChildren,
@@ -27,6 +28,7 @@ import {
   type UseQueryResult,
   useQuery,
   useQueryClient,
+  QueryKey,
 } from '@tanstack/react-query';
 import { BackstageHttpError } from '../../api/errors';
 import {
@@ -43,8 +45,10 @@ export const tokenAuthQueryKey = [
   'auth-token',
 ] as const;
 
-type TokenAuthStatusInfo = Readonly<
+type AuthStatusInfo = Readonly<
   | {
+      // Don't expect tokenMissing status to be relevant for OAuth, but having
+      // it on one shared type definition doesn't hurt
       status: 'initializing' | 'tokenMissing';
       token: undefined;
       error: undefined;
@@ -68,26 +72,23 @@ type TokenAuthStatusInfo = Readonly<
     }
 >;
 
-export type CoderTokenAuthUiStatus = TokenAuthStatusInfo['status'];
+export type CoderAuthUiStatus = AuthStatusInfo['status'];
 
-export type CoderTokenUiAuth = Readonly<
-  TokenAuthStatusInfo & {
+export type CoderUiAuth = Readonly<
+  AuthStatusInfo & {
     isAuthenticated: boolean;
-    tokenLoadedOnMount: boolean;
     registerNewToken: (newToken: string) => void;
     ejectToken: () => void;
   }
 >;
 
-const validCoderStatuses: readonly CoderTokenAuthUiStatus[] = [
+const validCoderStatuses: readonly CoderAuthUiStatus[] = [
   'authenticated',
   'distrustedWithGracePeriod',
 ];
 
-export const AuthContext = createContext<CoderTokenUiAuth | null>(null);
-type CoderAuthProviderProps = Readonly<PropsWithChildren<unknown>>;
-
-export function useCoderTokenAuth(): CoderTokenUiAuth {
+export const AuthContext = createContext<CoderUiAuth | null>(null);
+export function useCoderAuth(): CoderUiAuth {
   const contextValue = useContext(AuthContext);
   if (contextValue === null) {
     throw new Error('Cannot call useCoderTokenAuth outside a CoderProvider');
@@ -96,11 +97,10 @@ export function useCoderTokenAuth(): CoderTokenUiAuth {
   return contextValue;
 }
 
+type CoderAuthProviderProps = Readonly<PropsWithChildren<unknown>>;
+
 export const CoderAuthProvider = ({ children }: CoderAuthProviderProps) => {
   const authApi = useApi(coderAuthApiRef);
-  if (!CoderTokenAuth.isInstance(authApi)) {
-    throw new Error('coderAuthRef is not configured for token auth');
-  }
 
   // Binds React to the auth API in a render-safe way – use snapshot values as
   // much as possible; don't access non-functions directly from the API class
@@ -112,19 +112,27 @@ export const CoderAuthProvider = ({ children }: CoderAuthProviderProps) => {
   const coderClient = useCoderClient();
   const isQueryEnabled = coderClient.state.isAuthValid;
 
+  let queryKey: QueryKey;
+  if (CoderTokenAuth.isInstance(authApi)) {
+    queryKey = [...tokenAuthQueryKey, safeApiSnapshot.tokenHash];
+  } else {
+    throw new Error(
+      'coderAuthRef is not yet configured for Coder Oauth. Please switch to token auth.',
+    );
+  }
+
   const authValidityQuery = useQuery<boolean>({
-    queryKey: [...tokenAuthQueryKey, safeApiSnapshot.token],
+    queryKey,
     queryFn: coderClient.internals.validateAuth,
     enabled: isQueryEnabled,
     keepPreviousData: isQueryEnabled,
     refetchOnWindowFocus: query => query.state.data !== false,
   });
 
-  const reactAuth = useMemo<CoderTokenUiAuth>(() => {
+  const uiAuth = useMemo<CoderUiAuth>(() => {
     const info = deriveStatusInfo(safeApiSnapshot, authValidityQuery);
     return {
       ...info,
-      tokenLoadedOnMount: safeApiSnapshot.initialToken !== '',
       isAuthenticated: validCoderStatuses.includes(info.status),
       registerNewToken: authApi.registerNewToken,
       ejectToken: authApi.clearToken,
@@ -157,9 +165,7 @@ export const CoderAuthProvider = ({ children }: CoderAuthProviderProps) => {
     return unsubscribe;
   }, [queryClient]);
 
-  return (
-    <AuthContext.Provider value={reactAuth}>{children}</AuthContext.Provider>
-  );
+  return <AuthContext.Provider value={uiAuth}>{children}</AuthContext.Provider>;
 };
 
 /**
@@ -173,7 +179,7 @@ export const CoderAuthProvider = ({ children }: CoderAuthProviderProps) => {
 export function deriveStatusInfo(
   authStateSnapshot: AuthTokenStateSnapshot,
   authValidityQuery: UseQueryResult<boolean>,
-): TokenAuthStatusInfo {
+): AuthStatusInfo {
   const { token, initialToken, isInsideGracePeriod } = authStateSnapshot;
   const isInitializing =
     initialToken !== '' &&
