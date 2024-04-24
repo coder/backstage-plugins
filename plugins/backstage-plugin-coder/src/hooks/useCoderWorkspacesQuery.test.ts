@@ -13,6 +13,7 @@ beforeAll(() => {
 });
 
 afterAll(() => {
+  jest.runOnlyPendingTimers();
   jest.clearAllTimers();
 });
 

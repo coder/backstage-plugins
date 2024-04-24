@@ -372,6 +372,12 @@ export function setupCoderClient({
   };
 }
 
+type ApiTuple = readonly [ApiRef<NonNullable<unknown>>, NonNullable<unknown>];
+
+type GetMockApiListInputs = Readonly<{
+  autoValidate?: boolean;
+}>;
+
 /**
  * Creates a list of mock Backstage API definitions that can be fed directly
  * into some of the official Backstage test helpers.
@@ -379,20 +385,29 @@ export function setupCoderClient({
  * When trying to set up dependency injection for a Backstage test, this is the
  * main test helper you should be using 99% of the time.
  */
-export function getMockApiList(): readonly [
-  ApiRef<unknown>,
-  Partial<unknown>,
-][] {
+export function getMockApiList(
+  inputs?: GetMockApiListInputs,
+): readonly ApiTuple[] {
+  const { autoValidate = true } = inputs ?? {};
+
   const mockErrorApi = getMockErrorApi();
   const mockSourceControl = getMockSourceControl();
   const mockConfigApi = getMockConfigApi();
   const mockIdentityApi = getMockIdentityApi();
   const mockDiscoveryApi = getMockDiscoveryApi();
 
-  const { authApi, coderClientApi } = setupCoderClient({
+  const authApi = new CoderTokenAuth();
+  authApi.registerNewToken(mockCoderAuthToken);
+
+  const { coderClientApi } = setupCoderClient({
+    authApi,
     discoveryApi: mockDiscoveryApi,
     identityApi: mockIdentityApi,
   });
+
+  if (autoValidate) {
+    void coderClientApi.validateAuth();
+  }
 
   return [
     // APIs that Backstage ships with normally
