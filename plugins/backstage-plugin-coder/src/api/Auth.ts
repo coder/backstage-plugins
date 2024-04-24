@@ -5,23 +5,20 @@
 import { createApiRef } from '@backstage/core-plugin-api';
 import { CODER_API_REF_ID_PREFIX } from '../typesConstants';
 
-type AuthSubscriptionPayload = Readonly<{
-  token: string;
+export type AuthData = Readonly<{
   isTokenValid: boolean;
+  tokenHash: number | null;
+  initialTokenHash: number | null;
+  isInsideGracePeriod: boolean;
 }>;
 
-export type AuthSubscriptionCallback<
-  TSubscriptionPayload extends AuthSubscriptionPayload = AuthSubscriptionPayload,
-> = (payload: TSubscriptionPayload) => void;
-
+export type AuthSubscriptionCallback = (payload: AuthData) => void;
 export type AuthValidatorDispatch = (newStatus: boolean) => void;
 
 /**
  * Shared set of properties among all Coder auth implementations
  */
-export type CoderAuthApi<
-  TPayload extends AuthSubscriptionPayload = AuthSubscriptionPayload,
-> = TPayload & {
+export type CoderAuthApi = AuthData & {
   /**
    * Gives back a "state setter" that lets a different class dispatch a new auth
    * status to the auth class implementation.
@@ -37,18 +34,18 @@ export type CoderAuthApi<
    * Returns an pre-wired unsubscribe callback to remove fuss of needing to hold
    * onto the original callback if it's not directly needed anymore
    */
-  subscribe: (callback: AuthSubscriptionCallback<TPayload>) => () => void;
+  subscribe: (callback: AuthSubscriptionCallback) => () => void;
 
   /**
    * Lets an external system unsubscribe from auth changes.
    */
-  unsubscribe: (callback: AuthSubscriptionCallback<TPayload>) => void;
+  unsubscribe: (callback: AuthSubscriptionCallback) => void;
 
   /**
    * Lets an external system get a fully immutable snapshot of the current auth
    * state.
    */
-  getStateSnapshot: () => AuthSubscriptionPayload;
+  getStateSnapshot: () => AuthData;
 };
 
 /**
