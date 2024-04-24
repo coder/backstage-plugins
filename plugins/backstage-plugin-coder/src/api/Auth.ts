@@ -5,20 +5,33 @@
 import { createApiRef } from '@backstage/core-plugin-api';
 import { CODER_API_REF_ID_PREFIX } from '../typesConstants';
 
-export type AuthData = Readonly<{
+/**
+ * Data about the auth that can safely be exposed throughout multiple parts of
+ * the application without too much worry about security.
+ *
+ * All values should be JSON-serializable.
+ */
+export type SafeAuthData = Readonly<{
   isTokenValid: boolean;
   tokenHash: number | null;
   initialTokenHash: number | null;
   isInsideGracePeriod: boolean;
 }>;
 
-export type AuthSubscriptionCallback = (payload: AuthData) => void;
+export type AuthSubscriptionCallback = (payload: SafeAuthData) => void;
 export type AuthValidatorDispatch = (newStatus: boolean) => void;
 
 /**
  * Shared set of properties among all Coder auth implementations
  */
-export type CoderAuthApi = AuthData & {
+export type CoderAuthApi = SafeAuthData & {
+  /**
+   * Requests the token from the auth class. This may not always succeed (e.g.,
+   * auth doesn't think it's safe, there is no token to provide), in which case,
+   * the value will be null.
+   */
+  requestToken: () => string | null;
+
   /**
    * Gives back a "state setter" that lets a different class dispatch a new auth
    * status to the auth class implementation.
@@ -45,7 +58,7 @@ export type CoderAuthApi = AuthData & {
    * Lets an external system get a fully immutable snapshot of the current auth
    * state.
    */
-  getStateSnapshot: () => AuthData;
+  getStateSnapshot: () => SafeAuthData;
 };
 
 /**

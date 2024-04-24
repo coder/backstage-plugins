@@ -1,5 +1,5 @@
 import type {
-  AuthData,
+  SafeAuthData,
   AuthSubscriptionCallback,
   AuthValidatorDispatch,
   CoderAuthApi,
@@ -33,7 +33,7 @@ export interface CoderTokenAuthApi extends CoderAuthApi {
 export class CoderTokenAuth implements CoderTokenAuthApi {
   readonly initialTokenHash: number | null;
   private readonly options: ConfigOptions;
-  private readonly snapshotManager: StateSnapshotManager<AuthData>;
+  private readonly snapshotManager: StateSnapshotManager<SafeAuthData>;
 
   #token: string;
   #tokenHash: number | null;
@@ -77,7 +77,7 @@ export class CoderTokenAuth implements CoderTokenAuthApi {
     }
   }
 
-  private prepareNewSnapshot(): AuthData {
+  private prepareNewSnapshot(): SafeAuthData {
     return {
       tokenHash: this.#tokenHash,
       initialTokenHash: this.initialTokenHash,
@@ -125,10 +125,6 @@ export class CoderTokenAuth implements CoderTokenAuthApi {
     }
   }
 
-  get token(): string {
-    return this.#token;
-  }
-
   get tokenHash(): number | null {
     return this.#tokenHash;
   }
@@ -146,6 +142,10 @@ export class CoderTokenAuth implements CoderTokenAuthApi {
    * can be passed around React without risk of losing their "this" context
    ****************************************************************************/
 
+  requestToken = (): string | null => {
+    return this.#token;
+  };
+
   subscribe = (callback: AuthSubscriptionCallback): (() => void) => {
     return this.snapshotManager.subscribe(callback);
   };
@@ -154,7 +154,7 @@ export class CoderTokenAuth implements CoderTokenAuthApi {
     return this.snapshotManager.unsubscribe(callback);
   };
 
-  getStateSnapshot = (): AuthData => {
+  getStateSnapshot = (): SafeAuthData => {
     return this.snapshotManager.getSnapshot();
   };
 
@@ -181,7 +181,7 @@ export class CoderTokenAuth implements CoderTokenAuthApi {
     let allowUpdate = true;
     let disableUpdatesTimeoutId: number | undefined = undefined;
 
-    const onTokenChange = (newSnapshot: AuthData) => {
+    const onTokenChange = (newSnapshot: SafeAuthData) => {
       if (!allowUpdate || newSnapshot.tokenHash === hashOnSetup) {
         return;
       }
