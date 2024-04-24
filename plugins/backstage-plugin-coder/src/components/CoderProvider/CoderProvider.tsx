@@ -8,10 +8,11 @@ import { BackstageHttpError } from '../../api/errors';
 
 const MAX_FETCH_FAILURES = 3;
 
-export type CoderProviderProps = ComponentProps<typeof CoderAuthProvider> &
-  ComponentProps<typeof CoderAppConfigProvider> & {
-    queryClient?: QueryClient;
-  };
+export type CoderProviderProps = ComponentProps<
+  typeof CoderAppConfigProvider
+> & {
+  queryClient?: QueryClient;
+};
 
 const shouldRetryRequest = (failureCount: number, error: unknown): boolean => {
   const isBelowThreshold = failureCount < MAX_FETCH_FAILURES;
