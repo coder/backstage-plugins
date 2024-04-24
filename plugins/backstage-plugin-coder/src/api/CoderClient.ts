@@ -202,8 +202,8 @@ export class CoderClient implements CoderClientApi {
 
     const proxyEndpoint = await this.getProxyEndpoint();
     config.baseURL = `${proxyEndpoint}${apiRoutePrefix}`;
-    config.headers[authHeaderKey] = this.authApi.token;
     config.signal = this.abortController.signal;
+    config.headers[authHeaderKey] = this.authApi.requestToken() ?? undefined;
 
     const bearerToken = (await this.identityApi.getCredentials()).token;
     if (bearerToken) {
