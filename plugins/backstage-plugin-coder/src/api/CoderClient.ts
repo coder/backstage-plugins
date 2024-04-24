@@ -370,9 +370,8 @@ export class CoderClient implements CoderClientApi {
 
       const response = err.response;
       if (response === undefined) {
-        throw new Error(
-          'Unable to complete Axios request - no Axios response to reference',
-        );
+        err.message = `No Axios response to reference - ${err.message}`;
+        throw err;
       }
 
       if (response.status >= 400 && response.status !== 401) {
