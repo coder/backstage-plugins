@@ -26,10 +26,10 @@ import {
   getMockApiList,
 } from './mockBackstageData';
 import { CoderErrorBoundary } from '../plugin';
-import {
-  CoderTokenAuthUiStatus,
-  CoderTokenUiAuth,
-} from '../hooks/useCoderTokenAuth';
+import type {
+  CoderUiTokenAuth,
+  CoderAuthUiStatus,
+} from '../components/CoderProvider';
 
 const initialAbortSignalTimeout = AbortSignal.timeout;
 beforeAll(() => {
@@ -107,13 +107,13 @@ export function getMockQueryClient(): QueryClient {
 
 type MockAuthProps = Readonly<
   CoderProviderProps & {
-    auth?: CoderTokenUiAuth;
+    auth?: CoderUiTokenAuth;
 
     /**
      * Shortcut property for injecting an auth object. Can conflict with the
      * auth property; if both are defined, authStatus is completely ignored
      */
-    authStatus?: CoderTokenAuthUiStatus;
+    authStatus?: CoderAuthUiStatus;
   }
 >;
 
@@ -143,7 +143,7 @@ type RenderHookAsCoderEntityOptions<TProps extends NonNullable<unknown>> = Omit<
   RenderHookOptions<TProps>,
   'wrapper'
 > & {
-  authStatus?: CoderTokenAuthUiStatus;
+  authStatus?: CoderAuthUiStatus;
 };
 
 export const renderHookAsCoderEntity = async <
@@ -186,7 +186,7 @@ type RenderInCoderEnvironmentInputs = Readonly<{
   entity?: BackstageEntity;
   appConfig?: CoderAppConfig;
   queryClient?: QueryClient;
-  auth?: CoderTokenUiAuth;
+  auth?: CoderUiTokenAuth;
 }>;
 
 export async function renderInCoderEnvironment({

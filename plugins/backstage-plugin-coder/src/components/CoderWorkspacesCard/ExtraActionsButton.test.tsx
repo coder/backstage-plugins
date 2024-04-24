@@ -6,7 +6,7 @@ import {
   mockAuthStates,
   mockCoderWorkspacesConfig,
 } from '../../testHelpers/mockBackstageData';
-import type { CoderTokenUiAuth } from '../../hooks/useCoderTokenAuth';
+import type { CoderUiTokenAuth } from '../CoderProvider';
 import { CardContext, WorkspacesCardContext } from './Root';
 import { ExtraActionsButton } from './ExtraActionsButton';
 
@@ -30,7 +30,7 @@ type RenderInputs = Readonly<{
 
 async function renderButton({ buttonText }: RenderInputs) {
   const ejectToken = jest.fn();
-  const auth: CoderTokenUiAuth = {
+  const auth: CoderUiTokenAuth = {
     ...mockAuthStates.authenticated,
     ejectToken,
   };

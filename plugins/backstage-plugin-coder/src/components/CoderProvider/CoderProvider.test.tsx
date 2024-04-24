@@ -13,7 +13,7 @@ import {
 import { CoderProvider } from './CoderProvider';
 import { useCoderAppConfig } from './CoderAppConfigProvider';
 import { useCoderTokenAuth } from './CoderAuthProvider';
-import { type CoderTokenUiAuth } from '../../hooks/useCoderTokenAuth';
+import type { CoderUiTokenAuth } from './CoderAuthProvider';
 
 import {
   getMockConfigApi,
@@ -100,9 +100,8 @@ describe(`${CoderProvider.name}`, () => {
 
       await waitFor(() => {
         expect(result.current).toEqual(
-          expect.objectContaining<Partial<CoderTokenUiAuth>>({
+          expect.objectContaining<Partial<CoderUiTokenAuth>>({
             status: 'authenticated',
-            token: mockCoderAuthToken,
             error: undefined,
           }),
         );
@@ -111,9 +110,8 @@ describe(`${CoderProvider.name}`, () => {
       act(() => result.current.ejectToken());
 
       expect(result.current).toEqual(
-        expect.objectContaining<Partial<CoderTokenUiAuth>>({
+        expect.objectContaining<Partial<CoderUiTokenAuth>>({
           status: 'tokenMissing',
-          token: undefined,
         }),
       );
     });

@@ -20,10 +20,10 @@ import {
   ScmIntegrationsApi,
   scmIntegrationsApiRef,
 } from '@backstage/integration-react';
-import {
-  CoderTokenAuthUiStatus,
-  CoderTokenUiAuth,
-} from '../hooks/useCoderTokenAuth';
+import type {
+  CoderAuthUiStatus,
+  CoderUiTokenAuth,
+} from '../components/CoderProvider';
 import {
   type IdentityApi,
   type ApiRef,
@@ -79,6 +79,7 @@ export const mockBackstageAssetsEndpoint =
 
 export const mockBearerToken = 'This-is-an-opaque-value-by-design';
 export const mockCoderAuthToken = 'ZG0HRy2gGN-mXljc1s5FqtE8WUJ4sUc5X';
+export const mockCoderAuthTokenHash = 6_410_025_509_154_725;
 
 export const mockYamlConfig = {
   templateName: 'cool-coder-template',
@@ -150,22 +151,20 @@ export const mockCoderWorkspacesConfig = (() => {
 })();
 
 const authedState = {
-  token: mockCoderAuthToken,
-  error: undefined,
-  tokenLoadedOnMount: true,
+  type: 'token',
   isAuthenticated: true,
+  error: undefined,
   registerNewToken: jest.fn(),
   ejectToken: jest.fn(),
-} as const satisfies Partial<CoderTokenUiAuth>;
+} as const satisfies Partial<CoderUiTokenAuth>;
 
 const notAuthedState = {
-  token: undefined,
+  type: 'token',
   error: undefined,
-  tokenLoadedOnMount: false,
   isAuthenticated: false,
   registerNewToken: jest.fn(),
   ejectToken: jest.fn(),
-} as const satisfies Partial<CoderTokenUiAuth>;
+} as const satisfies Partial<CoderUiTokenAuth>;
 
 export const mockAuthStates = {
   authenticated: {
@@ -212,7 +211,7 @@ export const mockAuthStates = {
     ...notAuthedState,
     status: 'deploymentUnavailable',
   },
-} as const satisfies Record<CoderTokenAuthUiStatus, CoderTokenUiAuth>;
+} as const satisfies Record<CoderAuthUiStatus, CoderUiTokenAuth>;
 
 export function getMockConfigApi() {
   return new MockConfigApi({

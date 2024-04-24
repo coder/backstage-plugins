@@ -1,7 +1,7 @@
 import React, { type FormEvent, useState } from 'react';
 import { useId } from '../../hooks/hookPolyfills';
 import { useCoderAppConfig, useCoderTokenAuth } from '../CoderProvider';
-import { type CoderTokenAuthUiStatus } from '../../hooks/useCoderTokenAuth';
+import type { CoderAuthUiStatus } from '../CoderProvider';
 
 import { CoderLogo } from '../CoderLogo';
 import { Link, LinkButton } from '@backstage/core-components';
@@ -194,7 +194,7 @@ const useInvalidStatusStyles = makeStyles(theme => ({
 }));
 
 type InvalidStatusProps = Readonly<{
-  authStatus: CoderTokenAuthUiStatus;
+  authStatus: CoderAuthUiStatus;
   bannerId: string;
 }>;
 
