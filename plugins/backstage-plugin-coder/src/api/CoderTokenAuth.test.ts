@@ -1,9 +1,7 @@
 import { getMockLocalStorage } from '../testHelpers/mockBackstageData';
-import {
-  type AuthTokenStateSnapshot,
-  CoderTokenAuth,
-  AUTH_SETTER_TIMEOUT_MS,
-} from './CoderTokenAuth';
+import { hashValue } from '../utils/crypto';
+import type { SafeAuthData } from './Auth';
+import { CoderTokenAuth, AUTH_SETTER_TIMEOUT_MS } from './CoderTokenAuth';
 
 beforeEach(() => {
   jest.useFakeTimers();
@@ -96,7 +94,7 @@ describe(`${CoderTokenAuth.name}`, () => {
 
       auth.registerNewToken('blah');
       expect(onChange).toHaveBeenCalledWith(
-        expect.objectContaining<Partial<AuthTokenStateSnapshot>>({
+        expect.objectContaining<Partial<SafeAuthData>>({
           isTokenValid: false,
         }),
       );
@@ -106,6 +104,7 @@ describe(`${CoderTokenAuth.name}`, () => {
   describe('getAuthStateSetter', () => {
     it('Lets another system set the auth state', () => {
       const testToken = 'blah';
+      const hashed = hashValue(testToken);
       const { auth } = setupAuth();
 
       auth.registerNewToken(testToken);
@@ -114,8 +113,8 @@ describe(`${CoderTokenAuth.name}`, () => {
 
       const snapshot = auth.getStateSnapshot();
       expect(snapshot).toEqual(
-        expect.objectContaining<Partial<AuthTokenStateSnapshot>>({
-          token: testToken,
+        expect.objectContaining<Partial<SafeAuthData>>({
+          tokenHash: hashed,
           isTokenValid: true,
         }),
       );
@@ -155,7 +154,7 @@ describe(`${CoderTokenAuth.name}`, () => {
 
       const snapshot = auth.getStateSnapshot();
       expect(snapshot).toEqual(
-        expect.objectContaining<Partial<AuthTokenStateSnapshot>>({
+        expect.objectContaining<Partial<SafeAuthData>>({
           isTokenValid: false,
         }),
       );
@@ -169,7 +168,7 @@ describe(`${CoderTokenAuth.name}`, () => {
       dispatchNewStatus(true);
       const snapshot1 = auth.getStateSnapshot();
       expect(snapshot1).toEqual(
-        expect.objectContaining<Partial<AuthTokenStateSnapshot>>({
+        expect.objectContaining<Partial<SafeAuthData>>({
           isTokenValid: true,
           isInsideGracePeriod: true,
         }),
@@ -178,7 +177,7 @@ describe(`${CoderTokenAuth.name}`, () => {
       dispatchNewStatus(false);
       const snapshot2 = auth.getStateSnapshot();
       expect(snapshot2).toEqual(
-        expect.objectContaining<Partial<AuthTokenStateSnapshot>>({
+        expect.objectContaining<Partial<SafeAuthData>>({
           isTokenValid: false,
           isInsideGracePeriod: true,
         }),
@@ -187,7 +186,7 @@ describe(`${CoderTokenAuth.name}`, () => {
       await jest.advanceTimersByTimeAsync(defaultGracePeriodTimeoutMs);
       const snapshot3 = auth.getStateSnapshot();
       expect(snapshot3).toEqual(
-        expect.objectContaining<Partial<AuthTokenStateSnapshot>>({
+        expect.objectContaining<Partial<SafeAuthData>>({
           isTokenValid: false,
           isInsideGracePeriod: false,
         }),
@@ -198,6 +197,8 @@ describe(`${CoderTokenAuth.name}`, () => {
   describe('localStorage', () => {
     it('Will read from localStorage when first initialized', () => {
       const testValue = 'blah';
+      const hashed = hashValue(testValue);
+
       const { auth } = setupAuth({
         initialData: {
           [defaultLocalStorageKey]: testValue,
@@ -206,9 +207,9 @@ describe(`${CoderTokenAuth.name}`, () => {
 
       const initialStateSnapshot = auth.getStateSnapshot();
       expect(initialStateSnapshot).toEqual(
-        expect.objectContaining<Partial<AuthTokenStateSnapshot>>({
-          initialToken: testValue,
-          token: testValue,
+        expect.objectContaining<Partial<SafeAuthData>>({
+          initialTokenHash: hashed,
+          tokenHash: hashed,
           isTokenValid: false,
         }),
       );

@@ -5,23 +5,33 @@
 import { createApiRef } from '@backstage/core-plugin-api';
 import { CODER_API_REF_ID_PREFIX } from '../typesConstants';
 
-type AuthSubscriptionPayload = Readonly<{
-  token: string;
+/**
+ * Data about the auth that can safely be exposed throughout multiple parts of
+ * the application without too much worry about security.
+ *
+ * All values should be JSON-serializable.
+ */
+export type SafeAuthData = Readonly<{
   isTokenValid: boolean;
+  tokenHash: number | null;
+  initialTokenHash: number | null;
+  isInsideGracePeriod: boolean;
 }>;
 
-export type AuthSubscriptionCallback<
-  TSubscriptionPayload extends AuthSubscriptionPayload = AuthSubscriptionPayload,
-> = (payload: TSubscriptionPayload) => void;
-
+export type AuthSubscriptionCallback = (payload: SafeAuthData) => void;
 export type AuthValidatorDispatch = (newStatus: boolean) => void;
 
 /**
  * Shared set of properties among all Coder auth implementations
  */
-export type CoderAuthApi<
-  TPayload extends AuthSubscriptionPayload = AuthSubscriptionPayload,
-> = TPayload & {
+export type CoderAuthApi = SafeAuthData & {
+  /**
+   * Requests the token from the auth class. This may not always succeed (e.g.,
+   * auth doesn't think it's safe, there is no token to provide), in which case,
+   * the value will be null.
+   */
+  requestToken: () => string | null;
+
   /**
    * Gives back a "state setter" that lets a different class dispatch a new auth
    * status to the auth class implementation.
@@ -37,18 +47,18 @@ export type CoderAuthApi<
    * Returns an pre-wired unsubscribe callback to remove fuss of needing to hold
    * onto the original callback if it's not directly needed anymore
    */
-  subscribe: (callback: AuthSubscriptionCallback<TPayload>) => () => void;
+  subscribe: (callback: AuthSubscriptionCallback) => () => void;
 
   /**
    * Lets an external system unsubscribe from auth changes.
    */
-  unsubscribe: (callback: AuthSubscriptionCallback<TPayload>) => void;
+  unsubscribe: (callback: AuthSubscriptionCallback) => void;
 
   /**
    * Lets an external system get a fully immutable snapshot of the current auth
    * state.
    */
-  getStateSnapshot: () => AuthSubscriptionPayload;
+  getStateSnapshot: () => SafeAuthData;
 };
 
 /**

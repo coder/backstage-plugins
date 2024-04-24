@@ -1,5 +1,11 @@
-import type { AuthValidatorDispatch, CoderAuthApi } from './Auth';
+import type {
+  SafeAuthData,
+  AuthSubscriptionCallback,
+  AuthValidatorDispatch,
+  CoderAuthApi,
+} from './Auth';
 import { StateSnapshotManager } from '../utils/StateSnapshotManager';
+import { hashValue } from '../utils/crypto';
 
 export const AUTH_SETTER_TIMEOUT_MS = 20_000;
 
@@ -19,30 +25,18 @@ export const defaultTokenAuthConfigOptions = {
   gracePeriodTimeoutMs: 6_000,
 } as const satisfies ConfigOptions;
 
-export type AuthTokenStateSnapshot = Readonly<{
-  token: string;
-  isTokenValid: boolean;
-  initialToken: string;
-  isInsideGracePeriod: boolean;
-}>;
-
-type SubscriptionCallback = (snapshot: AuthTokenStateSnapshot) => void;
-
-export interface CoderTokenAuthApi
-  extends CoderAuthApi<AuthTokenStateSnapshot> {
-  readonly initialToken: string;
-  readonly isInsideGracePeriod: boolean;
-
+export interface CoderTokenAuthApi extends CoderAuthApi {
   clearToken: () => void;
   registerNewToken: (newToken: string) => void;
 }
 
 export class CoderTokenAuth implements CoderTokenAuthApi {
-  readonly initialToken: string;
+  readonly initialTokenHash: number | null;
   private readonly options: ConfigOptions;
-  private readonly snapshotManager: StateSnapshotManager<AuthTokenStateSnapshot>;
+  private readonly snapshotManager: StateSnapshotManager<SafeAuthData>;
 
   #token: string;
+  #tokenHash: number | null;
   #isTokenValid: boolean;
   #isInsideGracePeriod: boolean;
   #distrustGracePeriodTimeoutId: number | undefined;
@@ -50,8 +44,11 @@ export class CoderTokenAuth implements CoderTokenAuthApi {
   constructor(options?: Partial<ConfigOptions>) {
     this.options = { ...defaultTokenAuthConfigOptions, ...(options ?? {}) };
 
-    this.initialToken = this.readTokenFromLocalStorage();
-    this.#token = this.initialToken;
+    const initialToken = this.readTokenFromLocalStorage();
+    this.initialTokenHash = hashValue(initialToken);
+    this.#token = initialToken ?? '';
+    this.#tokenHash = this.initialTokenHash;
+
     this.#isTokenValid = false;
     this.#isInsideGracePeriod = true;
     this.#distrustGracePeriodTimeoutId = undefined;
@@ -65,9 +62,9 @@ export class CoderTokenAuth implements CoderTokenAuthApi {
     return value instanceof CoderTokenAuth;
   }
 
-  private readTokenFromLocalStorage(): string {
+  private readTokenFromLocalStorage(): string | null {
     const key = this.options.localStorageKey;
-    return this.options.localStorage.getItem(key) ?? '';
+    return this.options.localStorage.getItem(key);
   }
 
   private writeTokenToLocalStorage(): boolean {
@@ -80,11 +77,11 @@ export class CoderTokenAuth implements CoderTokenAuthApi {
     }
   }
 
-  private prepareNewSnapshot(): AuthTokenStateSnapshot {
+  private prepareNewSnapshot(): SafeAuthData {
     return {
-      token: this.#token,
+      tokenHash: this.#tokenHash,
+      initialTokenHash: this.initialTokenHash,
       isTokenValid: this.#isTokenValid,
-      initialToken: this.initialToken,
       isInsideGracePeriod: this.#isInsideGracePeriod,
     };
   }
@@ -100,6 +97,7 @@ export class CoderTokenAuth implements CoderTokenAuthApi {
     }
 
     this.#token = newToken;
+    this.#tokenHash = hashValue(newToken);
     this.setIsTokenValid(false);
     this.notifySubscriptionsOfStateChange();
   }
@@ -127,8 +125,8 @@ export class CoderTokenAuth implements CoderTokenAuthApi {
     }
   }
 
-  get token(): string {
-    return this.#token;
+  get tokenHash(): number | null {
+    return this.#tokenHash;
   }
 
   get isTokenValid(): boolean {
@@ -144,15 +142,19 @@ export class CoderTokenAuth implements CoderTokenAuthApi {
    * can be passed around React without risk of losing their "this" context
    ****************************************************************************/
 
-  subscribe = (callback: SubscriptionCallback): (() => void) => {
+  requestToken = (): string | null => {
+    return this.#token;
+  };
+
+  subscribe = (callback: AuthSubscriptionCallback): (() => void) => {
     return this.snapshotManager.subscribe(callback);
   };
 
-  unsubscribe = (callback: SubscriptionCallback): void => {
+  unsubscribe = (callback: AuthSubscriptionCallback): void => {
     return this.snapshotManager.unsubscribe(callback);
   };
 
-  getStateSnapshot = (): AuthTokenStateSnapshot => {
+  getStateSnapshot = (): SafeAuthData => {
     return this.snapshotManager.getSnapshot();
   };
 
@@ -168,8 +170,8 @@ export class CoderTokenAuth implements CoderTokenAuthApi {
   };
 
   getAuthStateSetter = (): AuthValidatorDispatch => {
-    const tokenOnSetup = this.#token;
-    if (tokenOnSetup === '') {
+    const hashOnSetup = this.#tokenHash;
+    if (hashOnSetup === null) {
       return () => {
         // Do nothing - setter is fully inert because there's no token loaded to
         // validate, and token changes would disable the function anyway
@@ -179,8 +181,8 @@ export class CoderTokenAuth implements CoderTokenAuthApi {
     let allowUpdate = true;
     let disableUpdatesTimeoutId: number | undefined = undefined;
 
-    const onTokenChange = (newSnapshot: AuthTokenStateSnapshot) => {
-      if (!allowUpdate || newSnapshot.token === tokenOnSetup) {
+    const onTokenChange = (newSnapshot: SafeAuthData) => {
+      if (!allowUpdate || newSnapshot.tokenHash === hashOnSetup) {
         return;
       }
 
