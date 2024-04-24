@@ -1,6 +1,6 @@
 import { getMockLocalStorage } from '../testHelpers/mockBackstageData';
 import { hashValue } from '../utils/crypto';
-import type { AuthData } from './Auth';
+import type { SafeAuthData } from './Auth';
 import { CoderTokenAuth, AUTH_SETTER_TIMEOUT_MS } from './CoderTokenAuth';
 
 beforeEach(() => {
@@ -94,7 +94,7 @@ describe(`${CoderTokenAuth.name}`, () => {
 
       auth.registerNewToken('blah');
       expect(onChange).toHaveBeenCalledWith(
-        expect.objectContaining<Partial<AuthData>>({
+        expect.objectContaining<Partial<SafeAuthData>>({
           isTokenValid: false,
         }),
       );
@@ -113,7 +113,7 @@ describe(`${CoderTokenAuth.name}`, () => {
 
       const snapshot = auth.getStateSnapshot();
       expect(snapshot).toEqual(
-        expect.objectContaining<Partial<AuthData>>({
+        expect.objectContaining<Partial<SafeAuthData>>({
           tokenHash: hashed,
           isTokenValid: true,
         }),
@@ -154,7 +154,7 @@ describe(`${CoderTokenAuth.name}`, () => {
 
       const snapshot = auth.getStateSnapshot();
       expect(snapshot).toEqual(
-        expect.objectContaining<Partial<AuthData>>({
+        expect.objectContaining<Partial<SafeAuthData>>({
           isTokenValid: false,
         }),
       );
@@ -168,7 +168,7 @@ describe(`${CoderTokenAuth.name}`, () => {
       dispatchNewStatus(true);
       const snapshot1 = auth.getStateSnapshot();
       expect(snapshot1).toEqual(
-        expect.objectContaining<Partial<AuthData>>({
+        expect.objectContaining<Partial<SafeAuthData>>({
           isTokenValid: true,
           isInsideGracePeriod: true,
         }),
@@ -177,7 +177,7 @@ describe(`${CoderTokenAuth.name}`, () => {
       dispatchNewStatus(false);
       const snapshot2 = auth.getStateSnapshot();
       expect(snapshot2).toEqual(
-        expect.objectContaining<Partial<AuthData>>({
+        expect.objectContaining<Partial<SafeAuthData>>({
           isTokenValid: false,
           isInsideGracePeriod: true,
         }),
@@ -186,7 +186,7 @@ describe(`${CoderTokenAuth.name}`, () => {
       await jest.advanceTimersByTimeAsync(defaultGracePeriodTimeoutMs);
       const snapshot3 = auth.getStateSnapshot();
       expect(snapshot3).toEqual(
-        expect.objectContaining<Partial<AuthData>>({
+        expect.objectContaining<Partial<SafeAuthData>>({
           isTokenValid: false,
           isInsideGracePeriod: false,
         }),
@@ -207,7 +207,7 @@ describe(`${CoderTokenAuth.name}`, () => {
 
       const initialStateSnapshot = auth.getStateSnapshot();
       expect(initialStateSnapshot).toEqual(
-        expect.objectContaining<Partial<AuthData>>({
+        expect.objectContaining<Partial<SafeAuthData>>({
           initialTokenHash: hashed,
           tokenHash: hashed,
           isTokenValid: false,
