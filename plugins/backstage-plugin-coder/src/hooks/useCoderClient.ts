@@ -6,6 +6,7 @@ import {
   coderClientApiRef,
   CoderClient,
 } from '../api/CoderClient';
+import { useMemo } from 'react';
 
 type ClientHookInternals = Readonly<{
   validateAuth: CoderClient['validateAuth'];
@@ -32,9 +33,14 @@ export function useCoderClient(): ReactCoderClient {
     clientApi.getStateSnapshot,
   );
 
-  return {
-    api: clientApi.sdkApi,
-    state: safeApiStateSnapshot,
-    internals: { validateAuth: clientApi.validateAuth },
-  };
+  const reactClient = useMemo<ReactCoderClient>(() => {
+    const { sdkApi, validateAuth } = clientApi;
+    return {
+      api: sdkApi,
+      state: safeApiStateSnapshot,
+      internals: { validateAuth },
+    };
+  }, [clientApi, safeApiStateSnapshot]);
+
+  return reactClient;
 }
