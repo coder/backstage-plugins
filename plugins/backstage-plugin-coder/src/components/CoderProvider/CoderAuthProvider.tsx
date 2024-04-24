@@ -48,7 +48,6 @@ type AuthStatusInfo = Readonly<
       // Distrusted represents a token that could be valid, but we are unable to
       // verify it within an allowed window. invalid is definitely, 100% invalid
       status:
-        | 'initializing'
         | 'tokenMissing'
         | 'authenticating'
         | 'invalid'
@@ -57,6 +56,11 @@ type AuthStatusInfo = Readonly<
         | 'deploymentUnavailable';
       isAuthenticated: false;
       error: unknown;
+    }
+  | {
+      status: 'initializing';
+      isAuthenticated: false;
+      error: undefined;
     }
   | {
       status: 'authenticated' | 'distrustedWithGracePeriod';
