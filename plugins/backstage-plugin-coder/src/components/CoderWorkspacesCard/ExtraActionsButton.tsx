@@ -7,7 +7,7 @@ import React, {
 } from 'react';
 
 import { useId } from '../../hooks/hookPolyfills';
-import { useCoderTokenAuth } from '../../hooks/useCoderTokenAuth';
+import { useCoderTokenAuth } from '../CoderProvider';
 import { useWorkspacesCardContext } from './Root';
 import { VisuallyHidden } from '../VisuallyHidden';
 

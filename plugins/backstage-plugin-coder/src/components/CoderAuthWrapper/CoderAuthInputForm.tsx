@@ -1,10 +1,7 @@
 import React, { type FormEvent, useState } from 'react';
 import { useId } from '../../hooks/hookPolyfills';
-import { useCoderAppConfig } from '../CoderProvider';
-import {
-  type CoderTokenAuthUiStatus,
-  useCoderTokenAuth,
-} from '../../hooks/useCoderTokenAuth';
+import { useCoderAppConfig, useCoderTokenAuth } from '../CoderProvider';
+import { type CoderTokenAuthUiStatus } from '../../hooks/useCoderTokenAuth';
 
 import { CoderLogo } from '../CoderLogo';
 import { Link, LinkButton } from '@backstage/core-components';

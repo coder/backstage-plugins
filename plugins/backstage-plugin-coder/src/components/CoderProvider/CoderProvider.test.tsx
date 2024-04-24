@@ -12,10 +12,8 @@ import {
 
 import { CoderProvider } from './CoderProvider';
 import { useCoderAppConfig } from './CoderAppConfigProvider';
-import {
-  type CoderTokenUiAuth,
-  useCoderTokenAuth,
-} from '../../hooks/useCoderTokenAuth';
+import { useCoderTokenAuth } from './CoderAuthProvider';
+import { type CoderTokenUiAuth } from '../../hooks/useCoderTokenAuth';
 
 import {
   getMockConfigApi,

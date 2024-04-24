@@ -67,17 +67,21 @@ type AuthStatusInfo = Readonly<
 
 export type CoderAuthUiStatus = AuthStatusInfo['status'];
 
-export type CoderUiAuth = Readonly<
-  AuthStatusInfo &
-    (
-      | { type: 'oauth' }
-      | {
-          type: 'token';
-          registerNewToken: (newToken: string) => void;
-          ejectToken: () => void;
-        }
-    )
+export type CoderUiTokenAuth = Readonly<
+  AuthStatusInfo & {
+    type: 'token';
+    registerNewToken: (newToken: string) => void;
+    ejectToken: () => void;
+  }
 >;
+
+export type CoderUiOAuth = Readonly<
+  AuthStatusInfo & {
+    type: 'oauth';
+  }
+>;
+
+export type CoderUiAuth = CoderUiTokenAuth | CoderUiOAuth;
 
 export const AuthContext = createContext<CoderUiAuth | null>(null);
 
@@ -88,6 +92,22 @@ export function useCoderAuth(): CoderUiAuth {
   }
 
   return contextValue;
+}
+
+/**
+ * Convenience version of useCoderAuth, where the return value is guaranteed to
+ * be of type CoderUiTokenAuth, or else the hook throws an error.
+ *
+ * This removes the need to keep doing type-narrowing check on the `type`
+ * property to access methods specific to the token auth
+ */
+export function useCoderTokenAuth(): CoderUiTokenAuth {
+  const auth = useCoderAuth();
+  if (auth.type !== 'token') {
+    throw new Error('Coder deployment is not configured for token auth');
+  }
+
+  return auth;
 }
 
 type CoderAuthProviderProps = Readonly<PropsWithChildren<unknown>>;
@@ -102,9 +122,6 @@ export const CoderAuthProvider = ({ children }: CoderAuthProviderProps) => {
     authApi.getStateSnapshot,
   );
 
-  const coderClient = useCoderClient();
-  const isQueryEnabled = coderClient.state.isAuthValid;
-
   let queryKey: QueryKey;
   if (CoderTokenAuth.isInstance(authApi)) {
     queryKey = [...tokenAuthQueryKey, safeApiSnapshot.tokenHash];
@@ -113,6 +130,9 @@ export const CoderAuthProvider = ({ children }: CoderAuthProviderProps) => {
       'coderAuthRef is not yet configured for Coder Oauth. Please switch to token auth.',
     );
   }
+
+  const coderClient = useCoderClient();
+  const isQueryEnabled = safeApiSnapshot.tokenHash !== null;
 
   const authValidityQuery = useQuery<boolean>({
     queryKey,

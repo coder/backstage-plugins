@@ -1,5 +1,5 @@
 import React, { type FC, type PropsWithChildren } from 'react';
-import { useCoderTokenAuth } from '../../hooks/useCoderTokenAuth';
+import { useCoderTokenAuth } from '../CoderProvider';
 import { InfoCard } from '@backstage/core-components';
 import { CoderAuthDistrustedForm } from './CoderAuthDistrustedForm';
 import { makeStyles } from '@material-ui/core';
@@ -65,13 +65,6 @@ export const CoderAuthWrapper = ({ children, type }: WrapperProps) => {
           case 'invalid':
           case 'tokenMissing': {
             return <CoderAuthInputForm />;
-          }
-
-          case 'authenticated':
-          case 'distrustedWithGracePeriod': {
-            throw new Error(
-              'Tried to process authenticated user after main content should already be shown',
-            );
           }
 
           default: {
