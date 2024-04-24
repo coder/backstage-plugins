@@ -16,7 +16,11 @@ import {
 import { CoderTokenAuth } from './CoderTokenAuth';
 import type { DiscoveryApi, IdentityApi } from '@backstage/core-plugin-api';
 import { CoderAuthApi } from './Auth';
-import { server, wrappedGet } from '../testHelpers/server';
+import {
+  dummyAuthValidationEndpoint,
+  server,
+  wrappedGet,
+} from '../testHelpers/server';
 
 type SetupClientInput = Readonly<{
   authApi?: CoderAuthApi;
@@ -189,10 +193,11 @@ describe(`${CoderClient.name}`, () => {
       authApi.registerNewToken(mockCoderAuthToken);
 
       const newBaseUrl = 'https://www.zombo.com/api/you-can-do-anything';
-      const serverRouteUrl = `${newBaseUrl}${defaultCoderClientConfigOptions.proxyPrefix}${defaultCoderClientConfigOptions.apiRoutePrefix}/users/me/login-type`;
+      const newRoute =
+        `${newBaseUrl}${defaultCoderClientConfigOptions.proxyPrefix}${defaultCoderClientConfigOptions.apiRoutePrefix}${dummyAuthValidationEndpoint}` as const;
 
       server.use(
-        wrappedGet(serverRouteUrl, (_, res, ctx) => {
+        wrappedGet(newRoute, (_, res, ctx) => {
           return res(ctx.status(200));
         }),
       );

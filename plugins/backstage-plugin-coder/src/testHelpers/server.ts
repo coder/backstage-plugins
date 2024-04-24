@@ -83,6 +83,8 @@ export function wrappedGet<TBody extends DefaultBodyType = any>(
   return rest.get(path, wrapped);
 }
 
+export const dummyAuthValidationEndpoint = '/users/me/login-type';
+
 const mainTestHandlers: readonly RestHandler[] = [
   wrappedGet(`${root}/workspaces`, (req, res, ctx) => {
     const queryText = String(req.url.searchParams.get('q'));
@@ -119,14 +121,10 @@ const mainTestHandlers: readonly RestHandler[] = [
     },
   ),
 
-  // This is the old dummy request used to verify a user's auth status
-  wrappedGet(`${root}/users/me`, (_, res, ctx) => {
-    return res(ctx.status(200));
-  }),
-
-  // This is the new dummy request used to verify a user's auth status that the
-  // Coder SDK will use
-  wrappedGet(`${root}/users/me/login-type`, (_req, res, ctx) => {
+  // This is the dummy request used to verify a user's auth status that the
+  // Coder SDK will use. We don't really care about the return value, but it
+  // doesn't hurt to be specific
+  wrappedGet(`${root}${dummyAuthValidationEndpoint}`, (_req, res, ctx) => {
     return res(
       ctx.status(200),
       ctx.json<UserLoginType>({
