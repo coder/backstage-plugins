@@ -31,10 +31,8 @@ import {
   QueryKey,
 } from '@tanstack/react-query';
 import { BackstageHttpError } from '../../api/errors';
-import {
-  type AuthTokenStateSnapshot,
-  CoderTokenAuth,
-} from '../../api/CoderTokenAuth';
+import type { SafeAuthData } from '../../api/Auth';
+import { CoderTokenAuth } from '../../api/CoderTokenAuth';
 import { CODER_QUERY_KEY_PREFIX } from '../../api/queryOptions';
 import { useApi } from '@backstage/core-plugin-api';
 import { useCoderClient } from '../../hooks/useCoderClient';
@@ -47,47 +45,42 @@ export const tokenAuthQueryKey = [
 
 type AuthStatusInfo = Readonly<
   | {
-      // Don't expect tokenMissing status to be relevant for OAuth, but having
-      // it on one shared type definition doesn't hurt
-      status: 'initializing' | 'tokenMissing';
-      token: undefined;
-      error: undefined;
-    }
-  | {
-      status: 'authenticated' | 'distrustedWithGracePeriod';
-      token: string;
-      error: undefined;
-    }
-  | {
       // Distrusted represents a token that could be valid, but we are unable to
       // verify it within an allowed window. invalid is definitely, 100% invalid
       status:
+        | 'initializing'
+        | 'tokenMissing'
         | 'authenticating'
         | 'invalid'
         | 'distrusted'
         | 'noInternetConnection'
         | 'deploymentUnavailable';
-      token: undefined;
+      isAuthenticated: false;
       error: unknown;
+    }
+  | {
+      status: 'authenticated' | 'distrustedWithGracePeriod';
+      isAuthenticated: true;
+      error: undefined;
     }
 >;
 
 export type CoderAuthUiStatus = AuthStatusInfo['status'];
 
 export type CoderUiAuth = Readonly<
-  AuthStatusInfo & {
-    isAuthenticated: boolean;
-    registerNewToken: (newToken: string) => void;
-    ejectToken: () => void;
-  }
+  AuthStatusInfo &
+    (
+      | { type: 'oauth' }
+      | {
+          type: 'token';
+          registerNewToken: (newToken: string) => void;
+          ejectToken: () => void;
+        }
+    )
 >;
 
-const validCoderStatuses: readonly CoderAuthUiStatus[] = [
-  'authenticated',
-  'distrustedWithGracePeriod',
-];
-
 export const AuthContext = createContext<CoderUiAuth | null>(null);
+
 export function useCoderAuth(): CoderUiAuth {
   const contextValue = useContext(AuthContext);
   if (contextValue === null) {
@@ -131,12 +124,16 @@ export const CoderAuthProvider = ({ children }: CoderAuthProviderProps) => {
 
   const uiAuth = useMemo<CoderUiAuth>(() => {
     const info = deriveStatusInfo(safeApiSnapshot, authValidityQuery);
-    return {
-      ...info,
-      isAuthenticated: validCoderStatuses.includes(info.status),
-      registerNewToken: authApi.registerNewToken,
-      ejectToken: authApi.clearToken,
-    };
+    if (CoderTokenAuth.isInstance(authApi)) {
+      return {
+        ...info,
+        type: 'token',
+        registerNewToken: authApi.registerNewToken,
+        ejectToken: authApi.clearToken,
+      };
+    }
+
+    return { ...info, type: 'oauth' };
   }, [authApi, safeApiSnapshot, authValidityQuery]);
 
   // Sets up subscription to spy on potentially-expired tokens. Can't do this
@@ -177,12 +174,14 @@ export const CoderAuthProvider = ({ children }: CoderAuthProviderProps) => {
  * @see {@link https://tkdodo.eu/blog/status-checks-in-react-query}
  */
 export function deriveStatusInfo(
-  authStateSnapshot: AuthTokenStateSnapshot,
+  authStateSnapshot: SafeAuthData,
   authValidityQuery: UseQueryResult<boolean>,
 ): AuthStatusInfo {
-  const { token, initialToken, isInsideGracePeriod } = authStateSnapshot;
+  const { tokenHash, initialTokenHash, isInsideGracePeriod } =
+    authStateSnapshot;
+
   const isInitializing =
-    initialToken !== '' &&
+    initialTokenHash !== null &&
     authValidityQuery.isLoading &&
     authValidityQuery.isFetching &&
     !authValidityQuery.isFetchedAfterMount;
@@ -190,17 +189,17 @@ export function deriveStatusInfo(
   if (isInitializing) {
     return {
       status: 'initializing',
-      token: undefined,
+      isAuthenticated: false,
       error: undefined,
     };
   }
 
   // Checking the token here is more direct than trying to check the query
   // object's state transitions; React Query has no simple isEnabled property
-  if (!token) {
+  if (tokenHash === null) {
     return {
       status: 'tokenMissing',
-      token: undefined,
+      isAuthenticated: false,
       error: undefined,
     };
   }
@@ -214,7 +213,7 @@ export function deriveStatusInfo(
     if (deploymentLikelyUnavailable) {
       return {
         status: 'deploymentUnavailable',
-        token: undefined,
+        isAuthenticated: false,
         error: authValidityQuery.error,
       };
     }
@@ -226,23 +225,23 @@ export function deriveStatusInfo(
       authValidityQuery.isSuccess && !authValidityQuery.isPaused;
     if (canTrustAuthThisRender) {
       return {
-        token: token,
         status: 'authenticated',
+        isAuthenticated: true,
         error: undefined,
       };
     }
 
     if (isInsideGracePeriod) {
       return {
-        token: token,
         status: 'distrustedWithGracePeriod',
+        isAuthenticated: true,
         error: undefined,
       };
     }
 
     return {
       status: 'distrusted',
-      token: undefined,
+      isAuthenticated: false,
       error: authValidityQuery.error,
     };
   }
@@ -259,7 +258,7 @@ export function deriveStatusInfo(
   if (isAuthenticating) {
     return {
       status: 'authenticating',
-      token: undefined,
+      isAuthenticated: false,
       error: authValidityQuery.error,
     };
   }
@@ -273,7 +272,7 @@ export function deriveStatusInfo(
   if (isCoderDeploymentDown) {
     return {
       status: 'distrusted',
-      token: undefined,
+      isAuthenticated: false,
       error: authValidityQuery.error,
     };
   }
@@ -283,14 +282,14 @@ export function deriveStatusInfo(
   if (authValidityQuery.isPaused) {
     return {
       status: 'noInternetConnection',
-      token: undefined,
+      isAuthenticated: false,
       error: authValidityQuery.error,
     };
   }
 
   return {
     status: 'invalid',
-    token: undefined,
+    isAuthenticated: false,
     error: authValidityQuery.error,
   };
 }
