@@ -1,5 +1,5 @@
 /* eslint-disable @backstage/no-undeclared-imports -- For test helpers only */
-import { ConfigReader } from '@backstage/core-app-api';
+import { ConfigReader, FrontendHostDiscovery } from '@backstage/core-app-api';
 import { MockConfigApi, MockErrorApi } from '@backstage/test-utils';
 import type { ScmIntegrationRegistry } from '@backstage/integration';
 /* eslint-enable @backstage/no-undeclared-imports */
@@ -17,7 +17,7 @@ import {
 import { ScmIntegrationsApi } from '@backstage/integration-react';
 
 import { API_ROUTE_PREFIX, ASSETS_ROUTE_PREFIX } from '../api';
-import { IdentityApi } from '@backstage/core-plugin-api';
+import { DiscoveryApi, IdentityApi } from '@backstage/core-plugin-api';
 
 /**
  * This is the key that Backstage checks from the entity data to determine the
@@ -245,4 +245,14 @@ export function getMockIdentityApi(): IdentityApi {
  */
 export function getMockSourceControl(): ScmIntegrationRegistry {
   return ScmIntegrationsApi.fromConfig(new ConfigReader({}));
+}
+
+export function getMockDiscoveryApi(): DiscoveryApi {
+  return FrontendHostDiscovery.fromConfig(
+    new ConfigReader({
+      backend: {
+        baseUrl: mockBackstageUrlRoot,
+      },
+    }),
+  );
 }
