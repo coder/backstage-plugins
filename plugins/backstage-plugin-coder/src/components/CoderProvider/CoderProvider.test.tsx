@@ -98,13 +98,21 @@ describe(`${CoderProvider.name}`, () => {
     // core to the functionality. In this case, you do need to bring in the full
     // CoderProvider
     const renderUseCoderAuth = () => {
+      const discoveryApi = getMockDiscoveryApi();
+      const configApi = getMockConfigApi();
+      const urlSyncApi = new UrlSync({
+        apis: { discoveryApi, configApi },
+      });
+
       return renderHook(useCoderAuth, {
         wrapper: ({ children }) => (
           <TestApiProvider
             apis={[
               [errorApiRef, getMockErrorApi()],
               [identityApiRef, getMockIdentityApi()],
-              [configApiRef, getMockConfigApi()],
+              [configApiRef, configApi],
+              [discoveryApiRef, discoveryApi],
+              [urlSyncApiRef, urlSyncApi],
             ]}
           >
             <CoderProvider
