@@ -14,8 +14,8 @@ import {
 import { BackstageHttpError } from '../../api/errors';
 import {
   CODER_QUERY_KEY_PREFIX,
-  authQueryKey,
-  authValidation,
+  getCoderApiRequestInit,
+  sharedAuthQueryKey,
 } from '../../api';
 import { useUrlSync } from '../../hooks/useUrlSync';
 import { identityApiRef, useApi } from '@backstage/core-plugin-api';
@@ -98,7 +98,7 @@ export function useCoderAuth(): CoderAuth {
 type CoderAuthProviderProps = Readonly<PropsWithChildren<unknown>>;
 
 export const CoderAuthProvider = ({ children }: CoderAuthProviderProps) => {
-  const identity = useApi(identityApiRef);
+  const identityApi = useApi(identityApiRef);
   const [isInsideGracePeriod, setIsInsideGracePeriod] = useState(true);
   const { api: urlSyncApi } = useUrlSync();
 
@@ -108,9 +108,25 @@ export const CoderAuthProvider = ({ children }: CoderAuthProviderProps) => {
   const [authToken, setAuthToken] = useState(readAuthToken);
   const [readonlyInitialAuthToken] = useState(authToken);
 
-  const authValidityQuery = useQuery({
-    ...authValidation({ urlSyncApi, authToken, identity }),
+  const queryIsEnabled = authToken !== '';
+  const authValidityQuery = useQuery<boolean>({
+    queryKey: [...sharedAuthQueryKey, authToken],
+    enabled: queryIsEnabled,
+    keepPreviousData: queryIsEnabled,
     refetchOnWindowFocus: query => query.state.data !== false,
+    queryFn: async () => {
+      // In this case, the request doesn't actually matter. Just need to make any
+      // kind of dummy request to validate the auth
+      const requestInit = await getCoderApiRequestInit(authToken, identityApi);
+      const apiEndpoint = await urlSyncApi.getApiEndpoint();
+      const response = await fetch(`${apiEndpoint}/users/me`, requestInit);
+
+      if (response.status >= 400 && response.status !== 401) {
+        throw new BackstageHttpError('Failed to complete request', response);
+      }
+
+      return response.status !== 401;
+    },
   });
 
   const authState = generateAuthState({
@@ -165,7 +181,7 @@ export const CoderAuthProvider = ({ children }: CoderAuthProviderProps) => {
       }
 
       isRefetchingTokenQuery = true;
-      await queryClient.refetchQueries({ queryKey: authQueryKey });
+      await queryClient.refetchQueries({ queryKey: sharedAuthQueryKey });
       isRefetchingTokenQuery = false;
     });
 

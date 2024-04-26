@@ -1,5 +1,4 @@
 import { parse } from 'valibot';
-import { type UseQueryOptions } from '@tanstack/react-query';
 import type { IdentityApi } from '@backstage/core-plugin-api';
 import { BackstageHttpError } from './api/errors';
 import type { UrlSync } from './api/UrlSync';
@@ -16,14 +15,14 @@ import {
 } from './typesConstants';
 
 export const CODER_QUERY_KEY_PREFIX = 'coder-backstage-plugin';
-
-const PROXY_ROUTE_PREFIX = '/api/proxy/coder';
-export const API_ROUTE_PREFIX = `${PROXY_ROUTE_PREFIX}/api/v2`;
-
 export const CODER_AUTH_HEADER_KEY = 'Coder-Session-Token';
 export const REQUEST_TIMEOUT_MS = 20_000;
 
-async function getCoderApiRequestInit(
+// Defined here and not in CoderAuthProvider.ts to avoid circular dependency
+// issues
+export const sharedAuthQueryKey = [CODER_QUERY_KEY_PREFIX, 'auth'] as const;
+
+export async function getCoderApiRequestInit(
   authToken: string,
   identity: IdentityApi,
 ): Promise<RequestInit> {
@@ -220,40 +219,4 @@ export function getWorkspaceAgentStatuses(
   }
 
   return uniqueStatuses;
-}
-
-type AuthValidationInputs = Readonly<{
-  urlSyncApi: TempPublicUrlSyncApi;
-  authToken: string;
-  identity: IdentityApi;
-}>;
-
-async function isAuthValid(inputs: AuthValidationInputs): Promise<boolean> {
-  const { urlSyncApi, authToken, identity } = inputs;
-
-  // In this case, the request doesn't actually matter. Just need to make any
-  // kind of dummy request to validate the auth
-  const requestInit = await getCoderApiRequestInit(authToken, identity);
-  const apiEndpoint = await urlSyncApi.getApiEndpoint();
-  const response = await fetch(`${apiEndpoint}/users/me`, requestInit);
-
-  if (response.status >= 400 && response.status !== 401) {
-    throw new BackstageHttpError('Failed to complete request', response);
-  }
-
-  return response.status !== 401;
-}
-
-export const authQueryKey = [CODER_QUERY_KEY_PREFIX, 'auth'] as const;
-
-export function authValidation(
-  inputs: AuthValidationInputs,
-): UseQueryOptions<boolean> {
-  const enabled = inputs.authToken !== '';
-  return {
-    queryKey: [...authQueryKey, inputs.authToken],
-    queryFn: () => isAuthValid(inputs),
-    enabled,
-    keepPreviousData: enabled,
-  };
 }
