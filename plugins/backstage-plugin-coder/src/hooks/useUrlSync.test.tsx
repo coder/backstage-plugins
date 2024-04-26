@@ -12,7 +12,7 @@ import {
 } from '../testHelpers/mockBackstageData';
 
 function renderUseUrlSync() {
-  let proxyEndpoint = mockBackstageProxyEndpoint;
+  let proxyEndpoint: string = mockBackstageProxyEndpoint;
   const mockDiscoveryApi: DiscoveryApi = {
     getBaseUrl: async () => proxyEndpoint,
   };
