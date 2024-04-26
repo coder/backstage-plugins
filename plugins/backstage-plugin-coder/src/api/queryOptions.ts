@@ -1,7 +1,7 @@
 import type { UseQueryOptions } from '@tanstack/react-query';
 import type { Workspace } from '../typesConstants';
 import type { CoderWorkspacesConfig } from '../hooks/useCoderWorkspacesConfig';
-import { type FetchInputs, getWorkspaces, getWorkspacesByRepo } from '../api';
+import { type FetchInputs, getWorkspaces, getWorkspacesByRepo } from './api';
 
 export const CODER_QUERY_KEY_PREFIX = 'coder-backstage-plugin';
 const PENDING_REFETCH_INTERVAL_MS = 5_000;

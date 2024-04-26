@@ -1,18 +1,18 @@
 import { parse } from 'valibot';
 import type { IdentityApi } from '@backstage/core-plugin-api';
-import { BackstageHttpError } from './api/errors';
-import type { UrlSync } from './api/UrlSync';
-import type { CoderWorkspacesConfig } from './hooks/useCoderWorkspacesConfig';
+import { BackstageHttpError } from './errors';
+import type { UrlSync } from './UrlSync';
+import type { CoderWorkspacesConfig } from '../hooks/useCoderWorkspacesConfig';
 import {
   type CoderAuth,
   assertValidCoderAuth,
-} from './components/CoderProvider';
+} from '../components/CoderProvider';
 import {
   type Workspace,
   type WorkspaceAgentStatus,
   workspaceBuildParametersSchema,
   workspacesResponseSchema,
-} from './typesConstants';
+} from '../typesConstants';
 
 export const CODER_QUERY_KEY_PREFIX = 'coder-backstage-plugin';
 export const CODER_AUTH_HEADER_KEY = 'Coder-Session-Token';

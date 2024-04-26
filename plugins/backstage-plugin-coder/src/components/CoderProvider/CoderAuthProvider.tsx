@@ -16,7 +16,7 @@ import {
   CODER_QUERY_KEY_PREFIX,
   getCoderApiRequestInit,
   sharedAuthQueryKey,
-} from '../../api';
+} from '../../api/api';
 import { useUrlSync } from '../../hooks/useUrlSync';
 import { identityApiRef, useApi } from '@backstage/core-plugin-api';
 
