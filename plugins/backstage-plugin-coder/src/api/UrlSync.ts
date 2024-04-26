@@ -10,12 +10,14 @@
  *
  * As of April 2024, there are two main built-in ways of getting URLs from
  * Backstage config values:
- * 1. ConfigApi (offers synchronous methods)
- * 2. DiscoveryApi (offers async methods)
+ * 1. ConfigApi (offers synchronous methods, but does not have access to the
+ *    proxy config)
+ * 2. DiscoveryApi (has access to proxy config, but all methods are async)
  *
  * Both of these work fine inside event handlers and effects, but are never safe
- * to put directly inside render logic because they're non-deterministic and
- * are not state-based.
+ * to put directly inside render logic. They're not pure functions, so they
+ * can't be used as derived values, and they don't go through React state, so
+ * they're completely disconnected from React's render cycles.
  */
 import {
   type DiscoveryApi,
@@ -65,7 +67,8 @@ const proxyRouteExtractor = /^.+?\/proxy\/\w+$/;
 
 export class UrlSync implements Subscribable<UrlSyncSnapshot> {
   // ConfigApi is literally only used because it offers a synchronous way to
-  // get an initial URL to use from inside the constructor
+  // get an initial URL to use from inside the constructor. Should not be used
+  // beyond initial constructor call
   private readonly configApi: ConfigApi;
   private readonly discoveryApi: DiscoveryApi;
   private readonly urlCache: StateSnapshotManager<UrlSyncSnapshot>;
