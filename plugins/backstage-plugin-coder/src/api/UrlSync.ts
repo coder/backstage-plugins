@@ -69,7 +69,12 @@ type ConstructorInputs = Readonly<{
 
 const proxyRouteReplacer = /\/api\/proxy.*?$/;
 
-export class UrlSync implements Subscribable<UrlSyncSnapshot> {
+interface UrlSyncApi extends Subscribable<UrlSyncSnapshot> {
+  getApiEndpoint: () => Promise<string>;
+  getCachedUrls: () => UrlSyncSnapshot;
+}
+
+export class UrlSync implements UrlSyncApi {
   // ConfigApi is literally only used because it offers a synchronous way to
   // get an initial URL to use from inside the constructor. Should not be used
   // beyond initial constructor call

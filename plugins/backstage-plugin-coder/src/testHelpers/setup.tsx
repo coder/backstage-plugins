@@ -35,6 +35,7 @@ import {
   mockAuthStates,
   BackstageEntity,
   getMockIdentityApi,
+  getMockApiList,
 } from './mockBackstageData';
 import { CoderErrorBoundary } from '../plugin';
 
@@ -161,24 +162,13 @@ export const renderHookAsCoderEntity = async <
   options?: RenderHookAsCoderEntityOptions<TProps>,
 ): Promise<RenderHookResult<TReturn, TProps>> => {
   const { authStatus, ...delegatedOptions } = options ?? {};
-  const mockErrorApi = getMockErrorApi();
-  const mockSourceControl = getMockSourceControl();
-  const mockConfigApi = getMockConfigApi();
-  const mockIdentityApi = getMockIdentityApi();
   const mockQueryClient = getMockQueryClient();
 
   const renderHookValue = renderHook(hook, {
     ...delegatedOptions,
     wrapper: ({ children }) => {
       const mainMarkup = (
-        <TestApiProvider
-          apis={[
-            [errorApiRef, mockErrorApi],
-            [identityApiRef, mockIdentityApi],
-            [scmIntegrationsApiRef, mockSourceControl],
-            [configApiRef, mockConfigApi],
-          ]}
-        >
+        <TestApiProvider apis={getMockApiList()}>
           <CoderProviderWithMockAuth
             appConfig={mockAppConfig}
             queryClient={mockQueryClient}

@@ -14,10 +14,22 @@ import {
   CoderWorkspacesConfig,
   type YamlConfig,
 } from '../hooks/useCoderWorkspacesConfig';
-import { ScmIntegrationsApi } from '@backstage/integration-react';
+import {
+  ScmIntegrationsApi,
+  scmIntegrationsApiRef,
+} from '@backstage/integration-react';
 
 import { API_ROUTE_PREFIX, ASSETS_ROUTE_PREFIX } from '../api';
-import { DiscoveryApi, IdentityApi } from '@backstage/core-plugin-api';
+import {
+  ApiRef,
+  DiscoveryApi,
+  IdentityApi,
+  configApiRef,
+  discoveryApiRef,
+  errorApiRef,
+  identityApiRef,
+} from '@backstage/core-plugin-api';
+import { UrlSync, urlSyncApiRef } from '../api/UrlSync';
 
 /**
  * This is the key that Backstage checks from the entity data to determine the
@@ -255,4 +267,33 @@ export function getMockDiscoveryApi(): DiscoveryApi {
       },
     }),
   );
+}
+
+type ApiTuple = readonly [ApiRef<NonNullable<unknown>>, NonNullable<unknown>];
+
+export function getMockApiList(): readonly ApiTuple[] {
+  const mockErrorApi = getMockErrorApi();
+  const mockSourceControl = getMockSourceControl();
+  const mockConfigApi = getMockConfigApi();
+  const mockIdentityApi = getMockIdentityApi();
+  const mockDiscoveryApi = getMockDiscoveryApi();
+
+  const mockUrlSyncApi = new UrlSync({
+    apis: {
+      discoveryApi: mockDiscoveryApi,
+      configApi: mockConfigApi,
+    },
+  });
+
+  return [
+    // APIs that Backstage ships with normally
+    [errorApiRef, mockErrorApi],
+    [scmIntegrationsApiRef, mockSourceControl],
+    [configApiRef, mockConfigApi],
+    [identityApiRef, mockIdentityApi],
+    [discoveryApiRef, mockDiscoveryApi],
+
+    // Custom APIs specific to the Coder plugin
+    [urlSyncApiRef, mockUrlSyncApi],
+  ];
 }
