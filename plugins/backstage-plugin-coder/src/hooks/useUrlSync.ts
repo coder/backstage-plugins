@@ -1,8 +1,13 @@
 import { useSyncExternalStore } from 'use-sync-external-store/shim';
-import { type UrlSyncSnapshot, urlSyncApiRef } from '../api/UrlSync';
 import { useApi } from '@backstage/core-plugin-api';
+import {
+  type UrlSyncSnapshot,
+  type UrlSync,
+  urlSyncApiRef,
+} from '../api/UrlSync';
 
 export type UseUrlSyncResult = Readonly<{
+  api: UrlSync;
   state: UrlSyncSnapshot;
 
   /**
@@ -15,13 +20,11 @@ export type UseUrlSyncResult = Readonly<{
 }>;
 
 export function useUrlSync(): UseUrlSyncResult {
-  const urlSyncApi = useApi(urlSyncApiRef);
-  const state = useSyncExternalStore(
-    urlSyncApi.subscribe,
-    urlSyncApi.getCachedUrls,
-  );
+  const api = useApi(urlSyncApiRef);
+  const state = useSyncExternalStore(api.subscribe, api.getCachedUrls);
 
   return {
+    api,
     state,
     renderHelpers: {
       isEmojiUrl: url => {
