@@ -1,25 +1,22 @@
 import { renderHookAsCoderEntity } from '../testHelpers/setup';
-
-import {
-  UseBackstageEndpointResult,
-  useBackstageEndpoints,
-} from './useBackstageEndpoints';
+import { useUrlSync } from './useUrlSync';
 
 import {
   mockBackstageAssetsEndpoint,
   mockBackstageProxyEndpoint,
   mockBackstageUrlRoot,
 } from '../testHelpers/mockBackstageData';
+import { UrlSyncSnapshot } from '../api/UrlSync';
 
-describe(`${useBackstageEndpoints.name}`, () => {
+describe(`${useUrlSync.name}`, () => {
   it('Should provide pre-formatted URLs for interacting with Backstage endpoints', async () => {
-    const { result } = await renderHookAsCoderEntity(useBackstageEndpoints);
+    const { result } = await renderHookAsCoderEntity(useUrlSync);
 
     expect(result.current).toEqual(
-      expect.objectContaining<UseBackstageEndpointResult>({
+      expect.objectContaining<UrlSyncSnapshot>({
         baseUrl: mockBackstageUrlRoot,
-        assetsProxyUrl: mockBackstageAssetsEndpoint,
-        apiProxyUrl: mockBackstageProxyEndpoint,
+        assetsRoute: mockBackstageAssetsEndpoint,
+        apiRoute: mockBackstageProxyEndpoint,
       }),
     );
   });

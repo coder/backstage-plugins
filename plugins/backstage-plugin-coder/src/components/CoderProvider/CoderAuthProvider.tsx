@@ -18,7 +18,7 @@ import {
   authQueryKey,
   authValidation,
 } from '../../api';
-import { useBackstageEndpoints } from '../../hooks/useBackstageEndpoints';
+import { useUrlSync } from '../../hooks/useUrlSync';
 import { identityApiRef, useApi } from '@backstage/core-plugin-api';
 
 const TOKEN_STORAGE_KEY = 'coder-backstage-plugin/token';
@@ -100,7 +100,7 @@ type CoderAuthProviderProps = Readonly<PropsWithChildren<unknown>>;
 
 export const CoderAuthProvider = ({ children }: CoderAuthProviderProps) => {
   const identity = useApi(identityApiRef);
-  const { baseUrl } = useBackstageEndpoints();
+  const { baseUrl } = useUrlSync();
   const [isInsideGracePeriod, setIsInsideGracePeriod] = useState(true);
 
   // Need to split hairs, because the query object can be disabled. Only want to

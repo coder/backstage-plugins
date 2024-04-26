@@ -1,14 +1,30 @@
 import {
   createPlugin,
   createComponentExtension,
+  createApiFactory,
+  discoveryApiRef,
+  configApiRef,
 } from '@backstage/core-plugin-api';
 import { rootRouteRef } from './routes';
+import { UrlSync, urlSyncApiRef } from './api/UrlSync';
 
 export const coderPlugin = createPlugin({
   id: 'coder',
-  routes: {
-    root: rootRouteRef,
-  },
+  routes: { root: rootRouteRef },
+  apis: [
+    createApiFactory({
+      api: urlSyncApiRef,
+      deps: {
+        discoveryApi: discoveryApiRef,
+        configApi: configApiRef,
+      },
+      factory: ({ discoveryApi, configApi }) => {
+        return new UrlSync({
+          apis: { discoveryApi, configApi },
+        });
+      },
+    }),
+  ],
 });
 
 /**

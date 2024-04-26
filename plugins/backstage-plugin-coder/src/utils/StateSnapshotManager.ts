@@ -12,11 +12,11 @@
  * into this class. It will then take care of notifying subscriptions, while
  * reconciling old/new snapshots to minimize needless re-renders.
  */
-import type { ReadonlyJsonValue } from '../typesConstants';
-
-type SubscriptionCallback<TSnapshot extends ReadonlyJsonValue> = (
-  snapshot: TSnapshot,
-) => void;
+import type {
+  ReadonlyJsonValue,
+  SubscriptionCallback,
+  Subscribable,
+} from '../typesConstants';
 
 type DidSnapshotsChange<TSnapshot extends ReadonlyJsonValue> = (
   oldSnapshot: TSnapshot,
@@ -33,12 +33,11 @@ type SnapshotManagerOptions<TSnapshot extends ReadonlyJsonValue> = Readonly<{
   didSnapshotsChange?: DidSnapshotsChange<TSnapshot>;
 }>;
 
-interface SnapshotManagerApi<TSnapshot extends ReadonlyJsonValue> {
-  subscribe: (callback: SubscriptionCallback<TSnapshot>) => () => void;
-  unsubscribe: (callback: SubscriptionCallback<TSnapshot>) => void;
-  getSnapshot: () => TSnapshot;
-  updateSnapshot: (newSnapshot: TSnapshot) => void;
-}
+type SnapshotManagerApi<TSnapshot extends ReadonlyJsonValue> =
+  Subscribable<TSnapshot> & {
+    getSnapshot: () => TSnapshot;
+    updateSnapshot: (newSnapshot: TSnapshot) => void;
+  };
 
 function areSameByReference(v1: unknown, v2: unknown) {
   // Comparison looks wonky, but Object.is handles more edge cases than ===

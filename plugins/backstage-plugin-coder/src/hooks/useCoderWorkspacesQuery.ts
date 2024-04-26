@@ -2,7 +2,7 @@ import { useQuery } from '@tanstack/react-query';
 
 import { workspaces, workspacesByRepo } from '../api';
 import { useCoderAuth } from '../components/CoderProvider/CoderAuthProvider';
-import { useBackstageEndpoints } from './useBackstageEndpoints';
+import { useUrlSync } from './useUrlSync';
 import { CoderWorkspacesConfig } from './useCoderWorkspacesConfig';
 import { identityApiRef, useApi } from '@backstage/core-plugin-api';
 
@@ -17,7 +17,7 @@ export function useCoderWorkspacesQuery({
 }: QueryInput) {
   const auth = useCoderAuth();
   const identity = useApi(identityApiRef);
-  const { baseUrl } = useBackstageEndpoints();
+  const { baseUrl } = useUrlSync();
   const hasRepoData = workspacesConfig && workspacesConfig.repoUrl;
 
   const queryOptions = hasRepoData

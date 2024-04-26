@@ -1,5 +1,5 @@
 import React, { ForwardedRef, HTMLAttributes, useState } from 'react';
-import { useBackstageEndpoints } from '../../hooks/useBackstageEndpoints';
+import { useUrlSync } from '../../hooks/useUrlSync';
 import { Theme, makeStyles } from '@material-ui/core';
 
 type WorkspaceListIconProps = Readonly<
@@ -56,10 +56,10 @@ export const WorkspacesListIcon = ({
   ...delegatedProps
 }: WorkspaceListIconProps) => {
   const [hasError, setHasError] = useState(false);
-  const { assetsProxyUrl } = useBackstageEndpoints();
+  const { assetsRoute } = useUrlSync();
 
   const styles = useStyles({
-    isEmoji: src.startsWith(`${assetsProxyUrl}/emoji`),
+    isEmoji: src.startsWith(`${assetsRoute}/emoji`),
   });
 
   return (
