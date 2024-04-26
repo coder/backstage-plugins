@@ -34,9 +34,8 @@ function renderUseUrlSync() {
 
   return {
     ...renderResult,
-    updateMockProxyEndpoint: async (newEndpoint: string) => {
+    updateMockProxyEndpoint: (newEndpoint: string) => {
       proxyEndpoint = newEndpoint;
-      return act(() => urlSync.getApiEndpoint());
     },
   };
 }
@@ -63,7 +62,8 @@ describe(`${useUrlSync.name}`, () => {
       const { result, updateMockProxyEndpoint } = renderUseUrlSync();
       const initialState = result.current.state;
 
-      await updateMockProxyEndpoint(altProxyUrl);
+      updateMockProxyEndpoint(altProxyUrl);
+      await act(() => result.current.api.getApiEndpoint());
       const newState = result.current.state;
       expect(newState).not.toEqual(initialState);
     });
@@ -83,7 +83,8 @@ describe(`${useUrlSync.name}`, () => {
 
       // Test for URL that was valid when the React app started up, but then
       // UrlSync started giving out a completely different URL
-      await updateMockProxyEndpoint(altProxyUrl);
+      updateMockProxyEndpoint(altProxyUrl);
+      await act(() => result.current.api.getApiEndpoint());
       expect(result.current.renderHelpers.isEmojiUrl(url1)).toBe(false);
     });
   });
