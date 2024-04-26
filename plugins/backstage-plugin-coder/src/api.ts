@@ -223,21 +223,19 @@ export function getWorkspaceAgentStatuses(
 }
 
 type AuthValidationInputs = Readonly<{
-  baseUrl: string;
+  urlSyncApi: TempPublicUrlSyncApi;
   authToken: string;
   identity: IdentityApi;
 }>;
 
 async function isAuthValid(inputs: AuthValidationInputs): Promise<boolean> {
-  const { baseUrl, authToken, identity } = inputs;
+  const { urlSyncApi, authToken, identity } = inputs;
 
   // In this case, the request doesn't actually matter. Just need to make any
   // kind of dummy request to validate the auth
   const requestInit = await getCoderApiRequestInit(authToken, identity);
-  const response = await fetch(
-    `${baseUrl}${API_ROUTE_PREFIX}/users/me`,
-    requestInit,
-  );
+  const apiEndpoint = await urlSyncApi.getApiEndpoint();
+  const response = await fetch(`${apiEndpoint}/users/me`, requestInit);
 
   if (response.status >= 400 && response.status !== 401) {
     throw new BackstageHttpError('Failed to complete request', response);
