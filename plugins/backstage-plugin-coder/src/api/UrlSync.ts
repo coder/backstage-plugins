@@ -1,7 +1,9 @@
 /**
  * @file This is basically a fancier version of Backstage's built-in
- * DiscoveryApi that is designed to work much better with React. It helps with:
+ * DiscoveryApi that is designed to work much better with React. Its hook
+ * counterpart is useUrlSync.
  *
+ * The class helps with:
  * 1. Making sure URLs are cached so that they can be accessed directly and
  *    synchronously from the UI
  * 2. Making sure that there are mechanisms for binding value changes to React
@@ -32,17 +34,19 @@ import {
 import { StateSnapshotManager } from '../utils/StateSnapshotManager';
 
 // This is the value we tell people to use inside app-config.yaml
-const CODER_PROXY_PREFIX = '/coder';
+export const CODER_PROXY_PREFIX = '/coder';
 
 const BASE_URL_KEY_FOR_CONFIG_API = 'backend.baseUrl';
 const PROXY_URL_KEY_FOR_DISCOVERY_API = 'proxy';
 
 type UrlPrefixes = Readonly<{
+  proxyPrefix: string;
   apiRoutePrefix: string;
   assetsRoutePrefix: string;
 }>;
 
 export const defaultUrlPrefixes = {
+  proxyPrefix: `/api/proxy`,
   apiRoutePrefix: '/api/v2',
   assetsRoutePrefix: '', // Deliberately left as empty string
 } as const satisfies UrlPrefixes;
@@ -63,7 +67,7 @@ type ConstructorInputs = Readonly<{
   }>;
 }>;
 
-const proxyRouteExtractor = /^.+?\/proxy\/\w+$/;
+const proxyRouteReplacer = /\/api\/proxy.*?$/;
 
 export class UrlSync implements Subscribable<UrlSyncSnapshot> {
   // ConfigApi is literally only used because it offers a synchronous way to
@@ -72,8 +76,6 @@ export class UrlSync implements Subscribable<UrlSyncSnapshot> {
   private readonly configApi: ConfigApi;
   private readonly discoveryApi: DiscoveryApi;
   private readonly urlCache: StateSnapshotManager<UrlSyncSnapshot>;
-  // private readonly proxyRoot: string;
-
   private urlPrefixes: UrlPrefixes;
 
   constructor(setup: ConstructorInputs) {
@@ -84,22 +86,24 @@ export class UrlSync implements Subscribable<UrlSyncSnapshot> {
     this.configApi = configApi;
     this.urlPrefixes = { ...defaultUrlPrefixes, ...urlPrefixes };
 
-    const initialUrl = this.configApi.getString(BASE_URL_KEY_FOR_CONFIG_API);
-    // const [, proxyRoot] = proxyRouteExtractor.exec(initialUrl) ?? [];
-    // this.proxyRoot = proxyRoot;
-
+    const proxyRoot = this.getProxyRootFromConfigApi();
     this.urlCache = new StateSnapshotManager<UrlSyncSnapshot>({
-      initialSnapshot: this.prepareNewSnapshot(initialUrl),
+      initialSnapshot: this.prepareNewSnapshot(proxyRoot),
     });
   }
 
-  private prepareNewSnapshot(newBaseUrl: string): UrlSyncSnapshot {
+  private getProxyRootFromConfigApi(): string {
+    const baseUrl = this.configApi.getString(BASE_URL_KEY_FOR_CONFIG_API);
+    return `${baseUrl}${this.urlPrefixes.proxyPrefix}`;
+  }
+
+  private prepareNewSnapshot(newProxyUrl: string): UrlSyncSnapshot {
     const { assetsRoutePrefix, apiRoutePrefix } = this.urlPrefixes;
 
     return {
-      baseUrl: newBaseUrl,
-      assetsRoute: `${newBaseUrl}${assetsRoutePrefix}`,
-      apiRoute: `${newBaseUrl}${apiRoutePrefix}`,
+      baseUrl: newProxyUrl.replace(proxyRouteReplacer, ''),
+      assetsRoute: `${newProxyUrl}${CODER_PROXY_PREFIX}${assetsRoutePrefix}`,
+      apiRoute: `${newProxyUrl}${CODER_PROXY_PREFIX}${apiRoutePrefix}`,
     };
   }
 
@@ -128,5 +132,5 @@ export class UrlSync implements Subscribable<UrlSyncSnapshot> {
 }
 
 export const urlSyncApiRef = createApiRef<UrlSync>({
-  id: `${CODER_API_REF_ID_PREFIX}.urlSync`,
+  id: `${CODER_API_REF_ID_PREFIX}.url-sync`,
 });
