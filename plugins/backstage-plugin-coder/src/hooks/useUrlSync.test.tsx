@@ -42,6 +42,8 @@ function renderUseUrlSync() {
 }
 
 describe(`${useUrlSync.name}`, () => {
+  const altProxyUrl = 'http://zombo.com/api/proxy/coder';
+
   describe('State', () => {
     it('Should provide pre-formatted URLs for interacting with Backstage endpoints', () => {
       const { result } = renderUseUrlSync();
@@ -61,7 +63,7 @@ describe(`${useUrlSync.name}`, () => {
       const { result, updateMockProxyEndpoint } = renderUseUrlSync();
       const initialState = result.current.state;
 
-      await updateMockProxyEndpoint('blah');
+      await updateMockProxyEndpoint(altProxyUrl);
       const newState = result.current.state;
       expect(newState).not.toEqual(initialState);
     });
@@ -81,7 +83,7 @@ describe(`${useUrlSync.name}`, () => {
 
       // Test for URL that was valid when the React app started up, but then
       // UrlSync started giving out a completely different URL
-      await updateMockProxyEndpoint('http://zombo.com/api/proxy/coder');
+      await updateMockProxyEndpoint(altProxyUrl);
       expect(result.current.renderHelpers.isEmojiUrl(url1)).toBe(false);
     });
   });
