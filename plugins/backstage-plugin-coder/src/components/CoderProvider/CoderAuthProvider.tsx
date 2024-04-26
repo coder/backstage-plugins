@@ -12,11 +12,11 @@ import {
   useQueryClient,
 } from '@tanstack/react-query';
 import { BackstageHttpError } from '../../api/errors';
+import { getCoderApiRequestInit } from '../../api/api';
 import {
   CODER_QUERY_KEY_PREFIX,
-  getCoderApiRequestInit,
   sharedAuthQueryKey,
-} from '../../api/api';
+} from '../../api/queryOptions';
 import { useUrlSync } from '../../hooks/useUrlSync';
 import { identityApiRef, useApi } from '@backstage/core-plugin-api';
 

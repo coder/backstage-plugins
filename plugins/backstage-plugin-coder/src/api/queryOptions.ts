@@ -4,6 +4,11 @@ import type { CoderWorkspacesConfig } from '../hooks/useCoderWorkspacesConfig';
 import { type FetchInputs, getWorkspaces, getWorkspacesByRepo } from './api';
 
 export const CODER_QUERY_KEY_PREFIX = 'coder-backstage-plugin';
+
+// Defined here and not in CoderAuthProvider.ts to avoid circular dependency
+// issues
+export const sharedAuthQueryKey = [CODER_QUERY_KEY_PREFIX, 'auth'] as const;
+
 const PENDING_REFETCH_INTERVAL_MS = 5_000;
 const BACKGROUND_REFETCH_INTERVAL_MS = 60_000;
 

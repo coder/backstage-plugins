@@ -14,13 +14,8 @@ import {
   workspacesResponseSchema,
 } from '../typesConstants';
 
-export const CODER_QUERY_KEY_PREFIX = 'coder-backstage-plugin';
 export const CODER_AUTH_HEADER_KEY = 'Coder-Session-Token';
 export const REQUEST_TIMEOUT_MS = 20_000;
-
-// Defined here and not in CoderAuthProvider.ts to avoid circular dependency
-// issues
-export const sharedAuthQueryKey = [CODER_QUERY_KEY_PREFIX, 'auth'] as const;
 
 export async function getCoderApiRequestInit(
   authToken: string,
