@@ -11,12 +11,6 @@ import {
 
 import React from 'react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { scmIntegrationsApiRef } from '@backstage/integration-react';
-import {
-  configApiRef,
-  errorApiRef,
-  identityApiRef,
-} from '@backstage/core-plugin-api';
 import { EntityProvider } from '@backstage/plugin-catalog-react';
 import {
   type CoderAuth,
@@ -27,14 +21,10 @@ import {
   CoderAppConfigProvider,
 } from '../components/CoderProvider';
 import {
-  getMockSourceControl,
   mockAppConfig,
   mockEntity,
-  getMockErrorApi,
-  getMockConfigApi,
   mockAuthStates,
   BackstageEntity,
-  getMockIdentityApi,
   getMockApiList,
 } from './mockBackstageData';
 import { CoderErrorBoundary } from '../plugin';
