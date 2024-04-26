@@ -202,27 +202,8 @@ export async function renderInCoderEnvironment({
   queryClient = getMockQueryClient(),
   appConfig = mockAppConfig,
 }: RenderInCoderEnvironmentInputs) {
-  /**
-   * Tried really hard to get renderInTestApp to work, but I couldn't figure out
-   * how to get it set up with custom config values (mainly for testing the
-   * backend endpoints).
-   *
-   * Manually setting up the config API to get around that
-   */
-  const mockErrorApi = getMockErrorApi();
-  const mockSourceControl = getMockSourceControl();
-  const mockConfigApi = getMockConfigApi();
-  const mockIdentityApi = getMockIdentityApi();
-
   const mainMarkup = (
-    <TestApiProvider
-      apis={[
-        [errorApiRef, mockErrorApi],
-        [identityApiRef, mockIdentityApi],
-        [scmIntegrationsApiRef, mockSourceControl],
-        [configApiRef, mockConfigApi],
-      ]}
-    >
+    <TestApiProvider apis={getMockApiList()}>
       <EntityProvider entity={entity}>
         <CoderProviderWithMockAuth
           appConfig={appConfig}
