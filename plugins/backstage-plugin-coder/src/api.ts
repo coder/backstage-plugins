@@ -10,6 +10,7 @@ import {
 } from './typesConstants';
 import { CoderAuth, assertValidCoderAuth } from './components/CoderProvider';
 import { IdentityApi } from '@backstage/core-plugin-api';
+import { UrlSync } from './api/UrlSync';
 
 export const CODER_QUERY_KEY_PREFIX = 'coder-backstage-plugin';
 
@@ -73,10 +74,15 @@ export class BackstageHttpError extends Error {
   }
 }
 
+type TempPublicUrlSyncApi = Readonly<{
+  getApiEndpoint: UrlSync['getApiEndpoint'];
+  getAssetsEndpoint: UrlSync['getAssetsEndpoint'];
+}>;
+
 type FetchInputs = Readonly<{
   auth: CoderAuth;
-  baseUrl: string;
-  identity: IdentityApi;
+  identityApi: IdentityApi;
+  urlSyncApi: TempPublicUrlSyncApi;
 }>;
 
 type WorkspacesFetchInputs = Readonly<
@@ -88,7 +94,7 @@ type WorkspacesFetchInputs = Readonly<
 async function getWorkspaces(
   fetchInputs: WorkspacesFetchInputs,
 ): Promise<readonly Workspace[]> {
-  const { baseUrl, coderQuery, auth, identity } = fetchInputs;
+  const { coderQuery, auth, identityApi, urlSyncApi } = fetchInputs;
   assertValidCoderAuth(auth);
 
   const urlParams = new URLSearchParams({
@@ -96,9 +102,10 @@ async function getWorkspaces(
     limit: '0',
   });
 
-  const requestInit = await getCoderApiRequestInit(auth.token, identity);
+  const requestInit = await getCoderApiRequestInit(auth.token, identityApi);
+  const apiEndpoint = await urlSyncApi.getApiEndpoint();
   const response = await fetch(
-    `${baseUrl}${API_ROUTE_PREFIX}/workspaces?${urlParams.toString()}`,
+    `${apiEndpoint}/workspaces?${urlParams.toString()}`,
     requestInit,
   );
 
@@ -119,6 +126,7 @@ async function getWorkspaces(
   const json = await response.json();
   const { workspaces } = parse(workspacesResponseSchema, json);
 
+  const assetsUrl = await urlSyncApi.getAssetsEndpoint();
   const withRemappedImgUrls = workspaces.map(ws => {
     const templateIcon = ws.template_icon;
     if (!templateIcon.startsWith('/')) {
@@ -127,7 +135,7 @@ async function getWorkspaces(
 
     return {
       ...ws,
-      template_icon: `${baseUrl}${ASSETS_ROUTE_PREFIX}${templateIcon}`,
+      template_icon: `${assetsUrl}${templateIcon}`,
     };
   });
 
@@ -141,12 +149,13 @@ type BuildParamsFetchInputs = Readonly<
 >;
 
 async function getWorkspaceBuildParameters(inputs: BuildParamsFetchInputs) {
-  const { baseUrl, auth, workspaceBuildId, identity } = inputs;
+  const { urlSyncApi, auth, workspaceBuildId, identityApi } = inputs;
   assertValidCoderAuth(auth);
 
-  const requestInit = await getCoderApiRequestInit(auth.token, identity);
+  const requestInit = await getCoderApiRequestInit(auth.token, identityApi);
+  const apiEndpoint = await urlSyncApi.getApiEndpoint();
   const res = await fetch(
-    `${baseUrl}${API_ROUTE_PREFIX}/workspacebuilds/${workspaceBuildId}/parameters`,
+    `${apiEndpoint}/workspacebuilds/${workspaceBuildId}/parameters`,
     requestInit,
   );
 
@@ -255,7 +264,7 @@ export function isWorkspaceOnline(workspace: Workspace): boolean {
 export function workspaces(
   inputs: WorkspacesFetchInputs,
 ): UseQueryOptions<readonly Workspace[]> {
-  const enabled = inputs.auth.status === 'authenticated';
+  const enabled = inputs.auth.isAuthenticated;
 
   return {
     queryKey: [CODER_QUERY_KEY_PREFIX, 'workspaces', inputs.coderQuery],
@@ -268,8 +277,10 @@ export function workspaces(
 export function workspacesByRepo(
   inputs: WorkspacesByRepoFetchInputs,
 ): UseQueryOptions<readonly Workspace[]> {
-  const enabled =
-    inputs.auth.status === 'authenticated' && inputs.coderQuery !== '';
+  // Disabling query object when there is no query text for performance reasons;
+  // searching through every workspace with an empty string can be incredibly
+  // slow.
+  const enabled = inputs.auth.isAuthenticated && inputs.coderQuery !== '';
 
   return {
     queryKey: [CODER_QUERY_KEY_PREFIX, 'workspaces', inputs.coderQuery, 'repo'],

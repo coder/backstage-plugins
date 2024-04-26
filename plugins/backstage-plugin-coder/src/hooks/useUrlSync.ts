@@ -8,8 +8,16 @@ import {
 
 export type UseUrlSyncResult = Readonly<{
   state: UrlSyncSnapshot;
+
+  /**
+   * @todo This is a temporary property that is being used until the
+   * CoderClientApi is created, and can consume the UrlSync class directly.
+   *
+   * Delete this entire property once the new class is ready.
+   */
   api: Readonly<{
     getApiEndpoint: UrlSync['getApiEndpoint'];
+    getAssetsEndpoint: UrlSync['getAssetsEndpoint'];
   }>;
 
   /**
@@ -32,7 +40,9 @@ export function useUrlSync(): UseUrlSyncResult {
     state,
     api: {
       getApiEndpoint: urlSyncApi.getApiEndpoint,
+      getAssetsEndpoint: urlSyncApi.getAssetsEndpoint,
     },
+
     renderHelpers: {
       isEmojiUrl: url => {
         return url.startsWith(`${state.assetsRoute}/emoji`);

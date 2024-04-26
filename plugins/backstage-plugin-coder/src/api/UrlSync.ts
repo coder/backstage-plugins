@@ -69,10 +69,12 @@ type ConstructorInputs = Readonly<{
 
 const proxyRouteReplacer = /\/api\/proxy.*?$/;
 
-interface UrlSyncApi extends Subscribable<UrlSyncSnapshot> {
-  getApiEndpoint: () => Promise<string>;
-  getCachedUrls: () => UrlSyncSnapshot;
-}
+type UrlSyncApi = Subscribable<UrlSyncSnapshot> &
+  Readonly<{
+    getApiEndpoint: () => Promise<string>;
+    getAssetsEndpoint: () => Promise<string>;
+    getCachedUrls: () => UrlSyncSnapshot;
+  }>;
 
 export class UrlSync implements UrlSyncApi {
   // ConfigApi is literally only used because it offers a synchronous way to
@@ -120,6 +122,16 @@ export class UrlSync implements UrlSyncApi {
     const newSnapshot = this.prepareNewSnapshot(proxyRoot);
     this.urlCache.updateSnapshot(newSnapshot);
     return newSnapshot.apiRoute;
+  };
+
+  getAssetsEndpoint = async (): Promise<string> => {
+    const proxyRoot = await this.discoveryApi.getBaseUrl(
+      PROXY_URL_KEY_FOR_DISCOVERY_API,
+    );
+
+    const newSnapshot = this.prepareNewSnapshot(proxyRoot);
+    this.urlCache.updateSnapshot(newSnapshot);
+    return newSnapshot.assetsRoute;
   };
 
   getCachedUrls = (): UrlSyncSnapshot => {
