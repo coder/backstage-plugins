@@ -114,6 +114,11 @@ export class UrlSync implements UrlSyncApi {
     };
   }
 
+  /* ***************************************************************************
+   * All public functions should be defined as arrow functions to ensure they
+   * can be passed around React without risk of losing their `this` context
+   ****************************************************************************/
+
   getApiEndpoint = async (): Promise<string> => {
     const proxyRoot = await this.discoveryApi.getBaseUrl(
       PROXY_URL_KEY_FOR_DISCOVERY_API,
