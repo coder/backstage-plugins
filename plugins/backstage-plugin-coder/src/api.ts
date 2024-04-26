@@ -58,7 +58,7 @@ type TempPublicUrlSyncApi = Readonly<{
   getAssetsEndpoint: UrlSync['getAssetsEndpoint'];
 }>;
 
-type FetchInputs = Readonly<{
+export type FetchInputs = Readonly<{
   auth: CoderAuth;
   identityApi: IdentityApi;
   urlSyncApi: TempPublicUrlSyncApi;
@@ -70,7 +70,7 @@ type WorkspacesFetchInputs = Readonly<
   }
 >;
 
-async function getWorkspaces(
+export async function getWorkspaces(
   fetchInputs: WorkspacesFetchInputs,
 ): Promise<readonly Workspace[]> {
   const { coderQuery, auth, identityApi, urlSyncApi } = fetchInputs;
@@ -221,52 +221,6 @@ export function getWorkspaceAgentStatuses(
   }
 
   return uniqueStatuses;
-}
-
-export function isWorkspaceOnline(workspace: Workspace): boolean {
-  const latestBuildStatus = workspace.latest_build.status;
-  const isAvailable =
-    latestBuildStatus !== 'stopped' &&
-    latestBuildStatus !== 'stopping' &&
-    latestBuildStatus !== 'pending';
-
-  if (!isAvailable) {
-    return false;
-  }
-
-  const statuses = getWorkspaceAgentStatuses(workspace);
-  return statuses.every(
-    status => status === 'connected' || status === 'connecting',
-  );
-}
-
-export function workspaces(
-  inputs: WorkspacesFetchInputs,
-): UseQueryOptions<readonly Workspace[]> {
-  const enabled = inputs.auth.isAuthenticated;
-
-  return {
-    queryKey: [CODER_QUERY_KEY_PREFIX, 'workspaces', inputs.coderQuery],
-    queryFn: () => getWorkspaces(inputs),
-    enabled,
-    keepPreviousData: enabled && inputs.coderQuery !== '',
-  };
-}
-
-export function workspacesByRepo(
-  inputs: WorkspacesByRepoFetchInputs,
-): UseQueryOptions<readonly Workspace[]> {
-  // Disabling query object when there is no query text for performance reasons;
-  // searching through every workspace with an empty string can be incredibly
-  // slow.
-  const enabled = inputs.auth.isAuthenticated && inputs.coderQuery !== '';
-
-  return {
-    queryKey: [CODER_QUERY_KEY_PREFIX, 'workspaces', inputs.coderQuery, 'repo'],
-    queryFn: () => getWorkspacesByRepo(inputs),
-    enabled,
-    keepPreviousData: enabled,
-  };
 }
 
 type AuthValidationInputs = Readonly<{

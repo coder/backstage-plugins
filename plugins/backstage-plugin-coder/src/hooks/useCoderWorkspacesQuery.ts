@@ -1,6 +1,6 @@
 import { useQuery } from '@tanstack/react-query';
 
-import { workspaces, workspacesByRepo } from '../api';
+import { workspaces, workspacesByRepo } from '../api/queryOptions';
 import { useCoderAuth } from '../components/CoderProvider/CoderAuthProvider';
 import { useUrlSync } from './useUrlSync';
 import { CoderWorkspacesConfig } from './useCoderWorkspacesConfig';
