@@ -9,7 +9,8 @@ import {
   WorkspaceAgentStatus,
 } from './typesConstants';
 import { CoderAuth, assertValidCoderAuth } from './components/CoderProvider';
-import { IdentityApi } from '@backstage/core-plugin-api';
+import type { IdentityApi } from '@backstage/core-plugin-api';
+import { BackstageHttpError } from './api/errors';
 import { UrlSync } from './api/UrlSync';
 
 export const CODER_QUERY_KEY_PREFIX = 'coder-backstage-plugin';
@@ -48,30 +49,6 @@ async function getCoderApiRequestInit(
     headers,
     signal: AbortSignal.timeout(REQUEST_TIMEOUT_MS),
   };
-}
-
-// Makes it easier to expose HTTP responses in the event of errors and also
-// gives TypeScript a faster way to type-narrow on those errors
-export class BackstageHttpError extends Error {
-  #response: Response;
-
-  constructor(errorMessage: string, response: Response) {
-    super(errorMessage);
-    this.name = 'HttpError';
-    this.#response = response;
-  }
-
-  get status() {
-    return this.#response.status;
-  }
-
-  get ok() {
-    return this.#response.ok;
-  }
-
-  get contentType() {
-    return this.#response.headers.get('content_type');
-  }
 }
 
 type TempPublicUrlSyncApi = Readonly<{
