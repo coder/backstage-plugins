@@ -4,7 +4,12 @@ import { useApi } from '@backstage/core-plugin-api';
 
 export type UseUrlSyncResult = Readonly<{
   state: UrlSyncSnapshot;
-  uiHelpers: {
+
+  /**
+   * A collection of functions that can safely be called from within a React
+   * component's render logic to get derived values.
+   */
+  renderHelpers: {
     isEmojiUrl: (url: string) => boolean;
   };
 }>;
@@ -18,7 +23,7 @@ export function useUrlSync(): UseUrlSyncResult {
 
   return {
     state,
-    uiHelpers: {
+    renderHelpers: {
       isEmojiUrl: url => {
         return url.startsWith(`${state.assetsRoute}/emoji`);
       },

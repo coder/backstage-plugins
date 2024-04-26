@@ -56,8 +56,8 @@ export const WorkspacesListIcon = ({
   ...delegatedProps
 }: WorkspaceListIconProps) => {
   const [hasError, setHasError] = useState(false);
-  const { uiHelpers } = useUrlSync();
-  const styles = useStyles({ isEmoji: uiHelpers.isEmojiUrl(src) });
+  const { renderHelpers } = useUrlSync();
+  const styles = useStyles({ isEmoji: renderHelpers.isEmojiUrl(src) });
 
   return (
     <div
