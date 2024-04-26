@@ -17,7 +17,7 @@ export function useCoderWorkspacesQuery({
 }: QueryInput) {
   const auth = useCoderAuth();
   const identity = useApi(identityApiRef);
-  const { baseUrl } = useUrlSync();
+  const { baseUrl } = useUrlSync().state;
   const hasRepoData = workspacesConfig && workspacesConfig.repoUrl;
 
   const queryOptions = hasRepoData

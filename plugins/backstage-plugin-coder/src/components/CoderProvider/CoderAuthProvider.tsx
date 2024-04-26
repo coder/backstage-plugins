@@ -100,8 +100,8 @@ type CoderAuthProviderProps = Readonly<PropsWithChildren<unknown>>;
 
 export const CoderAuthProvider = ({ children }: CoderAuthProviderProps) => {
   const identity = useApi(identityApiRef);
-  const { baseUrl } = useUrlSync();
   const [isInsideGracePeriod, setIsInsideGracePeriod] = useState(true);
+  const { baseUrl } = useUrlSync().state;
 
   // Need to split hairs, because the query object can be disabled. Only want to
   // expose the initializing state if the app mounts with a token already in
