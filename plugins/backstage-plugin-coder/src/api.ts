@@ -1,17 +1,19 @@
 import { parse } from 'valibot';
 import { type UseQueryOptions } from '@tanstack/react-query';
-
-import { CoderWorkspacesConfig } from './hooks/useCoderWorkspacesConfig';
-import {
-  type Workspace,
-  workspaceBuildParametersSchema,
-  workspacesResponseSchema,
-  WorkspaceAgentStatus,
-} from './typesConstants';
-import { CoderAuth, assertValidCoderAuth } from './components/CoderProvider';
 import type { IdentityApi } from '@backstage/core-plugin-api';
 import { BackstageHttpError } from './api/errors';
-import { UrlSync } from './api/UrlSync';
+import type { UrlSync } from './api/UrlSync';
+import type { CoderWorkspacesConfig } from './hooks/useCoderWorkspacesConfig';
+import {
+  type CoderAuth,
+  assertValidCoderAuth,
+} from './components/CoderProvider';
+import {
+  type Workspace,
+  type WorkspaceAgentStatus,
+  workspaceBuildParametersSchema,
+  workspacesResponseSchema,
+} from './typesConstants';
 
 export const CODER_QUERY_KEY_PREFIX = 'coder-backstage-plugin';
 
