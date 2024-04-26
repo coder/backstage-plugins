@@ -7,8 +7,10 @@ import {
 } from '../api/UrlSync';
 
 export type UseUrlSyncResult = Readonly<{
-  api: UrlSync;
   state: UrlSyncSnapshot;
+  api: Readonly<{
+    getApiEndpoint: UrlSync['getApiEndpoint'];
+  }>;
 
   /**
    * A collection of functions that can safely be called from within a React
@@ -20,12 +22,17 @@ export type UseUrlSyncResult = Readonly<{
 }>;
 
 export function useUrlSync(): UseUrlSyncResult {
-  const api = useApi(urlSyncApiRef);
-  const state = useSyncExternalStore(api.subscribe, api.getCachedUrls);
+  const urlSyncApi = useApi(urlSyncApiRef);
+  const state = useSyncExternalStore(
+    urlSyncApi.subscribe,
+    urlSyncApi.getCachedUrls,
+  );
 
   return {
-    api,
     state,
+    api: {
+      getApiEndpoint: urlSyncApi.getApiEndpoint,
+    },
     renderHelpers: {
       isEmojiUrl: url => {
         return url.startsWith(`${state.assetsRoute}/emoji`);
