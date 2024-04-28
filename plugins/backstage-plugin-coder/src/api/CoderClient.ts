@@ -3,45 +3,13 @@ import globalAxios, {
   type InternalAxiosRequestConfig,
 } from 'axios';
 import { type IdentityApi, createApiRef } from '@backstage/core-plugin-api';
-import {
-  type Workspace,
-  type WorkspaceBuildParameter,
-  type WorkspacesResponse,
-  CODER_API_REF_ID_PREFIX,
-} from '../typesConstants';
+import { type Workspace, CODER_API_REF_ID_PREFIX } from '../typesConstants';
 import type { UrlSync } from './UrlSync';
 import type { CoderWorkspacesConfig } from '../hooks/useCoderWorkspacesConfig';
+import { CoderSdk } from './MockCoderSdk';
 
 export const CODER_AUTH_HEADER_KEY = 'Coder-Session-Token';
 const REQUEST_TIMEOUT_MS = 20_000;
-
-/**
- * This is a temporary (and significantly limited) implementation of the "Coder
- * SDK" type that will eventually be imported from Coder core
- *
- * @todo Replace this with a full, proper implementation, and then expose it to
- * plugin users.
- */
-type CoderSdk = Readonly<{
-  getUserLoginType: () => Promise<UserLoginType>;
-  getWorkspaces: (options: WorkspacesRequest) => Promise<WorkspacesResponse>;
-  getWorkspaceBuildParameters: (
-    workspaceBuildId: string,
-  ) => Promise<readonly WorkspaceBuildParameter[]>;
-}>;
-
-type WorkspacesRequest = Readonly<{
-  after_id?: string;
-  limit?: number;
-  offset?: number;
-  q?: string;
-}>;
-
-// Return value used for the dummy requests used to verify a user's auth status
-// for the Coder token auth logic
-type UserLoginType = Readonly<{
-  login_type: '' | 'github' | 'none' | 'oidc' | 'password' | 'token';
-}>;
 
 /**
  * A version of the main Coder SDK API, with additional Backstage-specific
@@ -95,14 +63,11 @@ export class CoderClient implements CoderClientApi {
     this.urlSync = urlSync;
     this.identityApi = identityApi;
     this.loadedSessionToken = undefined;
-
-    const axios = globalAxios.create();
-    const ejectId = this.addInterceptors(axios);
-    this.axios = axios;
-    this.axiosEjectId = ejectId;
-
-    this.sdk = this.getBackstageCoderSdk(axios);
     this.cleanupController = new AbortController();
+
+    this.axios = globalAxios.create();
+    this.axiosEjectId = this.addInterceptors(this.axios);
+    this.sdk = this.getBackstageCoderSdk(this.axios);
   }
 
   private addInterceptors(axios: AxiosInstance): number {
@@ -147,52 +112,26 @@ export class CoderClient implements CoderClientApi {
   private getBackstageCoderSdk(
     axiosInstance: AxiosInstance,
   ): BackstageCoderSdk {
-    // Defining all the SDK functions here instead of in the class as private
-    // methods to limit the amount of noise you get from intellisense
-    const getWorkspaces = async (
-      request: WorkspacesRequest,
-    ): Promise<WorkspacesResponse> => {
-      const urlParams = new URLSearchParams({
-        q: request.q ?? '',
-        limit: String(request.limit || 0),
-        after_id: request.after_id ?? '',
-        offset: String(request.offset || 0),
-      });
+    const baseSdk = new CoderSdk(axiosInstance);
 
-      const { data } = await axiosInstance.get<WorkspacesResponse>(
-        `/workspaces?${urlParams.toString()}`,
+    const originalGetWorkspaces = baseSdk.getWorkspaces;
+    baseSdk.getWorkspaces = async request => {
+      const workspacesRes = await originalGetWorkspaces(request);
+      const remapped = await this.remapWorkspaceIconUrls(
+        workspacesRes.workspaces,
       );
 
-      const remapped = await this.remapWorkspaceIconUrls(data.workspaces);
       return {
-        count: data.count,
-        workspaces: remapped as Workspace[],
+        count: remapped.length,
+        workspaces: remapped,
       };
-    };
-
-    const getWorkspaceBuildParameters = async (
-      workspaceBuildId: string,
-    ): Promise<readonly WorkspaceBuildParameter[]> => {
-      const response = await axiosInstance.get<
-        readonly WorkspaceBuildParameter[]
-      >(`/workspacebuilds/${workspaceBuildId}/parameters`);
-
-      return response.data;
-    };
-
-    const getUserLoginType = async (): Promise<UserLoginType> => {
-      const response = await axiosInstance.get<UserLoginType>(
-        '/users/me/login-type',
-      );
-
-      return response.data;
     };
 
     const getWorkspacesByRepo = async (
       coderQuery: string,
       config: CoderWorkspacesConfig,
     ): Promise<readonly Workspace[]> => {
-      const { workspaces } = await getWorkspaces({
+      const { workspaces } = await baseSdk.getWorkspaces({
         q: coderQuery,
         limit: 0,
       });
@@ -228,16 +167,14 @@ export class CoderClient implements CoderClientApi {
     };
 
     return {
-      getWorkspaces,
-      getWorkspaceBuildParameters,
-      getUserLoginType,
+      ...baseSdk,
       getWorkspacesByRepo,
     };
   }
 
   /**
    * Creates a combined abort signal that will abort when the client is cleaned
-   * up, but also enforces request timeouts
+   * up, but will also enforce request timeouts
    */
   private getTimeoutAbortSignal(): AbortSignal {
     // AbortSignal.any would do exactly what we need to, but it's too new for
@@ -267,7 +204,7 @@ export class CoderClient implements CoderClientApi {
 
   private async remapWorkspaceIconUrls(
     workspaces: readonly Workspace[],
-  ): Promise<readonly Workspace[]> {
+  ): Promise<Workspace[]> {
     const assetsRoute = await this.urlSync.getAssetsEndpoint();
 
     return workspaces.map<Workspace>(ws => {
@@ -286,8 +223,8 @@ export class CoderClient implements CoderClientApi {
   syncToken = async (newToken: string): Promise<boolean> => {
     /**
      * This logic requires a long explanation if you aren't familiar with
-     * the intricacies of JavaScript. Tried other options, but this seemed like
-     * the best approach.
+     * the intricacies of JavaScript. Tried other options, but they were all
+     * somehow even worse/more convoluted
      *
      * 1. interceptors.request.use will synchronously add a new interceptor
      *    function to the axios instance. Axios interceptors are always applied
@@ -328,7 +265,7 @@ export class CoderClient implements CoderClientApi {
     } catch {
       return false;
     } finally {
-      // Finally blocks always execute even after a value is returned
+      // Logic in a finally block always executes even after a value is returned
       this.axios.interceptors.request.eject(validationId);
     }
   };
