@@ -20,7 +20,7 @@ import {
   mockBackstageProxyEndpoint as root,
 } from './mockBackstageData';
 import type { Workspace, WorkspacesResponse } from '../typesConstants';
-import { CODER_AUTH_HEADER_KEY } from '../api/api';
+import { CODER_AUTH_HEADER_KEY } from '../api/CoderClient';
 
 type RestResolver<TBody extends DefaultBodyType = any> = ResponseResolver<
   RestRequest<TBody>,

@@ -1,10 +1,8 @@
 import { useQuery } from '@tanstack/react-query';
-
 import { workspaces, workspacesByRepo } from '../api/queryOptions';
-import { useCoderAuth } from '../components/CoderProvider/CoderAuthProvider';
-import { useUrlSync } from './useUrlSync';
-import { CoderWorkspacesConfig } from './useCoderWorkspacesConfig';
-import { identityApiRef, useApi } from '@backstage/core-plugin-api';
+import type { CoderWorkspacesConfig } from './useCoderWorkspacesConfig';
+import { useCoderSdk } from './useCoderSdk';
+import { useCoderAuth } from '../components/CoderProvider';
 
 type QueryInput = Readonly<{
   coderQuery: string;
@@ -16,19 +14,12 @@ export function useCoderWorkspacesQuery({
   workspacesConfig,
 }: QueryInput) {
   const auth = useCoderAuth();
-  const identityApi = useApi(identityApiRef);
-  const { api: urlSyncApi } = useUrlSync();
+  const coderSdk = useCoderSdk();
   const hasRepoData = workspacesConfig && workspacesConfig.repoUrl;
 
   const queryOptions = hasRepoData
-    ? workspacesByRepo({
-        coderQuery,
-        auth,
-        identityApi,
-        urlSyncApi,
-        workspacesConfig,
-      })
-    : workspaces({ coderQuery, auth, identityApi, urlSyncApi });
+    ? workspacesByRepo({ auth, coderSdk, coderQuery, workspacesConfig })
+    : workspaces({ auth, coderSdk, coderQuery });
 
   return useQuery(queryOptions);
 }

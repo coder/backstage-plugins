@@ -1,7 +1,8 @@
 import type { UseQueryOptions } from '@tanstack/react-query';
 import type { Workspace } from '../typesConstants';
 import type { CoderWorkspacesConfig } from '../hooks/useCoderWorkspacesConfig';
-import { type FetchInputs, getWorkspaces, getWorkspacesByRepo } from './api';
+import type { BackstageCoderSdk } from './CoderClient';
+import type { CoderAuth } from '../components/CoderProvider';
 
 export const CODER_QUERY_KEY_PREFIX = 'coder-backstage-plugin';
 
@@ -41,47 +42,55 @@ function getSharedWorkspacesQueryKey(coderQuery: string) {
   return [CODER_QUERY_KEY_PREFIX, 'workspaces', coderQuery] as const;
 }
 
-type WorkspacesFetchInputs = Readonly<
-  FetchInputs & {
-    coderQuery: string;
-  }
->;
+type WorkspacesFetchInputs = Readonly<{
+  auth: CoderAuth;
+  coderSdk: BackstageCoderSdk;
+  coderQuery: string;
+}>;
 
-export function workspaces(
-  inputs: WorkspacesFetchInputs,
-): UseQueryOptions<readonly Workspace[]> {
-  const enabled = inputs.auth.isAuthenticated;
+export function workspaces({
+  auth,
+  coderSdk,
+  coderQuery,
+}: WorkspacesFetchInputs): UseQueryOptions<readonly Workspace[]> {
+  const enabled = auth.isAuthenticated;
 
   return {
-    queryKey: getSharedWorkspacesQueryKey(inputs.coderQuery),
-    queryFn: () => getWorkspaces(inputs),
+    queryKey: getSharedWorkspacesQueryKey(coderQuery),
     enabled,
-    keepPreviousData: enabled && inputs.coderQuery !== '',
+    keepPreviousData: enabled && coderQuery !== '',
     refetchInterval: getCoderWorkspacesRefetchInterval,
+    queryFn: async () => {
+      const res = await coderSdk.getWorkspaces({
+        q: coderQuery,
+        limit: 0,
+      });
+
+      return res.workspaces;
+    },
   };
 }
 
 type WorkspacesByRepoFetchInputs = Readonly<
-  FetchInputs & {
-    coderQuery: string;
+  WorkspacesFetchInputs & {
     workspacesConfig: CoderWorkspacesConfig;
   }
 >;
 
-export function workspacesByRepo(
-  inputs: WorkspacesByRepoFetchInputs,
-): UseQueryOptions<readonly Workspace[]> {
-  // Disabling query object when there is no query text for performance reasons;
+export function workspacesByRepo({
+  coderQuery,
+  coderSdk,
+  auth,
+  workspacesConfig,
+}: WorkspacesByRepoFetchInputs): UseQueryOptions<readonly Workspace[]> {
+  // Disabling query when there is no query text for performance reasons;
   // searching through every workspace with an empty string can be incredibly
   // slow.
-  const enabled = inputs.auth.isAuthenticated && inputs.coderQuery !== '';
+  const enabled = auth.isAuthenticated && coderQuery !== '';
 
   return {
-    queryKey: [
-      ...getSharedWorkspacesQueryKey(inputs.coderQuery),
-      inputs.workspacesConfig,
-    ],
-    queryFn: () => getWorkspacesByRepo(inputs),
+    queryKey: [...getSharedWorkspacesQueryKey(coderQuery), workspacesConfig],
+    queryFn: () => coderSdk.getWorkspacesByRepo(coderQuery, workspacesConfig),
     enabled,
     keepPreviousData: enabled,
     refetchInterval: getCoderWorkspacesRefetchInterval,

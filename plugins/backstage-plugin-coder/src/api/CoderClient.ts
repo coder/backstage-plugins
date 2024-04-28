@@ -12,7 +12,7 @@ import {
 import type { UrlSync } from './UrlSync';
 import type { CoderWorkspacesConfig } from '../hooks/useCoderWorkspacesConfig';
 
-const CODER_AUTH_HEADER_KEY = 'Coder-Session-Token';
+export const CODER_AUTH_HEADER_KEY = 'Coder-Session-Token';
 const REQUEST_TIMEOUT_MS = 20_000;
 
 /**
@@ -88,7 +88,7 @@ export class CoderClient implements CoderClientApi {
   private readonly identityApi: IdentityApi;
 
   private readonly axios: AxiosInstance;
-  private readonly axiosCleanupId: number;
+  private readonly axiosEjectId: number;
   private readonly cleanupController: AbortController;
 
   private disabled: boolean;
@@ -106,7 +106,7 @@ export class CoderClient implements CoderClientApi {
 
     const { axios, ejectId } = this.setupAxiosInstance();
     this.axios = axios;
-    this.axiosCleanupId = ejectId;
+    this.axiosEjectId = ejectId;
 
     this.sdk = this.getBackstageCoderSdk(axios);
     this.cleanupController = new AbortController();
@@ -170,6 +170,8 @@ export class CoderClient implements CoderClientApi {
       const urlParams = new URLSearchParams({
         q: request.q ?? '',
         limit: String(request.limit || 0),
+        after_id: request.after_id ?? '',
+        offset: String(request.offset || 0),
       });
 
       const { data } = await axiosInstance.get<WorkspacesResponse>(
@@ -313,7 +315,7 @@ export class CoderClient implements CoderClientApi {
 
   cleanupClient = (): void => {
     this.disabled = true;
-    this.axios.interceptors.request.eject(this.axiosCleanupId);
+    this.axios.interceptors.request.eject(this.axiosEjectId);
     this.cleanupController.abort();
   };
 }
