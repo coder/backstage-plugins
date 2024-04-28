@@ -243,13 +243,25 @@ export class CoderClient implements CoderClientApi {
     // AbortSignal.any would do exactly what we need to, but it's too new for
     // certain browsers to be reliable. Have to wire everything up manually
     const timeoutController = new AbortController();
+    let aborted = false;
+
     window.setTimeout(() => {
+      if (aborted) {
+        return;
+      }
+
+      aborted = true;
       const reason = new DOMException('Signal timed out', 'TimeoutException');
       timeoutController.abort(reason);
     }, REQUEST_TIMEOUT_MS);
 
     const cleanupSignal = this.cleanupController.signal;
     cleanupSignal.addEventListener('abort', () => {
+      if (aborted) {
+        return;
+      }
+
+      aborted = true;
       timeoutController.abort(cleanupSignal.reason);
     });
 
