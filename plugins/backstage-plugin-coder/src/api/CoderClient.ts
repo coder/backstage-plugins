@@ -304,7 +304,7 @@ export class CoderClient implements CoderClientApi {
      * no collisions was making a new Axios instance + Coder SDK instance just
      * for the lifetime of the syncToken request, which seemed excessive
      */
-    const ejectValidationId = this.axios.interceptors.request.use(config => {
+    const validationId = this.axios.interceptors.request.use(config => {
       config.headers[CODER_AUTH_HEADER_KEY] = newToken;
       return config;
     });
@@ -320,7 +320,7 @@ export class CoderClient implements CoderClientApi {
       return false;
     } finally {
       // Finally blocks always execute even after a value is returned
-      this.axios.interceptors.request.eject(ejectValidationId);
+      this.axios.interceptors.request.eject(validationId);
     }
   };
 
