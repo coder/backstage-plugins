@@ -4,9 +4,11 @@ import {
   createApiFactory,
   discoveryApiRef,
   configApiRef,
+  identityApiRef,
 } from '@backstage/core-plugin-api';
 import { rootRouteRef } from './routes';
 import { UrlSync, urlSyncApiRef } from './api/UrlSync';
+import { CoderClient, coderClientApiRef } from './api/CoderClient';
 
 export const coderPlugin = createPlugin({
   id: 'coder',
@@ -21,6 +23,18 @@ export const coderPlugin = createPlugin({
       factory: ({ discoveryApi, configApi }) => {
         return new UrlSync({
           apis: { discoveryApi, configApi },
+        });
+      },
+    }),
+    createApiFactory({
+      api: coderClientApiRef,
+      deps: {
+        urlSync: urlSyncApiRef,
+        identityApi: identityApiRef,
+      },
+      factory: ({ urlSync, identityApi }) => {
+        return new CoderClient({
+          apis: { urlSync, identityApi },
         });
       },
     }),
