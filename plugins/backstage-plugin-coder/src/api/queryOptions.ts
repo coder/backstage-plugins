@@ -1,5 +1,5 @@
 import type { UseQueryOptions } from '@tanstack/react-query';
-import type { Workspace } from '../typesConstants';
+import type { Workspace, WorkspacesRequest } from '../typesConstants';
 import type { CoderWorkspacesConfig } from '../hooks/useCoderWorkspacesConfig';
 import type { BackstageCoderSdk } from './CoderClient';
 import type { CoderAuth } from '../components/CoderProvider';
@@ -90,9 +90,12 @@ export function workspacesByRepo({
 
   return {
     queryKey: [...getSharedWorkspacesQueryKey(coderQuery), workspacesConfig],
-    queryFn: () => coderSdk.getWorkspacesByRepo(coderQuery, workspacesConfig),
     enabled,
     keepPreviousData: enabled,
     refetchInterval: getCoderWorkspacesRefetchInterval,
+    queryFn: () => {
+      const request: WorkspacesRequest = { q: coderQuery, limit: 0 };
+      return coderSdk.getWorkspacesByRepo(request, workspacesConfig);
+    },
   };
 }

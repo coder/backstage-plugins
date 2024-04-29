@@ -98,3 +98,16 @@ export type WorkspacesResponse = Output<typeof workspacesResponseSchema>;
 export type WorkspaceBuildParameter = Output<
   typeof workspaceBuildParameterSchema
 >;
+
+export type WorkspacesRequest = Readonly<{
+  after_id?: string;
+  limit?: number;
+  offset?: number;
+  q?: string;
+}>;
+
+// Return value used for the dummy requests used to verify a user's auth status
+// for the Coder token auth logic
+export type UserLoginType = Readonly<{
+  login_type: '' | 'github' | 'none' | 'oidc' | 'password' | 'token';
+}>;

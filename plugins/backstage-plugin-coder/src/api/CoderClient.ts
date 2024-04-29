@@ -4,7 +4,11 @@ import globalAxios, {
   type InternalAxiosRequestConfig as RequestConfig,
 } from 'axios';
 import { type IdentityApi, createApiRef } from '@backstage/core-plugin-api';
-import { type Workspace, CODER_API_REF_ID_PREFIX } from '../typesConstants';
+import {
+  type Workspace,
+  CODER_API_REF_ID_PREFIX,
+  WorkspacesRequest,
+} from '../typesConstants';
 import type { UrlSync } from './UrlSync';
 import type { CoderWorkspacesConfig } from '../hooks/useCoderWorkspacesConfig';
 import { CoderSdk } from './MockCoderSdk';
@@ -19,7 +23,7 @@ const DEFAULT_REQUEST_TIMEOUT_MS = 20_000;
 export type BackstageCoderSdk = Readonly<
   CoderSdk & {
     getWorkspacesByRepo: (
-      coderQuery: string,
+      request: WorkspacesRequest,
       config: CoderWorkspacesConfig,
     ) => Promise<readonly Workspace[]>;
   }
@@ -190,14 +194,10 @@ export class CoderClient implements CoderClientApi {
     };
 
     const getWorkspacesByRepo = async (
-      coderQuery: string,
+      request: WorkspacesRequest,
       config: CoderWorkspacesConfig,
     ): Promise<readonly Workspace[]> => {
-      const { workspaces } = await baseSdk.getWorkspaces({
-        q: coderQuery,
-        limit: 0,
-      });
-
+      const { workspaces } = await baseSdk.getWorkspaces(request);
       const paramResults = await Promise.allSettled(
         workspaces.map(ws =>
           this.sdk.getWorkspaceBuildParameters(ws.latest_build.id),

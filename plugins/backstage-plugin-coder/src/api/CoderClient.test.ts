@@ -192,7 +192,7 @@ describe(`${CoderClient.name}`, () => {
       });
 
       const repoWorkspaces = await client.sdk.getWorkspacesByRepo(
-        'owner:me',
+        { q: 'owner:me' },
         mockCoderWorkspacesConfig,
       );
 

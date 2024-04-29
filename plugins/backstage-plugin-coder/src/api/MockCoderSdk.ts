@@ -7,22 +7,11 @@
  */
 import globalAxios, { type AxiosInstance } from 'axios';
 import {
+  type UserLoginType,
+  type WorkspacesRequest,
   type WorkspaceBuildParameter,
   type WorkspacesResponse,
 } from '../typesConstants';
-
-type WorkspacesRequest = Readonly<{
-  after_id?: string;
-  limit?: number;
-  offset?: number;
-  q?: string;
-}>;
-
-// Return value used for the dummy requests used to verify a user's auth status
-// for the Coder token auth logic
-export type UserLoginType = Readonly<{
-  login_type: '' | 'github' | 'none' | 'oidc' | 'password' | 'token';
-}>;
 
 type CoderSdkApi = {
   getUserLoginType: () => Promise<UserLoginType>;
