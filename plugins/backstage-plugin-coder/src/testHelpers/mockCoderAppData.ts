@@ -98,6 +98,11 @@ export const mockWorkspacesList: Workspace[] = [
   mockWorkspaceNoParameters,
 ];
 
+export const mockWorkspacesListForRepoSearch: Workspace[] = [
+  mockWorkspaceWithMatch,
+  mockWorkspaceWithMatch2,
+];
+
 export const mockWorkspaceBuildParameters: Record<
   string,
   readonly WorkspaceBuildParameter[]

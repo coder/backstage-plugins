@@ -12,14 +12,15 @@ import { setupServer } from 'msw/node';
 
 import {
   mockWorkspacesList,
-  mockWorkspaceBuildParameters,
+  mockWorkspacesListForRepoSearch,
 } from './mockCoderAppData';
 import {
   mockBearerToken,
   mockCoderAuthToken,
+  mockCoderWorkspacesConfig,
   mockBackstageApiEndpoint as root,
 } from './mockBackstageData';
-import type { Workspace, WorkspacesResponse } from '../typesConstants';
+import type { WorkspacesResponse } from '../typesConstants';
 import { CODER_AUTH_HEADER_KEY } from '../api/CoderClient';
 import { UserLoginType } from '../typesConstants';
 
@@ -81,40 +82,48 @@ export function wrappedGet<TBody extends DefaultBodyType = any>(
 export const mockServerEndpoints = {
   workspaces: `${root}/workspaces`,
   userLoginType: `${root}/users/me/login-type`,
-  workspaceBuildParameters: `${root}/workspacebuilds/:workspaceBuildId/parameters`,
 } as const satisfies Record<string, string>;
 
 const mainTestHandlers: readonly RestHandler[] = [
   wrappedGet(mockServerEndpoints.workspaces, (req, res, ctx) => {
     const queryText = String(req.url.searchParams.get('q'));
+    const { repoUrl, repoUrlParamKeys } = mockCoderWorkspacesConfig;
 
-    let returnedWorkspaces: Workspace[];
-    if (queryText === 'owner:me') {
-      returnedWorkspaces = mockWorkspacesList;
-    } else {
-      returnedWorkspaces = mockWorkspacesList.filter(ws =>
-        ws.name.includes(queryText),
+    const requestContainsRepoInfo = repoUrlParamKeys.some(key => {
+      return queryText.includes(`param:"${key}=${repoUrl}`);
+    });
+
+    if (requestContainsRepoInfo) {
+      return res(
+        ctx.status(200),
+        ctx.json<WorkspacesResponse>({
+          workspaces: mockWorkspacesListForRepoSearch,
+          count: mockWorkspacesListForRepoSearch.length,
+        }),
       );
     }
+
+    if (queryText === 'owner:me') {
+      return res(
+        ctx.status(200),
+        ctx.json<WorkspacesResponse>({
+          workspaces: mockWorkspacesList,
+          count: mockWorkspacesList.length,
+        }),
+      );
+    }
+
+    const filtered = mockWorkspacesList.filter(ws =>
+      ws.name.includes(queryText),
+    );
 
     return res(
       ctx.status(200),
       ctx.json<WorkspacesResponse>({
-        workspaces: returnedWorkspaces,
-        count: returnedWorkspaces.length,
+        workspaces: filtered,
+        count: filtered.length,
       }),
     );
-  }),
-
-  wrappedGet(mockServerEndpoints.workspaceBuildParameters, (req, res, ctx) => {
-    const buildId = String(req.params.workspaceBuildId);
-    const selectedParams = mockWorkspaceBuildParameters[buildId];
-
-    if (selectedParams !== undefined) {
-      return res(ctx.status(200), ctx.json(selectedParams));
-    }
-
-    return res(ctx.status(404));
   }),
 
   // This is the dummy request used to verify a user's auth status
