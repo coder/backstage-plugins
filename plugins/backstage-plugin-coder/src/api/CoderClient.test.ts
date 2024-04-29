@@ -9,7 +9,10 @@ import { rest } from 'msw';
 import { mockServerEndpoints, server, wrappedGet } from '../testHelpers/server';
 import { CanceledError } from 'axios';
 import { delay } from '../utils/time';
-import { mockWorkspacesList } from '../testHelpers/mockCoderAppData';
+import {
+  mockWorkspacesList,
+  mockWorkspacesListForRepoSearch,
+} from '../testHelpers/mockCoderAppData';
 import type { Workspace, WorkspacesResponse } from '../typesConstants';
 import {
   getMockConfigApi,
@@ -196,19 +199,7 @@ describe(`${CoderClient.name}`, () => {
         mockCoderWorkspacesConfig,
       );
 
-      const buildParameterGroups = await Promise.all(
-        workspaces.map(ws =>
-          client.sdk.getWorkspaceBuildParameters(ws.latest_build.id),
-        ),
-      );
-
-      for (const paramGroup of buildParameterGroups) {
-        const atLeastOneParamMatchesForGroup = paramGroup.some(param => {
-          return param.value === mockCoderWorkspacesConfig.repoUrl;
-        });
-
-        expect(atLeastOneParamMatchesForGroup).toBe(true);
-      }
+      expect(workspaces).toEqual(mockWorkspacesListForRepoSearch);
     });
   });
 });
