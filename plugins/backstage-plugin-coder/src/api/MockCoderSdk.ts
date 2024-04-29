@@ -20,7 +20,7 @@ type WorkspacesRequest = Readonly<{
 
 // Return value used for the dummy requests used to verify a user's auth status
 // for the Coder token auth logic
-type UserLoginType = Readonly<{
+export type UserLoginType = Readonly<{
   login_type: '' | 'github' | 'none' | 'oidc' | 'password' | 'token';
 }>;
 

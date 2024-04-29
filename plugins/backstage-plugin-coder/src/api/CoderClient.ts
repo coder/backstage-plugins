@@ -1,4 +1,5 @@
 import globalAxios, {
+  AxiosError,
   type AxiosInstance,
   type InternalAxiosRequestConfig as RequestConfig,
 } from 'axios';
@@ -9,7 +10,7 @@ import type { CoderWorkspacesConfig } from '../hooks/useCoderWorkspacesConfig';
 import { CoderSdk } from './MockCoderSdk';
 
 export const CODER_AUTH_HEADER_KEY = 'Coder-Session-Token';
-const REQUEST_TIMEOUT_MS = 20_000;
+const DEFAULT_REQUEST_TIMEOUT_MS = 20_000;
 
 /**
  * A version of the main Coder SDK API, with additional Backstage-specific
@@ -46,6 +47,8 @@ const sharedCleanupAbortReason = new DOMException(
 
 type ConstructorInputs = Readonly<{
   initialToken?: string;
+  requestTimeoutMs?: number;
+
   apis: Readonly<{
     urlSync: UrlSync;
     identityApi: IdentityApi;
@@ -56,6 +59,8 @@ export class CoderClient implements CoderClientApi {
   private readonly urlSync: UrlSync;
   private readonly identityApi: IdentityApi;
   private readonly axios: AxiosInstance;
+
+  private readonly requestTimeoutMs: number;
   private readonly cleanupController: AbortController;
   private readonly trackedEjectionIds: Set<number>;
 
@@ -63,12 +68,18 @@ export class CoderClient implements CoderClientApi {
   readonly sdk: BackstageCoderSdk;
 
   constructor(inputs: ConstructorInputs) {
-    const { apis, initialToken } = inputs;
+    const {
+      apis,
+      initialToken,
+      requestTimeoutMs = DEFAULT_REQUEST_TIMEOUT_MS,
+    } = inputs;
     const { urlSync, identityApi } = apis;
 
     this.urlSync = urlSync;
     this.identityApi = identityApi;
+
     this.loadedSessionToken = initialToken;
+    this.requestTimeoutMs = requestTimeoutMs;
 
     this.cleanupController = new AbortController();
     this.trackedEjectionIds = new Set();
@@ -228,7 +239,7 @@ export class CoderClient implements CoderClientApi {
     const timeoutId = window.setTimeout(() => {
       const reason = new DOMException('Signal timed out', 'TimeoutException');
       timeoutController.abort(reason);
-    }, REQUEST_TIMEOUT_MS);
+    }, this.requestTimeoutMs);
 
     const cleanupSignal = this.cleanupController.signal;
     cleanupSignal.addEventListener(
@@ -282,11 +293,19 @@ export class CoderClient implements CoderClientApi {
       // that don't require request bodies
       await this.sdk.getUserLoginType();
       this.loadedSessionToken = newToken;
+
       return true;
-    } catch {
-      return false;
+    } catch (err) {
+      const tokenIsInvalid =
+        err instanceof AxiosError && err.response?.status === 401;
+      if (tokenIsInvalid) {
+        return false;
+      }
+
+      throw err;
     } finally {
-      // Logic in a finally block always executes even after a value is returned
+      // Logic in finally blocks always run, even after the function has
+      // returned a value or thrown an error
       this.removeRequestInterceptorById(validationId);
     }
   };
@@ -299,6 +318,12 @@ export class CoderClient implements CoderClientApi {
     this.trackedEjectionIds.clear();
     this.cleanupController.abort(sharedCleanupAbortReason);
     this.loadedSessionToken = undefined;
+
+    this.axios.interceptors.request.use(() => {
+      throw new Error(
+        'Requests have been disabled for this client. Please create a new client',
+      );
+    });
   };
 }
 
