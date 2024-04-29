@@ -185,47 +185,30 @@ describe(`${CoderClient.name}`, () => {
       expect(allWorkspacesAreRemapped).toBe(true);
     });
 
-    it.only('Lets the user search for workspaces by repo URL', async () => {
+    it('Lets the user search for workspaces by repo URL', async () => {
       const client = new CoderClient({
         initialToken: mockCoderAuthToken,
         apis: getConstructorApis(),
       });
 
-      const mockBuildParameterId = 'blah';
-      server.use(
-        wrappedGet(mockServerEndpoints.workspaces, (req, res, next) => {
-          //
-        }),
-        wrappedGet(
-          mockServerEndpoints.workspaceBuildParameters,
-          (req, res, ctx) => {
-            //
-          },
-        ),
-      );
-
-      const fullResults = await client.sdk.getWorkspaces({
-        q: 'owner:me',
-        limit: 0,
-      });
-
-      const workspaces = await client.sdk.getWorkspacesByRepo(
+      const repoWorkspaces = await client.sdk.getWorkspacesByRepo(
         'owner:me',
         mockCoderWorkspacesConfig,
       );
 
-      expect(workspaces.length).toBe(1);
+      const buildParameterGroups = await Promise.all(
+        repoWorkspaces.map(ws =>
+          client.sdk.getWorkspaceBuildParameters(ws.latest_build.id),
+        ),
+      );
 
-      const allWorkspacesAreForRepo = workspaces.every(ws => {
-        return ws.latest_build.resources.every(resource => {
-          return resource.agents?.some(agent => {
-            return agent;
-          });
+      for (const paramGroup of buildParameterGroups) {
+        const atLeastOneParamMatchesForGroup = paramGroup.some(param => {
+          return param.value === mockCoderWorkspacesConfig.repoUrl;
         });
-      });
 
-      expect(workspaces[0].latest_build.resources);
-      expect.hasAssertions();
+        expect(atLeastOneParamMatchesForGroup).toBe(true);
+      }
     });
   });
 });
