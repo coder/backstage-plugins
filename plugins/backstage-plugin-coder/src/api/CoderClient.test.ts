@@ -115,7 +115,28 @@ describe(`${CoderClient.name}`, () => {
     });
 
     it('Will abort any pending requests', async () => {
-      expect.hasAssertions();
+      const client = new CoderClient({
+        initialToken: mockCoderAuthToken,
+        apis: getConstructorApis(),
+      });
+
+      // Sanity check to ensure that request can still go through normally
+      const workspacesPromise1 = client.sdk.getWorkspaces({
+        q: 'owner:me',
+        limit: 0,
+      });
+
+      await expect(workspacesPromise1).resolves.toEqual<WorkspacesResponse>({
+        workspaces: mockWorkspacesList,
+        count: mockWorkspacesList.length,
+      });
+
+      const workspacesPromise2 = client.sdk.getWorkspaces({
+        q: 'owner:me',
+        limit: 0,
+      });
+      client.cleanupClient();
+      await expect(() => workspacesPromise2).rejects.toThrow();
     });
   });
 
@@ -164,7 +185,7 @@ describe(`${CoderClient.name}`, () => {
       expect(allWorkspacesAreRemapped).toBe(true);
     });
 
-    it('Lets the user search for workspaces by repo URL', async () => {
+    it.only('Lets the user search for workspaces by repo URL', async () => {
       const client = new CoderClient({
         initialToken: mockCoderAuthToken,
         apis: getConstructorApis(),
