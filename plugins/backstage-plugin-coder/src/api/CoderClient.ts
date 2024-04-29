@@ -330,6 +330,9 @@ export class CoderClient implements CoderClientApi {
     this.cleanupController.abort(sharedCleanupAbortReason);
     this.loadedSessionToken = undefined;
 
+    // Not using this.addRequestInterceptor, because we don't want to track this
+    // interceptor at all. It should never be ejected once the client has been
+    // disabled
     this.axios.interceptors.request.use(() => {
       throw disabledClientError;
     });
