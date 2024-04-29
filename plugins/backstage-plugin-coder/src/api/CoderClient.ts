@@ -45,6 +45,7 @@ const sharedCleanupAbortReason = new DOMException(
 );
 
 type ConstructorInputs = Readonly<{
+  initialToken?: string;
   apis: Readonly<{
     urlSync: UrlSync;
     identityApi: IdentityApi;
@@ -56,18 +57,19 @@ export class CoderClient implements CoderClientApi {
   private readonly identityApi: IdentityApi;
   private readonly axios: AxiosInstance;
   private readonly cleanupController: AbortController;
+  private readonly trackedEjectionIds: Set<number>;
 
-  private trackedEjectionIds: Set<number>;
   private loadedSessionToken: string | undefined;
   readonly sdk: BackstageCoderSdk;
 
   constructor(inputs: ConstructorInputs) {
-    const { apis } = inputs;
+    const { apis, initialToken } = inputs;
     const { urlSync, identityApi } = apis;
 
     this.urlSync = urlSync;
     this.identityApi = identityApi;
-    this.loadedSessionToken = undefined;
+    this.loadedSessionToken = initialToken;
+
     this.cleanupController = new AbortController();
     this.trackedEjectionIds = new Set();
 

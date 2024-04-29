@@ -33,6 +33,7 @@ import {
   defaultUrlPrefixes,
   urlSyncApiRef,
 } from '../api/UrlSync';
+import { CoderClient, coderClientApiRef } from '../api/CoderClient';
 
 /**
  * This is the key that Backstage checks from the entity data to determine the
@@ -282,6 +283,15 @@ export function getMockDiscoveryApi(): DiscoveryApi {
   );
 }
 
+export function getMockCoderClient(
+  urlSync: UrlSync,
+  identityApi: IdentityApi,
+): CoderClient {
+  return new CoderClient({
+    apis: { urlSync, identityApi },
+  });
+}
+
 type ApiTuple = readonly [ApiRef<NonNullable<unknown>>, NonNullable<unknown>];
 
 export function getMockApiList(): readonly ApiTuple[] {
@@ -298,6 +308,14 @@ export function getMockApiList(): readonly ApiTuple[] {
     },
   });
 
+  const mockCoderClient = new CoderClient({
+    initialToken: mockCoderAuthToken,
+    apis: {
+      urlSync: mockUrlSyncApi,
+      identityApi: mockIdentityApi,
+    },
+  });
+
   return [
     // APIs that Backstage ships with normally
     [errorApiRef, mockErrorApi],
@@ -308,5 +326,6 @@ export function getMockApiList(): readonly ApiTuple[] {
 
     // Custom APIs specific to the Coder plugin
     [urlSyncApiRef, mockUrlSyncApi],
+    [coderClientApiRef, mockCoderClient],
   ];
 }
