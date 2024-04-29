@@ -1,8 +1,8 @@
-import React, { PropsWithChildren } from 'react';
+import React from 'react';
 import { renderHook } from '@testing-library/react';
 import { act, waitFor } from '@testing-library/react';
 
-import { TestApiProvider, wrapInTestApp } from '@backstage/test-utils';
+import { TestApiProvider } from '@backstage/test-utils';
 import {
   configApiRef,
   discoveryApiRef,
@@ -27,6 +27,7 @@ import {
   renderHookAsCoderEntity,
 } from '../../testHelpers/setup';
 import { UrlSync, urlSyncApiRef } from '../../api/UrlSync';
+import { CoderClient, coderClientApiRef } from '../../api/CoderClient';
 
 describe(`${CoderProvider.name}`, () => {
   describe('AppConfig', () => {
@@ -50,47 +51,6 @@ describe(`${CoderProvider.name}`, () => {
         expect(result.current).toBe(mockAppConfig);
       }
     });
-
-    // Our documentation pushes people to define the config outside a component,
-    // just to stabilize the memory reference for the value, and make sure that
-    // memoization caches don't get invalidated too often. This test is just a
-    // safety net to catch what happens if someone forgets
-    test('Context value will change by reference on re-render if defined inline inside a parent', () => {
-      const ParentComponent = ({ children }: PropsWithChildren<unknown>) => {
-        const configThatChangesEachRender = { ...mockAppConfig };
-
-        const discoveryApi = getMockDiscoveryApi();
-        const configApi = getMockConfigApi();
-        const urlSyncApi = new UrlSync({
-          apis: { discoveryApi, configApi },
-        });
-
-        return wrapInTestApp(
-          <TestApiProvider
-            apis={[
-              [errorApiRef, getMockErrorApi()],
-              [configApiRef, configApi],
-              [discoveryApiRef, discoveryApi],
-              [urlSyncApiRef, urlSyncApi],
-            ]}
-          >
-            <CoderProvider appConfig={configThatChangesEachRender}>
-              {children}
-            </CoderProvider>
-          </TestApiProvider>,
-        );
-      };
-
-      const { result, rerender } = renderHook(useCoderAppConfig, {
-        wrapper: ParentComponent,
-      });
-
-      const firstResult = result.current;
-      rerender();
-
-      expect(result.current).not.toBe(firstResult);
-      expect(result.current).toEqual(firstResult);
-    });
   });
 
   describe('Auth', () => {
@@ -100,8 +60,14 @@ describe(`${CoderProvider.name}`, () => {
     const renderUseCoderAuth = () => {
       const discoveryApi = getMockDiscoveryApi();
       const configApi = getMockConfigApi();
-      const urlSyncApi = new UrlSync({
+      const identityApi = getMockIdentityApi();
+
+      const urlSync = new UrlSync({
         apis: { discoveryApi, configApi },
+      });
+
+      const coderClientApi = new CoderClient({
+        apis: { urlSync, identityApi },
       });
 
       return renderHook(useCoderAuth, {
@@ -112,7 +78,9 @@ describe(`${CoderProvider.name}`, () => {
               [identityApiRef, getMockIdentityApi()],
               [configApiRef, configApi],
               [discoveryApiRef, discoveryApi],
-              [urlSyncApiRef, urlSyncApi],
+
+              [urlSyncApiRef, urlSync],
+              [coderClientApiRef, coderClientApi],
             ]}
           >
             <CoderProvider

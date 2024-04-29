@@ -21,6 +21,7 @@ import {
 } from './mockBackstageData';
 import type { Workspace, WorkspacesResponse } from '../typesConstants';
 import { CODER_AUTH_HEADER_KEY } from '../api/CoderClient';
+import { UserLoginType } from '../api/MockCoderSdk';
 
 type RestResolver<TBody extends DefaultBodyType = any> = ResponseResolver<
   RestRequest<TBody>,
@@ -114,8 +115,13 @@ const mainTestHandlers: readonly RestHandler[] = [
   ),
 
   // This is the dummy request used to verify a user's auth status
-  wrappedGet(`${root}/users/me`, (_, res, ctx) => {
-    return res(ctx.status(200));
+  wrappedGet(`${root}/users/me/login-type`, (_, res, ctx) => {
+    return res(
+      ctx.status(200),
+      ctx.json<UserLoginType>({
+        login_type: 'token',
+      }),
+    );
   }),
 ];
 
