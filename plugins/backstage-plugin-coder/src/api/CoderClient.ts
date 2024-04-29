@@ -198,37 +198,39 @@ export class CoderClient implements CoderClientApi {
       request: WorkspacesRequest,
       config: CoderWorkspacesConfig,
     ): Promise<WorkspacesResponse> => {
-      const { workspaces } = await baseSdk.getWorkspaces(request);
-      const paramResults = await Promise.allSettled(
-        workspaces.map(ws =>
-          this.sdk.getWorkspaceBuildParameters(ws.latest_build.id),
-        ),
+      if (config.repoUrl === undefined) {
+        return { workspaces: [], count: 0 };
+      }
+
+      // Have to store value here so that type information doesn't degrade
+      // back to (string | undefined) inside the .map callback
+      const stringUrl = config.repoUrl;
+      const responses = await Promise.allSettled(
+        config.repoUrlParamKeys.map(key => {
+          const patchedRequest = {
+            ...request,
+            q: appendParamToQuery(request.q, key, stringUrl),
+          };
+
+          return baseSdk.getWorkspaces(patchedRequest);
+        }),
       );
 
-      const matchedWorkspaces: Workspace[] = [];
-      for (const [index, res] of paramResults.entries()) {
+      const uniqueWorkspaces = new Map<string, Workspace>();
+      for (const res of responses) {
         if (res.status === 'rejected') {
           continue;
         }
 
-        for (const param of res.value) {
-          const include =
-            config.repoUrlParamKeys.includes(param.name) &&
-            param.value === config.repoUrl;
-
-          if (include) {
-            // Doing type assertion just in case noUncheckedIndexedAccess
-            // compiler setting ever gets turned on; this shouldn't ever break,
-            // but it's technically not type-safe
-            matchedWorkspaces.push(workspaces[index] as Workspace);
-            break;
-          }
+        for (const workspace of res.value.workspaces) {
+          uniqueWorkspaces.set(workspace.id, workspace);
         }
       }
 
+      const serialized = [...uniqueWorkspaces.values()];
       return {
-        workspaces: matchedWorkspaces,
-        count: matchedWorkspaces.length,
+        workspaces: serialized,
+        count: serialized.length,
       };
     };
 
@@ -341,6 +343,23 @@ export class CoderClient implements CoderClientApi {
       throw disabledClientError;
     });
   };
+}
+
+function appendParamToQuery(
+  query: string | undefined,
+  key: string,
+  value: string,
+): string {
+  const keyValuePair = `param:"${key}=${value}"`;
+  if (!query) {
+    return keyValuePair;
+  }
+
+  if (query.includes(keyValuePair)) {
+    return query;
+  }
+
+  return `${query} ${keyValuePair}`;
 }
 
 export const coderClientApiRef = createApiRef<CoderClient>({
