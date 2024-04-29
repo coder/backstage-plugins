@@ -191,13 +191,13 @@ describe(`${CoderClient.name}`, () => {
         apis: getConstructorApis(),
       });
 
-      const repoWorkspaces = await client.sdk.getWorkspacesByRepo(
+      const { workspaces } = await client.sdk.getWorkspacesByRepo(
         { q: 'owner:me' },
         mockCoderWorkspacesConfig,
       );
 
       const buildParameterGroups = await Promise.all(
-        repoWorkspaces.map(ws =>
+        workspaces.map(ws =>
           client.sdk.getWorkspaceBuildParameters(ws.latest_build.id),
         ),
       );

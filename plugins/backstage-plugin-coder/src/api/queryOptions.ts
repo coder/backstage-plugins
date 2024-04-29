@@ -93,9 +93,10 @@ export function workspacesByRepo({
     enabled,
     keepPreviousData: enabled,
     refetchInterval: getCoderWorkspacesRefetchInterval,
-    queryFn: () => {
+    queryFn: async () => {
       const request: WorkspacesRequest = { q: coderQuery, limit: 0 };
-      return coderSdk.getWorkspacesByRepo(request, workspacesConfig);
+      const res = await coderSdk.getWorkspacesByRepo(request, workspacesConfig);
+      return res.workspaces;
     },
   };
 }

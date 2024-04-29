@@ -8,6 +8,7 @@ import {
   type Workspace,
   CODER_API_REF_ID_PREFIX,
   WorkspacesRequest,
+  WorkspacesResponse,
 } from '../typesConstants';
 import type { UrlSync } from './UrlSync';
 import type { CoderWorkspacesConfig } from '../hooks/useCoderWorkspacesConfig';
@@ -25,7 +26,7 @@ export type BackstageCoderSdk = Readonly<
     getWorkspacesByRepo: (
       request: WorkspacesRequest,
       config: CoderWorkspacesConfig,
-    ) => Promise<readonly Workspace[]>;
+    ) => Promise<WorkspacesResponse>;
   }
 >;
 
@@ -196,7 +197,7 @@ export class CoderClient implements CoderClientApi {
     const getWorkspacesByRepo = async (
       request: WorkspacesRequest,
       config: CoderWorkspacesConfig,
-    ): Promise<readonly Workspace[]> => {
+    ): Promise<WorkspacesResponse> => {
       const { workspaces } = await baseSdk.getWorkspaces(request);
       const paramResults = await Promise.allSettled(
         workspaces.map(ws =>
@@ -225,7 +226,10 @@ export class CoderClient implements CoderClientApi {
         }
       }
 
-      return matchedWorkspaces;
+      return {
+        workspaces: matchedWorkspaces,
+        count: matchedWorkspaces.length,
+      };
     };
 
     return {
