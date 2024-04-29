@@ -6,7 +6,7 @@ import {
 import type { IdentityApi } from '@backstage/core-plugin-api';
 import { UrlSync } from './UrlSync';
 import { rest } from 'msw';
-import { server } from '../testHelpers/server';
+import { server, wrappedGet } from '../testHelpers/server';
 import {
   getMockConfigApi,
   getMockDiscoveryApi,
@@ -14,6 +14,10 @@ import {
   mockCoderAuthToken,
   mockBackstageProxyEndpoint as root,
 } from '../testHelpers/mockBackstageData';
+import { CanceledError } from 'axios';
+import { delay } from '../utils/time';
+import { mockWorkspacesList } from '../testHelpers/mockCoderAppData';
+import type { Workspace, WorkspacesResponse } from '../typesConstants';
 
 type ConstructorApis = Readonly<{
   identityApi: IdentityApi;
@@ -69,8 +73,26 @@ describe(`${CoderClient.name}`, () => {
       expect(serverToken).toBe(null);
     });
 
-    it.only('Will propagate any other error types to the caller', async () => {
-      expect.hasAssertions();
+    it('Will propagate any other error types to the caller', async () => {
+      const client = new CoderClient({
+        // Setting the timeout to 0 will make requests instantly fail from the
+        // next microtask queue tick
+        requestTimeoutMs: 0,
+        apis: getConstructorApis(),
+      });
+
+      server.use(
+        rest.get(`${root}/users/me/login-type`, async (_, res, ctx) => {
+          // MSW is so fast that sometimes it can respond before a forced
+          // timeout; have to introduce artificial delay
+          await delay(50_000);
+          return res(ctx.status(200));
+        }),
+      );
+
+      await expect(() => {
+        return client.syncToken(mockCoderAuthToken);
+      }).rejects.toThrow(CanceledError);
     });
   });
 
@@ -102,10 +124,47 @@ describe(`${CoderClient.name}`, () => {
   // for Backstage
   describe('Coder SDK', () => {
     it('Will remap all workspace icon URLs to use the proxy URL if necessary', async () => {
-      expect.hasAssertions();
+      const apis = getConstructorApis();
+      const client = new CoderClient({
+        apis,
+        initialToken: mockCoderAuthToken,
+      });
+
+      server.use(
+        wrappedGet(`${root}/workspaces`, (_, res, ctx) => {
+          const withRelativePaths = mockWorkspacesList.map<Workspace>(ws => {
+            return {
+              ...ws,
+              template_icon: '/emojis/blueberry.svg',
+            };
+          });
+
+          return res(
+            ctx.status(200),
+            ctx.json<WorkspacesResponse>({
+              workspaces: withRelativePaths,
+              count: withRelativePaths.length,
+            }),
+          );
+        }),
+      );
+
+      const { workspaces } = await client.sdk.getWorkspaces({
+        q: 'owner:me',
+        limit: 0,
+      });
+
+      const { urlSync } = apis;
+      const apiEndpoint = await urlSync.getApiEndpoint();
+
+      const allWorkspacesAreRemapped = !workspaces.some(ws =>
+        ws.template_icon.startsWith(apiEndpoint),
+      );
+
+      expect(allWorkspacesAreRemapped).toBe(true);
     });
 
-    it('Lets the user search for workspaces by repo URL', async () => {
+    it.only('Lets the user search for workspaces by repo URL', async () => {
       expect.hasAssertions();
     });
   });

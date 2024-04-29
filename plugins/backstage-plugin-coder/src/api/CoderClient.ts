@@ -45,8 +45,13 @@ const sharedCleanupAbortReason = new DOMException(
   'AbortError',
 );
 
-export const disabledClientError = new Error(
-  'Requests have been disabled for this client. Please create a new client',
+// Can't make this value readonly at the type level because it has
+// non-enumerable properties. Next best thing is runtime freezing to force it
+// to act like a constant
+export const disabledClientError = Object.freeze(
+  new Error(
+    'Requests have been disabled for this client. Please create a new client',
+  ),
 );
 
 type ConstructorInputs = Readonly<{
