@@ -77,6 +77,7 @@ export class CoderClient implements CoderClientApi {
 
     this.urlSync = urlSync;
     this.identityApi = identityApi;
+    this.axios = globalAxios.create();
 
     this.loadedSessionToken = initialToken;
     this.requestTimeoutMs = requestTimeoutMs;
@@ -84,7 +85,6 @@ export class CoderClient implements CoderClientApi {
     this.cleanupController = new AbortController();
     this.trackedEjectionIds = new Set();
 
-    this.axios = globalAxios.create();
     this.sdk = this.getBackstageCoderSdk(this.axios);
     this.addBaseRequestInterceptors();
   }
