@@ -86,36 +86,35 @@ export const mockServerEndpoints = {
 
 const mainTestHandlers: readonly RestHandler[] = [
   wrappedGet(mockServerEndpoints.workspaces, (req, res, ctx) => {
-    const queryText = String(req.url.searchParams.get('q'));
-    const { repoUrl, repoUrlParamKeys } = mockCoderWorkspacesConfig;
-
-    const requestContainsRepoInfo = repoUrlParamKeys.some(key => {
-      return queryText.includes(`param:"${key}=${repoUrl}`);
-    });
-
-    if (requestContainsRepoInfo) {
-      return res(
-        ctx.status(200),
-        ctx.json<WorkspacesResponse>({
-          workspaces: mockWorkspacesListForRepoSearch,
-          count: mockWorkspacesListForRepoSearch.length,
-        }),
-      );
-    }
-
-    if (queryText === 'owner:me') {
-      return res(
-        ctx.status(200),
-        ctx.json<WorkspacesResponse>({
-          workspaces: mockWorkspacesList,
-          count: mockWorkspacesList.length,
-        }),
-      );
-    }
-
-    const filtered = mockWorkspacesList.filter(ws =>
-      ws.name.includes(queryText),
+    const { repoUrl } = mockCoderWorkspacesConfig;
+    const paramMatcherRe = new RegExp(
+      `param:"\\w+?=${repoUrl.replace('/', '\\/')}"`,
     );
+
+    const queryText = String(req.url.searchParams.get('q'));
+    const requestContainsRepoInfo = paramMatcherRe.test(queryText);
+
+    const baseWorkspaces = requestContainsRepoInfo
+      ? mockWorkspacesListForRepoSearch
+      : mockWorkspacesList;
+
+    const customSearchTerms = queryText
+      .split(' ')
+      .filter(text => text !== 'owner:me' && !paramMatcherRe.test(text));
+
+    if (customSearchTerms.length === 0) {
+      return res(
+        ctx.status(200),
+        ctx.json<WorkspacesResponse>({
+          workspaces: baseWorkspaces,
+          count: baseWorkspaces.length,
+        }),
+      );
+    }
+
+    const filtered = mockWorkspacesList.filter(ws => {
+      return customSearchTerms.some(term => ws.name.includes(term));
+    });
 
     return res(
       ctx.status(200),

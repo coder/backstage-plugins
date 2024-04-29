@@ -153,12 +153,12 @@ describe(`${CoderWorkspacesCard.name}`, () => {
     });
 
     /**
-     * 2024-03-28 - MES - This is a test case to account for a previous
-     * limitation around querying workspaces by repo URL.
+     * For performance reasons, the queries for getting workspaces by repo are
+     * disabled when the query string is empty.
      *
-     * This limitation no longer exists, so this test should be removed once the
-     * rest of the codebase is updated to support the new API endpoint for
-     * searching by build parameter
+     * Even with the API endpoint for searching workspaces by build parameter,
+     * you still have to shoot off a bunch of requests just to find everything
+     * that could possibly match your Backstage deployment's config options.
      */
     it('Will not show any workspaces at all when the query text is empty', async () => {
       await renderWorkspacesCard({ readEntityData: true });
