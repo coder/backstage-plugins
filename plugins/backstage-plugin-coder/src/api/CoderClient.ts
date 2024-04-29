@@ -1,6 +1,6 @@
 import globalAxios, {
   type AxiosInstance,
-  type InternalAxiosRequestConfig,
+  type InternalAxiosRequestConfig as RequestConfig,
 } from 'axios';
 import { type IdentityApi, createApiRef } from '@backstage/core-plugin-api';
 import { type Workspace, CODER_API_REF_ID_PREFIX } from '../typesConstants';
@@ -52,7 +52,7 @@ export class CoderClient implements CoderClientApi {
   private readonly axios: AxiosInstance;
   private readonly cleanupController: AbortController;
 
-  private axiosEjectId: number;
+  private trackedEjectionIds: Set<number>;
   private loadedSessionToken: string | undefined;
   readonly sdk: BackstageCoderSdk;
 
@@ -64,26 +64,62 @@ export class CoderClient implements CoderClientApi {
     this.identityApi = identityApi;
     this.loadedSessionToken = undefined;
     this.cleanupController = new AbortController();
+    this.trackedEjectionIds = new Set();
 
     this.axios = globalAxios.create();
-    this.axiosEjectId = this.addInterceptors(this.axios);
     this.sdk = this.getBackstageCoderSdk(this.axios);
+    this.addBaseRequestInterceptors();
   }
 
-  private addInterceptors(axios: AxiosInstance): number {
+  private addRequestInterceptor(
+    requestInterceptor: (
+      config: RequestConfig,
+    ) => RequestConfig | Promise<RequestConfig>,
+    errorInterceptor?: (error: unknown) => unknown,
+  ): number {
+    const ejectionId = this.axios.interceptors.request.use(
+      requestInterceptor,
+      errorInterceptor,
+    );
+
+    this.trackedEjectionIds.add(ejectionId);
+    return ejectionId;
+  }
+
+  private removeRequestInterceptorById(ejectionId: number): boolean {
+    const sizeBeforeRemoval = this.trackedEjectionIds.size;
+
+    this.axios.interceptors.request.eject(ejectionId);
+    if (this.trackedEjectionIds.has(ejectionId)) {
+      this.trackedEjectionIds.delete(ejectionId);
+    }
+
+    return sizeBeforeRemoval !== this.trackedEjectionIds.size;
+  }
+
+  private addBaseRequestInterceptors(): void {
     // Configs exist on a per-request basis; mutating the config for a new
     // request won't mutate any configs for requests that are currently pending
-    const interceptAxiosRequest = async (
-      config: InternalAxiosRequestConfig,
-    ): Promise<InternalAxiosRequestConfig> => {
+    const baseRequestInterceptor = async (
+      config: RequestConfig,
+    ): Promise<RequestConfig> => {
       // Front-load the setup steps that rely on external APIs, so that if any
-      // fail, the request bails out early
+      // fail, the request bails out early before modifying the config
       const proxyApiEndpoint = await this.urlSync.getApiEndpoint();
       const bearerToken = (await this.identityApi.getCredentials()).token;
 
       config.baseURL = proxyApiEndpoint;
       config.signal = this.getTimeoutAbortSignal();
-      config.headers[CODER_AUTH_HEADER_KEY] = this.loadedSessionToken;
+
+      // The Axios docs have incredibly confusing wording about how multiple
+      // interceptors work. They say the interceptors are "run in the order
+      // added", implying that the first interceptor you add will always run
+      // first. That is not true - they're run in reverse order, so the newer
+      // interceptors will always run before anything else. Only add token from
+      // this base interceptor if a newer interceptor hasn't already added one
+      if (config.headers[CODER_AUTH_HEADER_KEY] === undefined) {
+        config.headers[CODER_AUTH_HEADER_KEY] = this.loadedSessionToken;
+      }
 
       if (bearerToken) {
         config.headers.Authorization = `Bearer ${bearerToken}`;
@@ -92,7 +128,7 @@ export class CoderClient implements CoderClientApi {
       return config;
     };
 
-    const interceptAxiosError = (error: unknown): unknown => {
+    const baseErrorInterceptor = (error: unknown): unknown => {
       const errorIsFromCleanup = error instanceof DOMException;
       if (errorIsFromCleanup) {
         return undefined;
@@ -101,12 +137,7 @@ export class CoderClient implements CoderClientApi {
       return error;
     };
 
-    const ejectId = axios.interceptors.request.use(
-      interceptAxiosRequest,
-      interceptAxiosError,
-    );
-
-    return ejectId;
+    this.addRequestInterceptor(baseRequestInterceptor, baseErrorInterceptor);
   }
 
   private getBackstageCoderSdk(
@@ -221,36 +252,13 @@ export class CoderClient implements CoderClientApi {
   }
 
   syncToken = async (newToken: string): Promise<boolean> => {
-    /**
-     * This logic requires a long explanation if you aren't familiar with
-     * the intricacies of JavaScript. Tried other options, but they were all
-     * somehow even worse/more convoluted
-     *
-     * 1. interceptors.request.use will synchronously add a new interceptor
-     *    function to the axios instance. Axios interceptors are always applied
-     *    in the order they're added; there is no easy way to add a new
-     *    interceptor that will run before what's already been added
-     * 2. When we make the request in syncToken, we will pause the thread of
-     *    execution when we hit the await keyword. This means that while this
-     *    function call is paused, the interceptor will apply to every single
-     *    request until the syncToken request comes back
-     * 3. Because of how React Query background re-fetches work, there might be
-     *    other requests that were already queued before syncToken got called,
-     *    and that will go through the new interceptor in the meantime
-     * 4. As long as the new token is valid, those requests shouldn't notice any
-     *    difference, but if the new token is invalid, they will start failing
-     * 5. The interceptor doesn't get removed until the syncToken request
-     *    finishes (whether it succeeds or not)
-     * 6. Thanks to closure, the value of newToken is made available to all
-     *    requests indirectly, so there also isn't a good way to uniquely
-     *    identify the syncToken request.
-     *
-     * Tried to figure out a way to make it so that all requests other than the
-     * syncToken request would be disabled. But the only surefire way to ensure
-     * no collisions was making a new Axios instance + Coder SDK instance just
-     * for the lifetime of the syncToken request, which seemed excessive
-     */
-    const validationId = this.axios.interceptors.request.use(config => {
+    // Because this newly-added interceptor will run before any other
+    // interceptors, you could make it so that the syncToken request will
+    // disable all other requests while validating. Chose not to do that because
+    // of React Query background re-fetches. As long as the new token is valid,
+    // they won't notice any difference at all, even though the token will have
+    // suddenly changed out from under them
+    const validationId = this.addRequestInterceptor(config => {
       config.headers[CODER_AUTH_HEADER_KEY] = newToken;
       return config;
     });
@@ -266,12 +274,16 @@ export class CoderClient implements CoderClientApi {
       return false;
     } finally {
       // Logic in a finally block always executes even after a value is returned
-      this.axios.interceptors.request.eject(validationId);
+      this.removeRequestInterceptorById(validationId);
     }
   };
 
   cleanupClient = (): void => {
-    this.axios.interceptors.request.eject(this.axiosEjectId);
+    this.trackedEjectionIds.forEach(id => {
+      this.axios.interceptors.request.eject(id);
+    });
+
+    this.trackedEjectionIds.clear();
     this.cleanupController.abort();
   };
 }
