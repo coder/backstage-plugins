@@ -73,7 +73,7 @@ describe(`${CoderWorkspacesCard.name}`, () => {
 
         await user.tripleClick(searchbox);
         await user.keyboard('[Backspace]');
-        await user.keyboard('I can do it - I can do it nine times');
+        await user.keyboard('I-can-do-it-I-can-do-it-nine-times');
 
         await waitFor(() => {
           // getAllByRole will throw if there isn't at least one node matched
