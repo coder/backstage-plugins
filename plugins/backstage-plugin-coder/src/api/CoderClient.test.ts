@@ -6,18 +6,18 @@ import {
 import type { IdentityApi } from '@backstage/core-plugin-api';
 import { UrlSync } from './UrlSync';
 import { rest } from 'msw';
-import { server, wrappedGet } from '../testHelpers/server';
+import { mockServerEndpoints, server, wrappedGet } from '../testHelpers/server';
+import { CanceledError } from 'axios';
+import { delay } from '../utils/time';
+import { mockWorkspacesList } from '../testHelpers/mockCoderAppData';
+import type { Workspace, WorkspacesResponse } from '../typesConstants';
 import {
   getMockConfigApi,
   getMockDiscoveryApi,
   getMockIdentityApi,
   mockCoderAuthToken,
-  mockBackstageProxyEndpoint as root,
+  mockCoderWorkspacesConfig,
 } from '../testHelpers/mockBackstageData';
-import { CanceledError } from 'axios';
-import { delay } from '../utils/time';
-import { mockWorkspacesList } from '../testHelpers/mockCoderAppData';
-import type { Workspace, WorkspacesResponse } from '../typesConstants';
 
 type ConstructorApis = Readonly<{
   identityApi: IdentityApi;
@@ -45,7 +45,7 @@ describe(`${CoderClient.name}`, () => {
 
       let serverToken: string | null = null;
       server.use(
-        rest.get(`${root}/users/me/login-type`, (req, res, ctx) => {
+        rest.get(mockServerEndpoints.userLoginType, (req, res, ctx) => {
           serverToken = req.headers.get(CODER_AUTH_HEADER_KEY);
           return res(ctx.status(200));
         }),
@@ -63,7 +63,7 @@ describe(`${CoderClient.name}`, () => {
 
       let serverToken: string | null = null;
       server.use(
-        rest.get(`${root}/users/me/login-type`, (req, res, ctx) => {
+        rest.get(mockServerEndpoints.userLoginType, (req, res, ctx) => {
           serverToken = req.headers.get(CODER_AUTH_HEADER_KEY);
           return res(ctx.status(200));
         }),
@@ -82,7 +82,7 @@ describe(`${CoderClient.name}`, () => {
       });
 
       server.use(
-        rest.get(`${root}/users/me/login-type`, async (_, res, ctx) => {
+        rest.get(mockServerEndpoints.userLoginType, async (_, res, ctx) => {
           // MSW is so fast that sometimes it can respond before a forced
           // timeout; have to introduce artificial delay
           await delay(50_000);
@@ -131,7 +131,7 @@ describe(`${CoderClient.name}`, () => {
       });
 
       server.use(
-        wrappedGet(`${root}/workspaces`, (_, res, ctx) => {
+        wrappedGet(mockServerEndpoints.workspaces, (_, res, ctx) => {
           const withRelativePaths = mockWorkspacesList.map<Workspace>(ws => {
             return {
               ...ws,
@@ -164,7 +164,46 @@ describe(`${CoderClient.name}`, () => {
       expect(allWorkspacesAreRemapped).toBe(true);
     });
 
-    it.only('Lets the user search for workspaces by repo URL', async () => {
+    it('Lets the user search for workspaces by repo URL', async () => {
+      const client = new CoderClient({
+        initialToken: mockCoderAuthToken,
+        apis: getConstructorApis(),
+      });
+
+      const mockBuildParameterId = 'blah';
+      server.use(
+        wrappedGet(mockServerEndpoints.workspaces, (req, res, next) => {
+          //
+        }),
+        wrappedGet(
+          mockServerEndpoints.workspaceBuildParameters,
+          (req, res, ctx) => {
+            //
+          },
+        ),
+      );
+
+      const fullResults = await client.sdk.getWorkspaces({
+        q: 'owner:me',
+        limit: 0,
+      });
+
+      const workspaces = await client.sdk.getWorkspacesByRepo(
+        'owner:me',
+        mockCoderWorkspacesConfig,
+      );
+
+      expect(workspaces.length).toBe(1);
+
+      const allWorkspacesAreForRepo = workspaces.every(ws => {
+        return ws.latest_build.resources.every(resource => {
+          return resource.agents?.some(agent => {
+            return agent;
+          });
+        });
+      });
+
+      expect(workspaces[0].latest_build.resources);
       expect.hasAssertions();
     });
   });
