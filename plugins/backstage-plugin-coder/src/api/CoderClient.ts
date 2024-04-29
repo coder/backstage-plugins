@@ -39,6 +39,11 @@ type CoderClientApi = Readonly<{
   cleanupClient: () => void;
 }>;
 
+const sharedCleanupAbortReason = new DOMException(
+  'Coder Client instance has been manually cleaned up',
+  'AbortError',
+);
+
 type ConstructorInputs = Readonly<{
   apis: Readonly<{
     urlSync: UrlSync;
@@ -129,7 +134,13 @@ export class CoderClient implements CoderClientApi {
     };
 
     const baseErrorInterceptor = (error: unknown): unknown => {
-      const errorIsFromCleanup = error instanceof DOMException;
+      const errorIsFromCleanup =
+        error instanceof DOMException &&
+        error.name === sharedCleanupAbortReason.name &&
+        error.message === sharedCleanupAbortReason.message;
+
+      // Manually aborting a request is always treated as an error, even if we
+      // 100% expect it. Just scrub the error if it's from the cleanup
       if (errorIsFromCleanup) {
         return undefined;
       }
@@ -284,7 +295,8 @@ export class CoderClient implements CoderClientApi {
     });
 
     this.trackedEjectionIds.clear();
-    this.cleanupController.abort();
+    this.cleanupController.abort(sharedCleanupAbortReason);
+    this.loadedSessionToken = undefined;
   };
 }
 
