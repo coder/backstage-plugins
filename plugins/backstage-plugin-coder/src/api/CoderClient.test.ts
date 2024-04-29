@@ -1,11 +1,18 @@
-import { CoderClient, disabledClientError } from './CoderClient';
+import {
+  CODER_AUTH_HEADER_KEY,
+  CoderClient,
+  disabledClientError,
+} from './CoderClient';
 import type { IdentityApi } from '@backstage/core-plugin-api';
 import { UrlSync } from './UrlSync';
+import { rest } from 'msw';
+import { server } from '../testHelpers/server';
 import {
   getMockConfigApi,
   getMockDiscoveryApi,
   getMockIdentityApi,
   mockCoderAuthToken,
+  mockBackstageProxyEndpoint as root,
 } from '../testHelpers/mockBackstageData';
 
 type ConstructorApis = Readonly<{
@@ -27,14 +34,42 @@ function getConstructorApis(): ConstructorApis {
 describe(`${CoderClient.name}`, () => {
   describe('syncToken functionality', () => {
     it('Will load the provided token into the client if it is valid', async () => {
-      expect.hasAssertions();
+      const client = new CoderClient({ apis: getConstructorApis() });
+
+      const syncResult = await client.syncToken(mockCoderAuthToken);
+      expect(syncResult).toBe(true);
+
+      let serverToken: string | null = null;
+      server.use(
+        rest.get(`${root}/users/me/login-type`, (req, res, ctx) => {
+          serverToken = req.headers.get(CODER_AUTH_HEADER_KEY);
+          return res(ctx.status(200));
+        }),
+      );
+
+      await client.sdk.getUserLoginType();
+      expect(serverToken).toBe(mockCoderAuthToken);
     });
 
     it('Will NOT load the provided token into the client if it is invalid', async () => {
-      expect.hasAssertions();
+      const client = new CoderClient({ apis: getConstructorApis() });
+
+      const syncResult = await client.syncToken('Definitely not valid');
+      expect(syncResult).toBe(false);
+
+      let serverToken: string | null = null;
+      server.use(
+        rest.get(`${root}/users/me/login-type`, (req, res, ctx) => {
+          serverToken = req.headers.get(CODER_AUTH_HEADER_KEY);
+          return res(ctx.status(200));
+        }),
+      );
+
+      await client.sdk.getUserLoginType();
+      expect(serverToken).toBe(null);
     });
 
-    it('Will propagate any other error types to the caller', async () => {
+    it.only('Will propagate any other error types to the caller', async () => {
       expect.hasAssertions();
     });
   });
