@@ -45,6 +45,10 @@ const sharedCleanupAbortReason = new DOMException(
   'AbortError',
 );
 
+export const disabledClientError = new Error(
+  'Requests have been disabled for this client. Please create a new client',
+);
+
 type ConstructorInputs = Readonly<{
   initialToken?: string;
   requestTimeoutMs?: number;
@@ -320,9 +324,7 @@ export class CoderClient implements CoderClientApi {
     this.loadedSessionToken = undefined;
 
     this.axios.interceptors.request.use(() => {
-      throw new Error(
-        'Requests have been disabled for this client. Please create a new client',
-      );
+      throw disabledClientError;
     });
   };
 }

@@ -1,4 +1,4 @@
-import { CoderClient } from './CoderClient';
+import { CoderClient, disabledClientError } from './CoderClient';
 import type { IdentityApi } from '@backstage/core-plugin-api';
 import { UrlSync } from './UrlSync';
 import {
@@ -32,14 +32,17 @@ describe(`${CoderClient.name}`, () => {
       const client = new CoderClient({ apis: getConstructorApis() });
       client.cleanupClient();
 
-      await expect(() => {
-        // Request should fail, even though token is valid
-        return client.syncToken(mockCoderAuthToken);
-      }).rejects.toThrow();
+      // Request should fail, even though token is valid
+      await expect(() => client.syncToken(mockCoderAuthToken)).rejects.toThrow(
+        disabledClientError,
+      );
 
       await expect(() => {
-        return client.sdk.getUserLoginType();
-      }).rejects.toThrow();
+        return client.sdk.getWorkspaces({
+          q: 'owner:me',
+          limit: 0,
+        });
+      }).rejects.toThrow(disabledClientError);
     });
   });
 
