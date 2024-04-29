@@ -283,15 +283,6 @@ export function getMockDiscoveryApi(): DiscoveryApi {
   );
 }
 
-export function getMockCoderClient(
-  urlSync: UrlSync,
-  identityApi: IdentityApi,
-): CoderClient {
-  return new CoderClient({
-    apis: { urlSync, identityApi },
-  });
-}
-
 type ApiTuple = readonly [ApiRef<NonNullable<unknown>>, NonNullable<unknown>];
 
 export function getMockApiList(): readonly ApiTuple[] {
