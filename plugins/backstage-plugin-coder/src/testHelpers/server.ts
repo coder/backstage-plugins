@@ -17,7 +17,7 @@ import {
 import {
   mockBearerToken,
   mockCoderAuthToken,
-  mockBackstageProxyEndpoint as root,
+  mockBackstageApiEndpoint as root,
 } from './mockBackstageData';
 import type { Workspace, WorkspacesResponse } from '../typesConstants';
 import { CODER_AUTH_HEADER_KEY } from '../api/CoderClient';

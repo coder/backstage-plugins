@@ -6,13 +6,13 @@ import { type UseUrlSyncResult, useUrlSync } from './useUrlSync';
 import type { DiscoveryApi } from '@backstage/core-plugin-api';
 import {
   mockBackstageAssetsEndpoint,
-  mockBackstageProxyEndpoint,
+  mockBackstageApiEndpoint,
   mockBackstageUrlRoot,
   getMockConfigApi,
 } from '../testHelpers/mockBackstageData';
 
 function renderUseUrlSync() {
-  let proxyEndpoint: string = mockBackstageProxyEndpoint;
+  let proxyEndpoint: string = mockBackstageApiEndpoint;
   const mockDiscoveryApi: DiscoveryApi = {
     getBaseUrl: async () => proxyEndpoint,
   };
@@ -53,7 +53,7 @@ describe(`${useUrlSync.name}`, () => {
           state: {
             baseUrl: mockBackstageUrlRoot,
             assetsRoute: mockBackstageAssetsEndpoint,
-            apiRoute: mockBackstageProxyEndpoint,
+            apiRoute: mockBackstageApiEndpoint,
           },
         }),
       );

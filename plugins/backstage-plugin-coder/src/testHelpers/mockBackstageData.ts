@@ -72,7 +72,7 @@ export const mockBackstageUrlRoot = 'http://localhost:7007';
  * The string literal expression is complicated, but hover over it to see what
  * the final result is.
  */
-export const mockBackstageProxyEndpoint =
+export const mockBackstageApiEndpoint =
   `${mockBackstageUrlRoot}${defaultUrlPrefixes.proxyPrefix}${CODER_PROXY_PREFIX}${defaultUrlPrefixes.apiRoutePrefix}` as const;
 
 /**
