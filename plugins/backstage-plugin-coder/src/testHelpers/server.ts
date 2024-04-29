@@ -78,8 +78,14 @@ export function wrappedGet<TBody extends DefaultBodyType = any>(
   return rest.get(path, wrapped);
 }
 
+export const mockServerEndpoints = {
+  workspaces: `${root}/workspaces`,
+  userLoginType: `${root}/users/me/login-type`,
+  workspaceBuildParameters: `${root}/workspacebuilds/:workspaceBuildId/parameters`,
+} as const satisfies Record<string, string>;
+
 const mainTestHandlers: readonly RestHandler[] = [
-  wrappedGet(`${root}/workspaces`, (req, res, ctx) => {
+  wrappedGet(mockServerEndpoints.workspaces, (req, res, ctx) => {
     const queryText = String(req.url.searchParams.get('q'));
 
     let returnedWorkspaces: Workspace[];
@@ -100,22 +106,19 @@ const mainTestHandlers: readonly RestHandler[] = [
     );
   }),
 
-  wrappedGet(
-    `${root}/workspacebuilds/:workspaceBuildId/parameters`,
-    (req, res, ctx) => {
-      const buildId = String(req.params.workspaceBuildId);
-      const selectedParams = mockWorkspaceBuildParameters[buildId];
+  wrappedGet(mockServerEndpoints.workspaceBuildParameters, (req, res, ctx) => {
+    const buildId = String(req.params.workspaceBuildId);
+    const selectedParams = mockWorkspaceBuildParameters[buildId];
 
-      if (selectedParams !== undefined) {
-        return res(ctx.status(200), ctx.json(selectedParams));
-      }
+    if (selectedParams !== undefined) {
+      return res(ctx.status(200), ctx.json(selectedParams));
+    }
 
-      return res(ctx.status(404));
-    },
-  ),
+    return res(ctx.status(404));
+  }),
 
   // This is the dummy request used to verify a user's auth status
-  wrappedGet(`${root}/users/me/login-type`, (_, res, ctx) => {
+  wrappedGet(mockServerEndpoints.userLoginType, (_, res, ctx) => {
     return res(
       ctx.status(200),
       ctx.json<UserLoginType>({
