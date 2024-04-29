@@ -282,6 +282,11 @@ export class CoderClient implements CoderClientApi {
     });
   }
 
+  /* ***************************************************************************
+   * All public functions should be defined as arrow functions to ensure they
+   * can be passed around React without risk of losing their `this` context
+   ****************************************************************************/
+
   syncToken = async (newToken: string): Promise<boolean> => {
     // Because this newly-added interceptor will run before any other
     // interceptors, you could make it so that the syncToken request will
@@ -300,7 +305,6 @@ export class CoderClient implements CoderClientApi {
       // that don't require request bodies
       await this.sdk.getUserLoginType();
       this.loadedSessionToken = newToken;
-
       return true;
     } catch (err) {
       const tokenIsInvalid =
