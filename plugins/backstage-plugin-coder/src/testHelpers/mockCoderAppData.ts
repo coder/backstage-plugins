@@ -1,5 +1,5 @@
-import type { Workspace, WorkspaceBuildParameter } from '../typesConstants';
-import { cleanedRepoUrl, mockBackstageApiEndpoint } from './mockBackstageData';
+import type { Workspace } from '../typesConstants';
+import { mockBackstageApiEndpoint } from './mockBackstageData';
 
 /**
  * The main mock for a workspace whose repo URL matches cleanedRepoUrl
@@ -102,24 +102,3 @@ export const mockWorkspacesListForRepoSearch: Workspace[] = [
   mockWorkspaceWithMatch,
   mockWorkspaceWithMatch2,
 ];
-
-export const mockWorkspaceBuildParameters: Record<
-  string,
-  readonly WorkspaceBuildParameter[]
-> = {
-  [mockWorkspaceWithMatch.latest_build.id]: [
-    { name: 'repo_url', value: cleanedRepoUrl },
-  ],
-
-  [mockWorkspaceWithMatch2.latest_build.id]: [
-    { name: 'repo_url', value: cleanedRepoUrl },
-  ],
-
-  [mockWorkspaceNoMatch.latest_build.id]: [
-    { name: 'repo_url', value: 'https://www.github.com/wombo/zom' },
-  ],
-
-  [mockWorkspaceNoParameters.latest_build.id]: [
-    // Intentionally kept empty
-  ],
-};

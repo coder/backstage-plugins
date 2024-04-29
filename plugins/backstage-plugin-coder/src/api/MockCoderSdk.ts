@@ -9,16 +9,12 @@ import globalAxios, { type AxiosInstance } from 'axios';
 import {
   type UserLoginType,
   type WorkspacesRequest,
-  type WorkspaceBuildParameter,
   type WorkspacesResponse,
 } from '../typesConstants';
 
 type CoderSdkApi = {
   getUserLoginType: () => Promise<UserLoginType>;
   getWorkspaces: (options: WorkspacesRequest) => Promise<WorkspacesResponse>;
-  getWorkspaceBuildParameters: (
-    workspaceBuildId: string,
-  ) => Promise<readonly WorkspaceBuildParameter[]>;
 };
 
 export class CoderSdk implements CoderSdkApi {
@@ -40,16 +36,6 @@ export class CoderSdk implements CoderSdkApi {
 
     const response = await this.axios.get<WorkspacesResponse>(
       `/workspaces?${urlParams.toString()}`,
-    );
-
-    return response.data;
-  };
-
-  getWorkspaceBuildParameters = async (
-    workspaceBuildId: string,
-  ): Promise<readonly WorkspaceBuildParameter[]> => {
-    const response = await this.axios.get<readonly WorkspaceBuildParameter[]>(
-      `/workspacebuilds/${workspaceBuildId}/parameters`,
     );
 
     return response.data;

@@ -74,15 +74,6 @@ export const workspaceSchema = object({
   latest_build: workspaceBuildSchema,
 });
 
-export const workspaceBuildParameterSchema = object({
-  name: string(),
-  value: string(),
-});
-
-export const workspaceBuildParametersSchema = array(
-  workspaceBuildParameterSchema,
-);
-
 export const workspacesResponseSchema = object({
   count: number(),
   workspaces: array(workspaceSchema),
@@ -95,9 +86,6 @@ export type WorkspaceStatus = Output<typeof workspaceStatusSchema>;
 export type WorkspaceBuild = Output<typeof workspaceBuildSchema>;
 export type Workspace = Output<typeof workspaceSchema>;
 export type WorkspacesResponse = Output<typeof workspacesResponseSchema>;
-export type WorkspaceBuildParameter = Output<
-  typeof workspaceBuildParameterSchema
->;
 
 export type WorkspacesRequest = Readonly<{
   after_id?: string;
