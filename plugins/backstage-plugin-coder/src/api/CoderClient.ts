@@ -9,6 +9,7 @@ import {
   CODER_API_REF_ID_PREFIX,
   WorkspacesRequest,
   WorkspacesResponse,
+  User,
 } from '../typesConstants';
 import type { UrlSync } from './UrlSync';
 import type { CoderWorkspacesConfig } from '../hooks/useCoderWorkspacesConfig';
@@ -309,7 +310,13 @@ export class CoderClient implements CoderClientApi {
       // Actual request type doesn't matter; just need to make some kind of
       // dummy request. Should favor requests that all users have access to and
       // that don't require request bodies
-      await this.sdk.getAuthenticatedUser();
+      const dummyUser = await this.sdk.getAuthenticatedUser();
+
+      // Most of the time, we're going to trust the types returned back from the
+      // server without doing any type-checking, but because this request does
+      // deal with auth, we're going to do some extra validation steps
+      assertValidUser(dummyUser);
+
       this.loadedSessionToken = newToken;
       return true;
     } catch (err) {
@@ -343,6 +350,24 @@ export class CoderClient implements CoderClientApi {
       throw disabledClientError;
     });
   };
+}
+
+function assertValidUser(value: unknown): asserts value is User {
+  if (value === null || typeof value !== 'object') {
+    throw new Error('Returned JSON value is not an object');
+  }
+
+  const hasFields =
+    'id' in value &&
+    typeof value.id === 'string' &&
+    'username' in value &&
+    typeof value.username === 'string';
+
+  if (!hasFields) {
+    throw new Error(
+      'User object is missing expected fields for authentication request',
+    );
+  }
 }
 
 export const coderClientApiRef = createApiRef<CoderClient>({
