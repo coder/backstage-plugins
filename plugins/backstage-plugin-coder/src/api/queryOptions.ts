@@ -74,7 +74,8 @@ export function workspacesByRepo(
   // Disabling query object when there is no query text for performance reasons;
   // searching through every workspace with an empty string can be incredibly
   // slow.
-  const enabled = inputs.auth.isAuthenticated && inputs.coderQuery !== '';
+  const enabled =
+    inputs.auth.isAuthenticated && inputs.coderQuery.trim() !== '';
 
   return {
     queryKey: [
