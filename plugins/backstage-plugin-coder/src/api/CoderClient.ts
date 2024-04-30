@@ -117,14 +117,16 @@ export class CoderClient implements CoderClientApi {
   }
 
   private removeRequestInterceptorById(ejectionId: number): boolean {
-    const sizeBeforeRemoval = this.trackedEjectionIds.size;
-
+    // Even if we somehow pass in an ID that hasn't been associated with the
+    // Axios instance, that's a noop. No harm in calling method no matter what
     this.axios.interceptors.request.eject(ejectionId);
-    if (this.trackedEjectionIds.has(ejectionId)) {
-      this.trackedEjectionIds.delete(ejectionId);
+
+    if (!this.trackedEjectionIds.has(ejectionId)) {
+      return false;
     }
 
-    return sizeBeforeRemoval !== this.trackedEjectionIds.size;
+    this.trackedEjectionIds.delete(ejectionId);
+    return true;
   }
 
   private addBaseRequestInterceptors(): void {
