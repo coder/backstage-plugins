@@ -20,7 +20,7 @@ import {
   mockBackstageProxyEndpoint as root,
 } from './mockBackstageData';
 import type { Workspace, WorkspacesResponse } from '../typesConstants';
-import { CODER_AUTH_HEADER_KEY } from '../api';
+import { CODER_AUTH_HEADER_KEY } from '../api/api';
 
 type RestResolver<TBody extends DefaultBodyType = any> = ResponseResolver<
   RestRequest<TBody>,
@@ -33,6 +33,16 @@ export type RestResolverMiddleware<TBody extends DefaultBodyType = any> = (
 ) => RestResolver<TBody>;
 
 const defaultMiddleware = [
+  function validateCoderSessionToken(handler) {
+    return (req, res, ctx) => {
+      const token = req.headers.get(CODER_AUTH_HEADER_KEY);
+      if (token === mockCoderAuthToken) {
+        return handler(req, res, ctx);
+      }
+
+      return res(ctx.status(401));
+    };
+  },
   function validateBearerToken(handler) {
     return (req, res, ctx) => {
       const tokenRe = /^Bearer (.+)$/;
@@ -104,13 +114,8 @@ const mainTestHandlers: readonly RestHandler[] = [
   ),
 
   // This is the dummy request used to verify a user's auth status
-  wrappedGet(`${root}/users/me`, (req, res, ctx) => {
-    const token = req.headers.get(CODER_AUTH_HEADER_KEY);
-    if (token === mockCoderAuthToken) {
-      return res(ctx.status(200));
-    }
-
-    return res(ctx.status(401));
+  wrappedGet(`${root}/users/me`, (_, res, ctx) => {
+    return res(ctx.status(200));
   }),
 ];
 

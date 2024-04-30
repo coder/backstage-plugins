@@ -4,7 +4,7 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { CoderAuthProvider } from './CoderAuthProvider';
 import { CoderAppConfigProvider } from './CoderAppConfigProvider';
 import { CoderErrorBoundary } from '../CoderErrorBoundary';
-import { BackstageHttpError } from '../../api';
+import { BackstageHttpError } from '../../api/errors';
 
 const MAX_FETCH_FAILURES = 3;
 
@@ -15,7 +15,7 @@ export type CoderProviderProps = ComponentProps<typeof CoderAuthProvider> &
 
 const shouldRetryRequest = (failureCount: number, error: unknown): boolean => {
   const isBelowThreshold = failureCount < MAX_FETCH_FAILURES;
-  if (!(error instanceof BackstageHttpError)) {
+  if (!BackstageHttpError.isInstance(error)) {
     return isBelowThreshold;
   }
 

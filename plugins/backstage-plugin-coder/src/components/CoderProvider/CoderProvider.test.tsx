@@ -5,6 +5,7 @@ import { act, waitFor } from '@testing-library/react';
 import { TestApiProvider, wrapInTestApp } from '@backstage/test-utils';
 import {
   configApiRef,
+  discoveryApiRef,
   errorApiRef,
   identityApiRef,
 } from '@backstage/core-plugin-api';
@@ -15,6 +16,7 @@ import { type CoderAuth, useCoderAuth } from './CoderAuthProvider';
 
 import {
   getMockConfigApi,
+  getMockDiscoveryApi,
   getMockErrorApi,
   getMockIdentityApi,
   mockAppConfig,
@@ -24,6 +26,7 @@ import {
   getMockQueryClient,
   renderHookAsCoderEntity,
 } from '../../testHelpers/setup';
+import { UrlSync, urlSyncApiRef } from '../../api/UrlSync';
 
 describe(`${CoderProvider.name}`, () => {
   describe('AppConfig', () => {
@@ -56,11 +59,19 @@ describe(`${CoderProvider.name}`, () => {
       const ParentComponent = ({ children }: PropsWithChildren<unknown>) => {
         const configThatChangesEachRender = { ...mockAppConfig };
 
+        const discoveryApi = getMockDiscoveryApi();
+        const configApi = getMockConfigApi();
+        const urlSyncApi = new UrlSync({
+          apis: { discoveryApi, configApi },
+        });
+
         return wrapInTestApp(
           <TestApiProvider
             apis={[
               [errorApiRef, getMockErrorApi()],
-              [configApiRef, getMockConfigApi()],
+              [configApiRef, configApi],
+              [discoveryApiRef, discoveryApi],
+              [urlSyncApiRef, urlSyncApi],
             ]}
           >
             <CoderProvider appConfig={configThatChangesEachRender}>
@@ -87,13 +98,21 @@ describe(`${CoderProvider.name}`, () => {
     // core to the functionality. In this case, you do need to bring in the full
     // CoderProvider
     const renderUseCoderAuth = () => {
+      const discoveryApi = getMockDiscoveryApi();
+      const configApi = getMockConfigApi();
+      const urlSyncApi = new UrlSync({
+        apis: { discoveryApi, configApi },
+      });
+
       return renderHook(useCoderAuth, {
         wrapper: ({ children }) => (
           <TestApiProvider
             apis={[
               [errorApiRef, getMockErrorApi()],
               [identityApiRef, getMockIdentityApi()],
-              [configApiRef, getMockConfigApi()],
+              [configApiRef, configApi],
+              [discoveryApiRef, discoveryApi],
+              [urlSyncApiRef, urlSyncApi],
             ]}
           >
             <CoderProvider

@@ -1,5 +1,5 @@
 /* eslint-disable @backstage/no-undeclared-imports -- For test helpers only */
-import { ConfigReader } from '@backstage/core-app-api';
+import { ConfigReader, FrontendHostDiscovery } from '@backstage/core-app-api';
 import { MockConfigApi, MockErrorApi } from '@backstage/test-utils';
 import type { ScmIntegrationRegistry } from '@backstage/integration';
 /* eslint-enable @backstage/no-undeclared-imports */
@@ -14,10 +14,25 @@ import {
   CoderWorkspacesConfig,
   type YamlConfig,
 } from '../hooks/useCoderWorkspacesConfig';
-import { ScmIntegrationsApi } from '@backstage/integration-react';
-
-import { API_ROUTE_PREFIX, ASSETS_ROUTE_PREFIX } from '../api';
-import { IdentityApi } from '@backstage/core-plugin-api';
+import {
+  ScmIntegrationsApi,
+  scmIntegrationsApiRef,
+} from '@backstage/integration-react';
+import {
+  ApiRef,
+  DiscoveryApi,
+  IdentityApi,
+  configApiRef,
+  discoveryApiRef,
+  errorApiRef,
+  identityApiRef,
+} from '@backstage/core-plugin-api';
+import {
+  CODER_PROXY_PREFIX,
+  UrlSync,
+  defaultUrlPrefixes,
+  urlSyncApiRef,
+} from '../api/UrlSync';
 
 /**
  * This is the key that Backstage checks from the entity data to determine the
@@ -51,12 +66,22 @@ export const rawRepoUrl = `${cleanedRepoUrl}/tree/main/`;
 export const mockBackstageUrlRoot = 'http://localhost:7007';
 
 /**
- * The actual endpoint to hit when trying to mock out a server request during
- * testing.
+ * The API endpoint to use with the mock server during testing.
+ *
+ * The string literal expression is complicated, but hover over it to see what
+ * the final result is.
  */
-export const mockBackstageProxyEndpoint = `${mockBackstageUrlRoot}${API_ROUTE_PREFIX}`;
+export const mockBackstageProxyEndpoint =
+  `${mockBackstageUrlRoot}${defaultUrlPrefixes.proxyPrefix}${CODER_PROXY_PREFIX}${defaultUrlPrefixes.apiRoutePrefix}` as const;
 
-export const mockBackstageAssetsEndpoint = `${mockBackstageUrlRoot}${ASSETS_ROUTE_PREFIX}`;
+/**
+ * The assets endpoint to use during testing.
+ *
+ * The string literal expression is complicated, but hover over it to see what
+ * the final result is.
+ */
+export const mockBackstageAssetsEndpoint =
+  `${mockBackstageUrlRoot}${defaultUrlPrefixes.proxyPrefix}${CODER_PROXY_PREFIX}${defaultUrlPrefixes.assetsRoutePrefix}` as const;
 
 export const mockBearerToken = 'This-is-an-opaque-value-by-design';
 export const mockCoderAuthToken = 'ZG0HRy2gGN-mXljc1s5FqtE8WUJ4sUc5X';
@@ -245,4 +270,43 @@ export function getMockIdentityApi(): IdentityApi {
  */
 export function getMockSourceControl(): ScmIntegrationRegistry {
   return ScmIntegrationsApi.fromConfig(new ConfigReader({}));
+}
+
+export function getMockDiscoveryApi(): DiscoveryApi {
+  return FrontendHostDiscovery.fromConfig(
+    new ConfigReader({
+      backend: {
+        baseUrl: mockBackstageUrlRoot,
+      },
+    }),
+  );
+}
+
+type ApiTuple = readonly [ApiRef<NonNullable<unknown>>, NonNullable<unknown>];
+
+export function getMockApiList(): readonly ApiTuple[] {
+  const mockErrorApi = getMockErrorApi();
+  const mockSourceControl = getMockSourceControl();
+  const mockConfigApi = getMockConfigApi();
+  const mockIdentityApi = getMockIdentityApi();
+  const mockDiscoveryApi = getMockDiscoveryApi();
+
+  const mockUrlSyncApi = new UrlSync({
+    apis: {
+      discoveryApi: mockDiscoveryApi,
+      configApi: mockConfigApi,
+    },
+  });
+
+  return [
+    // APIs that Backstage ships with normally
+    [errorApiRef, mockErrorApi],
+    [scmIntegrationsApiRef, mockSourceControl],
+    [configApiRef, mockConfigApi],
+    [identityApiRef, mockIdentityApi],
+    [discoveryApiRef, mockDiscoveryApi],
+
+    // Custom APIs specific to the Coder plugin
+    [urlSyncApiRef, mockUrlSyncApi],
+  ];
 }

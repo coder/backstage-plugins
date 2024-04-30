@@ -11,14 +11,13 @@ import {
   useQuery,
   useQueryClient,
 } from '@tanstack/react-query';
-
+import { BackstageHttpError } from '../../api/errors';
+import { getCoderApiRequestInit } from '../../api/api';
 import {
-  BackstageHttpError,
   CODER_QUERY_KEY_PREFIX,
-  authQueryKey,
-  authValidation,
-} from '../../api';
-import { useBackstageEndpoints } from '../../hooks/useBackstageEndpoints';
+  sharedAuthQueryKey,
+} from '../../api/queryOptions';
+import { useUrlSync } from '../../hooks/useUrlSync';
 import { identityApiRef, useApi } from '@backstage/core-plugin-api';
 
 const TOKEN_STORAGE_KEY = 'coder-backstage-plugin/token';
@@ -99,9 +98,9 @@ export function useCoderAuth(): CoderAuth {
 type CoderAuthProviderProps = Readonly<PropsWithChildren<unknown>>;
 
 export const CoderAuthProvider = ({ children }: CoderAuthProviderProps) => {
-  const identity = useApi(identityApiRef);
-  const { baseUrl } = useBackstageEndpoints();
+  const identityApi = useApi(identityApiRef);
   const [isInsideGracePeriod, setIsInsideGracePeriod] = useState(true);
+  const { api: urlSyncApi } = useUrlSync();
 
   // Need to split hairs, because the query object can be disabled. Only want to
   // expose the initializing state if the app mounts with a token already in
@@ -109,9 +108,25 @@ export const CoderAuthProvider = ({ children }: CoderAuthProviderProps) => {
   const [authToken, setAuthToken] = useState(readAuthToken);
   const [readonlyInitialAuthToken] = useState(authToken);
 
-  const authValidityQuery = useQuery({
-    ...authValidation({ baseUrl, authToken, identity }),
+  const queryIsEnabled = authToken !== '';
+  const authValidityQuery = useQuery<boolean>({
+    queryKey: [...sharedAuthQueryKey, authToken],
+    enabled: queryIsEnabled,
+    keepPreviousData: queryIsEnabled,
     refetchOnWindowFocus: query => query.state.data !== false,
+    queryFn: async () => {
+      // In this case, the request doesn't actually matter. Just need to make any
+      // kind of dummy request to validate the auth
+      const requestInit = await getCoderApiRequestInit(authToken, identityApi);
+      const apiEndpoint = await urlSyncApi.getApiEndpoint();
+      const response = await fetch(`${apiEndpoint}/users/me`, requestInit);
+
+      if (response.status >= 400 && response.status !== 401) {
+        throw new BackstageHttpError('Failed to complete request', response);
+      }
+
+      return response.status !== 401;
+    },
   });
 
   const authState = generateAuthState({
@@ -158,7 +173,7 @@ export const CoderAuthProvider = ({ children }: CoderAuthProviderProps) => {
       const queryError = event.query.state.error;
       const shouldRevalidate =
         !isRefetchingTokenQuery &&
-        queryError instanceof BackstageHttpError &&
+        BackstageHttpError.isInstance(queryError) &&
         queryError.status === 401;
 
       if (!shouldRevalidate) {
@@ -166,7 +181,7 @@ export const CoderAuthProvider = ({ children }: CoderAuthProviderProps) => {
       }
 
       isRefetchingTokenQuery = true;
-      await queryClient.refetchQueries({ queryKey: authQueryKey });
+      await queryClient.refetchQueries({ queryKey: sharedAuthQueryKey });
       isRefetchingTokenQuery = false;
     });
 
@@ -240,7 +255,7 @@ function generateAuthState({
     };
   }
 
-  if (authValidityQuery.error instanceof BackstageHttpError) {
+  if (BackstageHttpError.isInstance(authValidityQuery.error)) {
     const deploymentLikelyUnavailable =
       authValidityQuery.error.status === 504 ||
       (authValidityQuery.error.status === 200 &&

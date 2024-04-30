@@ -11,12 +11,6 @@ import {
 
 import React from 'react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { scmIntegrationsApiRef } from '@backstage/integration-react';
-import {
-  configApiRef,
-  errorApiRef,
-  identityApiRef,
-} from '@backstage/core-plugin-api';
 import { EntityProvider } from '@backstage/plugin-catalog-react';
 import {
   type CoderAuth,
@@ -27,14 +21,11 @@ import {
   CoderAppConfigProvider,
 } from '../components/CoderProvider';
 import {
-  getMockSourceControl,
   mockAppConfig,
   mockEntity,
-  getMockErrorApi,
-  getMockConfigApi,
   mockAuthStates,
   BackstageEntity,
-  getMockIdentityApi,
+  getMockApiList,
 } from './mockBackstageData';
 import { CoderErrorBoundary } from '../plugin';
 
@@ -161,24 +152,13 @@ export const renderHookAsCoderEntity = async <
   options?: RenderHookAsCoderEntityOptions<TProps>,
 ): Promise<RenderHookResult<TReturn, TProps>> => {
   const { authStatus, ...delegatedOptions } = options ?? {};
-  const mockErrorApi = getMockErrorApi();
-  const mockSourceControl = getMockSourceControl();
-  const mockConfigApi = getMockConfigApi();
-  const mockIdentityApi = getMockIdentityApi();
   const mockQueryClient = getMockQueryClient();
 
   const renderHookValue = renderHook(hook, {
     ...delegatedOptions,
     wrapper: ({ children }) => {
       const mainMarkup = (
-        <TestApiProvider
-          apis={[
-            [errorApiRef, mockErrorApi],
-            [identityApiRef, mockIdentityApi],
-            [scmIntegrationsApiRef, mockSourceControl],
-            [configApiRef, mockConfigApi],
-          ]}
-        >
+        <TestApiProvider apis={getMockApiList()}>
           <CoderProviderWithMockAuth
             appConfig={mockAppConfig}
             queryClient={mockQueryClient}
@@ -212,27 +192,8 @@ export async function renderInCoderEnvironment({
   queryClient = getMockQueryClient(),
   appConfig = mockAppConfig,
 }: RenderInCoderEnvironmentInputs) {
-  /**
-   * Tried really hard to get renderInTestApp to work, but I couldn't figure out
-   * how to get it set up with custom config values (mainly for testing the
-   * backend endpoints).
-   *
-   * Manually setting up the config API to get around that
-   */
-  const mockErrorApi = getMockErrorApi();
-  const mockSourceControl = getMockSourceControl();
-  const mockConfigApi = getMockConfigApi();
-  const mockIdentityApi = getMockIdentityApi();
-
   const mainMarkup = (
-    <TestApiProvider
-      apis={[
-        [errorApiRef, mockErrorApi],
-        [identityApiRef, mockIdentityApi],
-        [scmIntegrationsApiRef, mockSourceControl],
-        [configApiRef, mockConfigApi],
-      ]}
-    >
+    <TestApiProvider apis={getMockApiList()}>
       <EntityProvider entity={entity}>
         <CoderProviderWithMockAuth
           appConfig={appConfig}
