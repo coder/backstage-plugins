@@ -9,6 +9,7 @@ import {
   CODER_API_REF_ID_PREFIX,
   WorkspacesRequest,
   WorkspacesResponse,
+  User,
 } from '../typesConstants';
 import type { UrlSync } from './UrlSync';
 import type { CoderWorkspacesConfig } from '../hooks/useCoderWorkspacesConfig';
@@ -117,14 +118,16 @@ export class CoderClient implements CoderClientApi {
   }
 
   private removeRequestInterceptorById(ejectionId: number): boolean {
-    const sizeBeforeRemoval = this.trackedEjectionIds.size;
-
+    // Even if we somehow pass in an ID that hasn't been associated with the
+    // Axios instance, that's a noop. No harm in calling method no matter what
     this.axios.interceptors.request.eject(ejectionId);
-    if (this.trackedEjectionIds.has(ejectionId)) {
-      this.trackedEjectionIds.delete(ejectionId);
+
+    if (!this.trackedEjectionIds.has(ejectionId)) {
+      return false;
     }
 
-    return sizeBeforeRemoval !== this.trackedEjectionIds.size;
+    this.trackedEjectionIds.delete(ejectionId);
+    return true;
   }
 
   private addBaseRequestInterceptors(): void {
@@ -181,15 +184,14 @@ export class CoderClient implements CoderClientApi {
   ): BackstageCoderSdk {
     const baseSdk = new CoderSdk(axiosInstance);
 
-    const originalGetWorkspaces = baseSdk.getWorkspaces;
-    baseSdk.getWorkspaces = async request => {
-      const workspacesRes = await originalGetWorkspaces(request);
+    const getWorkspaces: (typeof baseSdk)['getWorkspaces'] = async request => {
+      const workspacesRes = await baseSdk.getWorkspaces(request);
       const remapped = await this.remapWorkspaceIconUrls(
         workspacesRes.workspaces,
       );
 
       return {
-        count: remapped.length,
+        ...workspacesRes,
         workspaces: remapped,
       };
     };
@@ -236,6 +238,7 @@ export class CoderClient implements CoderClientApi {
 
     return {
       ...baseSdk,
+      getWorkspaces,
       getWorkspacesByRepo,
     };
   }
@@ -309,7 +312,13 @@ export class CoderClient implements CoderClientApi {
       // Actual request type doesn't matter; just need to make some kind of
       // dummy request. Should favor requests that all users have access to and
       // that don't require request bodies
-      await this.sdk.getUserLoginType();
+      const dummyUser = await this.sdk.getAuthenticatedUser();
+
+      // Most of the time, we're going to trust the types returned back from the
+      // server without doing any type-checking, but because this request does
+      // deal with auth, we're going to do some extra validation steps
+      assertValidUser(dummyUser);
+
       this.loadedSessionToken = newToken;
       return true;
     } catch (err) {
@@ -360,6 +369,24 @@ function appendParamToQuery(
   }
 
   return `${query} ${keyValuePair}`;
+}
+
+function assertValidUser(value: unknown): asserts value is User {
+  if (value === null || typeof value !== 'object') {
+    throw new Error('Returned JSON value is not an object');
+  }
+
+  const hasFields =
+    'id' in value &&
+    typeof value.id === 'string' &&
+    'username' in value &&
+    typeof value.username === 'string';
+
+  if (!hasFields) {
+    throw new Error(
+      'User object is missing expected fields for authentication request',
+    );
+  }
 }
 
 export const coderClientApiRef = createApiRef<CoderClient>({

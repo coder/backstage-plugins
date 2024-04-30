@@ -65,6 +65,7 @@ describe(`${useUrlSync.name}`, () => {
 
       updateMockProxyEndpoint(altProxyUrl);
       await act(() => urlSync.getApiEndpoint());
+
       const newState = result.current.state;
       expect(newState).not.toEqual(initialState);
     });
