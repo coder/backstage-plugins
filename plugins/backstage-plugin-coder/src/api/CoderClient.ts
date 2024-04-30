@@ -183,15 +183,14 @@ export class CoderClient implements CoderClientApi {
   ): BackstageCoderSdk {
     const baseSdk = new CoderSdk(axiosInstance);
 
-    const originalGetWorkspaces = baseSdk.getWorkspaces;
-    baseSdk.getWorkspaces = async request => {
-      const workspacesRes = await originalGetWorkspaces(request);
+    const getWorkspaces: (typeof baseSdk)['getWorkspaces'] = async request => {
+      const workspacesRes = await baseSdk.getWorkspaces(request);
       const remapped = await this.remapWorkspaceIconUrls(
         workspacesRes.workspaces,
       );
 
       return {
-        count: remapped.length,
+        ...workspacesRes,
         workspaces: remapped,
       };
     };
@@ -236,6 +235,7 @@ export class CoderClient implements CoderClientApi {
 
     return {
       ...baseSdk,
+      getWorkspaces,
       getWorkspacesByRepo,
     };
   }
