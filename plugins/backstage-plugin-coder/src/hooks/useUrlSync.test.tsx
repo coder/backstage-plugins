@@ -6,13 +6,13 @@ import { type UseUrlSyncResult, useUrlSync } from './useUrlSync';
 import type { DiscoveryApi } from '@backstage/core-plugin-api';
 import {
   mockBackstageAssetsEndpoint,
-  mockBackstageProxyEndpoint,
+  mockBackstageApiEndpoint,
   mockBackstageUrlRoot,
   getMockConfigApi,
 } from '../testHelpers/mockBackstageData';
 
 function renderUseUrlSync() {
-  let proxyEndpoint: string = mockBackstageProxyEndpoint;
+  let proxyEndpoint: string = mockBackstageApiEndpoint;
   const mockDiscoveryApi: DiscoveryApi = {
     getBaseUrl: async () => proxyEndpoint,
   };
@@ -34,6 +34,7 @@ function renderUseUrlSync() {
 
   return {
     ...renderResult,
+    urlSync,
     updateMockProxyEndpoint: (newEndpoint: string) => {
       proxyEndpoint = newEndpoint;
     },
@@ -52,18 +53,19 @@ describe(`${useUrlSync.name}`, () => {
           state: {
             baseUrl: mockBackstageUrlRoot,
             assetsRoute: mockBackstageAssetsEndpoint,
-            apiRoute: mockBackstageProxyEndpoint,
+            apiRoute: mockBackstageApiEndpoint,
           },
         }),
       );
     });
 
     it('Should re-render when URLs change via the UrlSync class', async () => {
-      const { result, updateMockProxyEndpoint } = renderUseUrlSync();
+      const { result, urlSync, updateMockProxyEndpoint } = renderUseUrlSync();
       const initialState = result.current.state;
 
       updateMockProxyEndpoint(altProxyUrl);
-      await act(() => result.current.api.getApiEndpoint());
+      await act(() => urlSync.getApiEndpoint());
+
       const newState = result.current.state;
       expect(newState).not.toEqual(initialState);
     });
@@ -71,7 +73,7 @@ describe(`${useUrlSync.name}`, () => {
 
   describe('Render helpers', () => {
     it('isEmojiUrl should correctly detect whether a URL is valid', async () => {
-      const { result, updateMockProxyEndpoint } = renderUseUrlSync();
+      const { result, urlSync, updateMockProxyEndpoint } = renderUseUrlSync();
 
       // Test for URL that is valid and matches the URL from UrlSync
       const url1 = `${mockBackstageAssetsEndpoint}/emoji`;
@@ -84,7 +86,7 @@ describe(`${useUrlSync.name}`, () => {
       // Test for URL that was valid when the React app started up, but then
       // UrlSync started giving out a completely different URL
       updateMockProxyEndpoint(altProxyUrl);
-      await act(() => result.current.api.getApiEndpoint());
+      await act(() => urlSync.getApiEndpoint());
       expect(result.current.renderHelpers.isEmojiUrl(url1)).toBe(false);
     });
   });

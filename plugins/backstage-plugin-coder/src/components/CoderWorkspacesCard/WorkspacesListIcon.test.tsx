@@ -1,13 +1,13 @@
 import React from 'react';
 import { fireEvent, screen } from '@testing-library/react';
 import { renderInCoderEnvironment } from '../../testHelpers/setup';
-import { mockBackstageProxyEndpoint } from '../../testHelpers/mockBackstageData';
+import { mockBackstageApiEndpoint } from '../../testHelpers/mockBackstageData';
 import { WorkspacesListIcon } from './WorkspacesListIcon';
 
 describe(`${WorkspacesListIcon.name}`, () => {
   it('Should display a fallback UI element instead of a broken image when the image fails to load', async () => {
     const workspaceName = 'blah';
-    const imgPath = `${mockBackstageProxyEndpoint}/wrongUrlPal.png`;
+    const imgPath = `${mockBackstageApiEndpoint}/wrongUrlPal.png`;
 
     await renderInCoderEnvironment({
       children: (

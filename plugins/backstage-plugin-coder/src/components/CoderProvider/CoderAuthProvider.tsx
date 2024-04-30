@@ -12,13 +12,12 @@ import {
   useQueryClient,
 } from '@tanstack/react-query';
 import { BackstageHttpError } from '../../api/errors';
-import { getCoderApiRequestInit } from '../../api/api';
 import {
   CODER_QUERY_KEY_PREFIX,
   sharedAuthQueryKey,
 } from '../../api/queryOptions';
-import { useUrlSync } from '../../hooks/useUrlSync';
-import { identityApiRef, useApi } from '@backstage/core-plugin-api';
+import { coderClientApiRef } from '../../api/CoderClient';
+import { useApi } from '@backstage/core-plugin-api';
 
 const TOKEN_STORAGE_KEY = 'coder-backstage-plugin/token';
 
@@ -98,35 +97,22 @@ export function useCoderAuth(): CoderAuth {
 type CoderAuthProviderProps = Readonly<PropsWithChildren<unknown>>;
 
 export const CoderAuthProvider = ({ children }: CoderAuthProviderProps) => {
-  const identityApi = useApi(identityApiRef);
-  const [isInsideGracePeriod, setIsInsideGracePeriod] = useState(true);
-  const { api: urlSyncApi } = useUrlSync();
-
   // Need to split hairs, because the query object can be disabled. Only want to
   // expose the initializing state if the app mounts with a token already in
   // localStorage
   const [authToken, setAuthToken] = useState(readAuthToken);
   const [readonlyInitialAuthToken] = useState(authToken);
+  const [isInsideGracePeriod, setIsInsideGracePeriod] = useState(true);
 
+  const coderClient = useApi(coderClientApiRef);
   const queryIsEnabled = authToken !== '';
+
   const authValidityQuery = useQuery<boolean>({
     queryKey: [...sharedAuthQueryKey, authToken],
+    queryFn: () => coderClient.syncToken(authToken),
     enabled: queryIsEnabled,
     keepPreviousData: queryIsEnabled,
     refetchOnWindowFocus: query => query.state.data !== false,
-    queryFn: async () => {
-      // In this case, the request doesn't actually matter. Just need to make any
-      // kind of dummy request to validate the auth
-      const requestInit = await getCoderApiRequestInit(authToken, identityApi);
-      const apiEndpoint = await urlSyncApi.getApiEndpoint();
-      const response = await fetch(`${apiEndpoint}/users/me`, requestInit);
-
-      if (response.status >= 400 && response.status !== 401) {
-        throw new BackstageHttpError('Failed to complete request', response);
-      }
-
-      return response.status !== 401;
-    },
   });
 
   const authState = generateAuthState({

@@ -15,12 +15,14 @@ import {
   mockWorkspaceBuildParameters,
 } from './mockCoderAppData';
 import {
+  mockBackstageAssetsEndpoint,
   mockBearerToken,
   mockCoderAuthToken,
-  mockBackstageProxyEndpoint as root,
+  mockBackstageApiEndpoint as root,
 } from './mockBackstageData';
 import type { Workspace, WorkspacesResponse } from '../typesConstants';
-import { CODER_AUTH_HEADER_KEY } from '../api/api';
+import { CODER_AUTH_HEADER_KEY } from '../api/CoderClient';
+import { User } from '../typesConstants';
 
 type RestResolver<TBody extends DefaultBodyType = any> = ResponseResolver<
   RestRequest<TBody>,
@@ -69,7 +71,7 @@ export function wrapInDefaultMiddleware<TBody extends DefaultBodyType = any>(
   }, resolver);
 }
 
-function wrappedGet<TBody extends DefaultBodyType = any>(
+export function wrappedGet<TBody extends DefaultBodyType = any>(
   path: string,
   resolver: RestResolver<TBody>,
 ): RestHandler {
@@ -77,8 +79,14 @@ function wrappedGet<TBody extends DefaultBodyType = any>(
   return rest.get(path, wrapped);
 }
 
+export const mockServerEndpoints = {
+  workspaces: `${root}/workspaces`,
+  authenticatedUser: `${root}/users/me`,
+  workspaceBuildParameters: `${root}/workspacebuilds/:workspaceBuildId/parameters`,
+} as const satisfies Record<string, string>;
+
 const mainTestHandlers: readonly RestHandler[] = [
-  wrappedGet(`${root}/workspaces`, (req, res, ctx) => {
+  wrappedGet(mockServerEndpoints.workspaces, (req, res, ctx) => {
     const queryText = String(req.url.searchParams.get('q'));
 
     let returnedWorkspaces: Workspace[];
@@ -99,23 +107,27 @@ const mainTestHandlers: readonly RestHandler[] = [
     );
   }),
 
-  wrappedGet(
-    `${root}/workspacebuilds/:workspaceBuildId/parameters`,
-    (req, res, ctx) => {
-      const buildId = String(req.params.workspaceBuildId);
-      const selectedParams = mockWorkspaceBuildParameters[buildId];
+  wrappedGet(mockServerEndpoints.workspaceBuildParameters, (req, res, ctx) => {
+    const buildId = String(req.params.workspaceBuildId);
+    const selectedParams = mockWorkspaceBuildParameters[buildId];
 
-      if (selectedParams !== undefined) {
-        return res(ctx.status(200), ctx.json(selectedParams));
-      }
+    if (selectedParams !== undefined) {
+      return res(ctx.status(200), ctx.json(selectedParams));
+    }
 
-      return res(ctx.status(404));
-    },
-  ),
+    return res(ctx.status(404));
+  }),
 
   // This is the dummy request used to verify a user's auth status
-  wrappedGet(`${root}/users/me`, (_, res, ctx) => {
-    return res(ctx.status(200));
+  wrappedGet(mockServerEndpoints.authenticatedUser, (_, res, ctx) => {
+    return res(
+      ctx.status(200),
+      ctx.json<User>({
+        id: '1',
+        avatar_url: `${mockBackstageAssetsEndpoint}/blueberry.png`,
+        username: 'blueberry',
+      }),
+    );
   }),
 ];
 

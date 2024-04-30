@@ -33,6 +33,7 @@ import {
   defaultUrlPrefixes,
   urlSyncApiRef,
 } from '../api/UrlSync';
+import { CoderClient, coderClientApiRef } from '../api/CoderClient';
 
 /**
  * This is the key that Backstage checks from the entity data to determine the
@@ -71,7 +72,7 @@ export const mockBackstageUrlRoot = 'http://localhost:7007';
  * The string literal expression is complicated, but hover over it to see what
  * the final result is.
  */
-export const mockBackstageProxyEndpoint =
+export const mockBackstageApiEndpoint =
   `${mockBackstageUrlRoot}${defaultUrlPrefixes.proxyPrefix}${CODER_PROXY_PREFIX}${defaultUrlPrefixes.apiRoutePrefix}` as const;
 
 /**
@@ -298,6 +299,14 @@ export function getMockApiList(): readonly ApiTuple[] {
     },
   });
 
+  const mockCoderClient = new CoderClient({
+    initialToken: mockCoderAuthToken,
+    apis: {
+      urlSync: mockUrlSyncApi,
+      identityApi: mockIdentityApi,
+    },
+  });
+
   return [
     // APIs that Backstage ships with normally
     [errorApiRef, mockErrorApi],
@@ -308,5 +317,6 @@ export function getMockApiList(): readonly ApiTuple[] {
 
     // Custom APIs specific to the Coder plugin
     [urlSyncApiRef, mockUrlSyncApi],
+    [coderClientApiRef, mockCoderClient],
   ];
 }

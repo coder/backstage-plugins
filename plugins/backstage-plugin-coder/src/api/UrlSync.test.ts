@@ -4,7 +4,7 @@ import {
   getMockConfigApi,
   getMockDiscoveryApi,
   mockBackstageAssetsEndpoint,
-  mockBackstageProxyEndpoint,
+  mockBackstageApiEndpoint,
   mockBackstageUrlRoot,
 } from '../testHelpers/mockBackstageData';
 
@@ -23,7 +23,7 @@ describe(`${UrlSync.name}`, () => {
     const cachedUrls = urlSync.getCachedUrls();
     expect(cachedUrls).toEqual<UrlSyncSnapshot>({
       baseUrl: mockBackstageUrlRoot,
-      apiRoute: mockBackstageProxyEndpoint,
+      apiRoute: mockBackstageApiEndpoint,
       assetsRoute: mockBackstageAssetsEndpoint,
     });
   });

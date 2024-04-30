@@ -98,3 +98,20 @@ export type WorkspacesResponse = Output<typeof workspacesResponseSchema>;
 export type WorkspaceBuildParameter = Output<
   typeof workspaceBuildParameterSchema
 >;
+
+export type WorkspacesRequest = Readonly<{
+  after_id?: string;
+  limit?: number;
+  offset?: number;
+  q?: string;
+}>;
+
+// This is actually the MinimalUser type from Coder core (User extends from
+// ReducedUser, which extends from MinimalUser). Don't need all the properties
+// until we roll out full SDK support, so going with the least privileged
+// type definition for now
+export type User = Readonly<{
+  id: string;
+  username: string;
+  avatar_url: string;
+}>;
