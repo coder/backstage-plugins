@@ -309,7 +309,7 @@ export class CoderClient implements CoderClientApi {
       // Actual request type doesn't matter; just need to make some kind of
       // dummy request. Should favor requests that all users have access to and
       // that don't require request bodies
-      await this.sdk.getUserLoginType();
+      await this.sdk.getAuthenticatedUser();
       this.loadedSessionToken = newToken;
       return true;
     } catch (err) {

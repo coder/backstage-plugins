@@ -7,15 +7,15 @@
  */
 import globalAxios, { type AxiosInstance } from 'axios';
 import {
-  type UserLoginType,
+  type User,
   type WorkspacesRequest,
   type WorkspaceBuildParameter,
   type WorkspacesResponse,
 } from '../typesConstants';
 
 type CoderSdkApi = {
-  getUserLoginType: () => Promise<UserLoginType>;
-  getWorkspaces: (options: WorkspacesRequest) => Promise<WorkspacesResponse>;
+  getAuthenticatedUser: () => Promise<User>;
+  getWorkspaces: (request: WorkspacesRequest) => Promise<WorkspacesResponse>;
   getWorkspaceBuildParameters: (
     workspaceBuildId: string,
   ) => Promise<readonly WorkspaceBuildParameter[]>;
@@ -55,11 +55,8 @@ export class CoderSdk implements CoderSdkApi {
     return response.data;
   };
 
-  getUserLoginType = async (): Promise<UserLoginType> => {
-    const response = await this.axios.get<UserLoginType>(
-      '/users/me/login-type',
-    );
-
+  getAuthenticatedUser = async (): Promise<User> => {
+    const response = await this.axios.get<User>('/users/me');
     return response.data;
   };
 }

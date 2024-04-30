@@ -45,13 +45,13 @@ describe(`${CoderClient.name}`, () => {
 
       let serverToken: string | null = null;
       server.use(
-        rest.get(mockServerEndpoints.userLoginType, (req, res, ctx) => {
+        rest.get(mockServerEndpoints.authenticatedUser, (req, res, ctx) => {
           serverToken = req.headers.get(CODER_AUTH_HEADER_KEY);
           return res(ctx.status(200));
         }),
       );
 
-      await client.sdk.getUserLoginType();
+      await client.sdk.getAuthenticatedUser();
       expect(serverToken).toBe(mockCoderAuthToken);
     });
 
@@ -63,13 +63,13 @@ describe(`${CoderClient.name}`, () => {
 
       let serverToken: string | null = null;
       server.use(
-        rest.get(mockServerEndpoints.userLoginType, (req, res, ctx) => {
+        rest.get(mockServerEndpoints.authenticatedUser, (req, res, ctx) => {
           serverToken = req.headers.get(CODER_AUTH_HEADER_KEY);
           return res(ctx.status(200));
         }),
       );
 
-      await client.sdk.getUserLoginType();
+      await client.sdk.getAuthenticatedUser();
       expect(serverToken).toBe(null);
     });
 
@@ -82,10 +82,11 @@ describe(`${CoderClient.name}`, () => {
       });
 
       server.use(
-        rest.get(mockServerEndpoints.userLoginType, async (_, res, ctx) => {
+        rest.get(mockServerEndpoints.authenticatedUser, async (_, res, ctx) => {
           // MSW is so fast that sometimes it can respond before a forced
-          // timeout; have to introduce artificial delay
-          await delay(50_000);
+          // timeout; have to introduce artificial delay (that shouldn't matter
+          // as long as the abort logic goes through properly)
+          await delay(2_000);
           return res(ctx.status(200));
         }),
       );

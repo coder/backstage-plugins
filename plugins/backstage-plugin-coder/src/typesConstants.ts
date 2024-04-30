@@ -106,8 +106,12 @@ export type WorkspacesRequest = Readonly<{
   q?: string;
 }>;
 
-// Return value used for the dummy requests used to verify a user's auth status
-// for the Coder token auth logic
-export type UserLoginType = Readonly<{
-  login_type: '' | 'github' | 'none' | 'oidc' | 'password' | 'token';
+// This is actually the MinimalUser type from Coder core (User extends from
+// ReducedUser, which extends from MinimalUser). Don't need all the properties
+// until we roll out full SDK support, so going with the least privileged
+// type definition for now
+export type User = Readonly<{
+  id: string;
+  username: string;
+  avatar_url: string;
 }>;
