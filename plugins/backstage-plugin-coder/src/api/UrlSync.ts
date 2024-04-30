@@ -3,17 +3,18 @@
  * DiscoveryApi that is designed to work much better with React. Its hook
  * counterpart is useUrlSync.
  *
- * The class helps with:
- * 1. Making sure URLs are cached so that they can be accessed directly and
+ * The class helps with synchronizing URLs between Backstage classes and React
+ * UI components. It will:
+ * 1. Make sure URLs are cached so that they can be accessed directly and
  *    synchronously from the UI
- * 2. Making sure that there are mechanisms for binding value changes to React
+ * 2. Make sure that there are mechanisms for binding value changes to React
  *    state, so that if the URLs change over time, React components can
  *    re-render correctly
  *
  * As of April 2024, there are two main built-in ways of getting URLs from
  * Backstage config values:
- * 1. ConfigApi (offers synchronous methods, but does not have access to the
- *    proxy config)
+ * 1. ConfigApi (offers synchronous methods, but does not have direct access to
+ *    the proxy config - you have to stitch together the full path yourself)
  * 2. DiscoveryApi (has access to proxy config, but all methods are async)
  *
  * Both of these work fine inside event handlers and effects, but are never safe
@@ -77,10 +78,6 @@ type UrlSyncApi = Subscribable<UrlSyncSnapshot> &
   }>;
 
 export class UrlSync implements UrlSyncApi {
-  // ConfigApi is literally only used because it offers a synchronous way to
-  // get an initial URL to use from inside the constructor. Should not be used
-  // beyond initial constructor call
-  private readonly configApi: ConfigApi;
   private readonly discoveryApi: DiscoveryApi;
   private readonly urlCache: StateSnapshotManager<UrlSyncSnapshot>;
   private urlPrefixes: UrlPrefixes;
@@ -90,17 +87,19 @@ export class UrlSync implements UrlSyncApi {
     const { discoveryApi, configApi } = apis;
 
     this.discoveryApi = discoveryApi;
-    this.configApi = configApi;
     this.urlPrefixes = { ...defaultUrlPrefixes, ...urlPrefixes };
 
-    const proxyRoot = this.getProxyRootFromConfigApi();
+    const proxyRoot = this.getProxyRootFromConfigApi(configApi);
     this.urlCache = new StateSnapshotManager<UrlSyncSnapshot>({
       initialSnapshot: this.prepareNewSnapshot(proxyRoot),
     });
   }
 
-  private getProxyRootFromConfigApi(): string {
-    const baseUrl = this.configApi.getString(BASE_URL_KEY_FOR_CONFIG_API);
+  // ConfigApi is literally only used because it offers a synchronous way to
+  // get an initial URL to use from inside the constructor. Should not be used
+  // beyond initial constructor call, so it's not being embedded in the class
+  private getProxyRootFromConfigApi(configApi: ConfigApi): string {
+    const baseUrl = configApi.getString(BASE_URL_KEY_FOR_CONFIG_API);
     return `${baseUrl}${this.urlPrefixes.proxyPrefix}`;
   }
 
