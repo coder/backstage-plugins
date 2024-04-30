@@ -86,7 +86,7 @@ export function workspacesByRepo({
   // Disabling query when there is no query text for performance reasons;
   // searching through every workspace with an empty string can be incredibly
   // slow.
-  const enabled = auth.isAuthenticated && coderQuery !== '';
+  const enabled = auth.isAuthenticated && coderQuery.trim() !== '';
 
   return {
     queryKey: [...getSharedWorkspacesQueryKey(coderQuery), workspacesConfig],
