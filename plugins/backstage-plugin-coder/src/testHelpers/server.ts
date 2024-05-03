@@ -12,15 +12,16 @@ import { setupServer } from 'msw/node';
 
 import {
   mockWorkspacesList,
-  mockWorkspaceBuildParameters,
+  mockWorkspacesListForRepoSearch,
 } from './mockCoderAppData';
 import {
   mockBackstageAssetsEndpoint,
   mockBearerToken,
   mockCoderAuthToken,
+  mockCoderWorkspacesConfig,
   mockBackstageApiEndpoint as root,
 } from './mockBackstageData';
-import type { Workspace, WorkspacesResponse } from '../typesConstants';
+import type { WorkspacesResponse } from '../typesConstants';
 import { CODER_AUTH_HEADER_KEY } from '../api/CoderClient';
 import { User } from '../typesConstants';
 
@@ -87,35 +88,43 @@ export const mockServerEndpoints = {
 
 const mainTestHandlers: readonly RestHandler[] = [
   wrappedGet(mockServerEndpoints.workspaces, (req, res, ctx) => {
-    const queryText = String(req.url.searchParams.get('q'));
+    const { repoUrl } = mockCoderWorkspacesConfig;
+    const paramMatcherRe = new RegExp(
+      `param:"\\w+?=${repoUrl.replace('/', '\\/')}"`,
+    );
 
-    let returnedWorkspaces: Workspace[];
-    if (queryText === 'owner:me') {
-      returnedWorkspaces = mockWorkspacesList;
-    } else {
-      returnedWorkspaces = mockWorkspacesList.filter(ws =>
-        ws.name.includes(queryText),
+    const queryText = String(req.url.searchParams.get('q'));
+    const requestContainsRepoInfo = paramMatcherRe.test(queryText);
+
+    const baseWorkspaces = requestContainsRepoInfo
+      ? mockWorkspacesListForRepoSearch
+      : mockWorkspacesList;
+
+    const customSearchTerms = queryText
+      .split(' ')
+      .filter(text => text !== 'owner:me' && !paramMatcherRe.test(text));
+
+    if (customSearchTerms.length === 0) {
+      return res(
+        ctx.status(200),
+        ctx.json<WorkspacesResponse>({
+          workspaces: baseWorkspaces,
+          count: baseWorkspaces.length,
+        }),
       );
     }
+
+    const filtered = mockWorkspacesList.filter(ws => {
+      return customSearchTerms.some(term => ws.name.includes(term));
+    });
 
     return res(
       ctx.status(200),
       ctx.json<WorkspacesResponse>({
-        workspaces: returnedWorkspaces,
-        count: returnedWorkspaces.length,
+        workspaces: filtered,
+        count: filtered.length,
       }),
     );
-  }),
-
-  wrappedGet(mockServerEndpoints.workspaceBuildParameters, (req, res, ctx) => {
-    const buildId = String(req.params.workspaceBuildId);
-    const selectedParams = mockWorkspaceBuildParameters[buildId];
-
-    if (selectedParams !== undefined) {
-      return res(ctx.status(200), ctx.json(selectedParams));
-    }
-
-    return res(ctx.status(404));
   }),
 
   // This is the dummy request used to verify a user's auth status
