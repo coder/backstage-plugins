@@ -359,6 +359,10 @@ function appendParamToQuery(
   key: string,
   value: string,
 ): string {
+  if (!key || !value) {
+    return '';
+  }
+
   const keyValuePair = `param:"${key}=${value}"`;
   if (!query) {
     return keyValuePair;
