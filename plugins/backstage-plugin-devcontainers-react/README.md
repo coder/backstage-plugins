@@ -14,11 +14,15 @@ _Note: While this plugin can be used standalone, it has been designed to be a fr
 
 ### Standalone features
 
-- Custom hooks for reading your special Dev Container metadata tag inside your repo entities, and providing ready-made links to opening that repo in VS Code
+- Custom hooks for reading your special Dev Container metadata tag and VS Code
+  launch URI inside your repo entities, and exposing that URI for opening the
+  repo in VS Code
 
 ### When combined with the backend plugin
 
-- Provides an end-to-end solution for automatically adding/removing Dev Containers metadata in your Backstage installation, while letting you read them from custom hooks and components
+- Provides an end-to-end solution for automatically adding/removing Dev
+  Containers metadata in your Backstage installation (including tags and the VS
+  Code launch URI), while letting you read them from custom hooks and components
 
 ## Setup
 

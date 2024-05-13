@@ -196,6 +196,11 @@ describe(`${DevcontainersProcessor.name}`, () => {
       expect(inputEntity).toEqual(inputSnapshot);
 
       const metadataCompare = structuredClone(inputSnapshot.metadata);
+      metadataCompare.annotations = {
+        ...(metadataCompare.annotations ?? {}),
+        vsCodeUrl:
+          'vscode://ms-vscode-remote.remote-containers/cloneInVolume?url=https://github.com/example-company/example-repo',
+      };
       delete metadataCompare.tags;
 
       expect(outputEntity).toEqual(
@@ -226,6 +231,11 @@ describe(`${DevcontainersProcessor.name}`, () => {
       expect(inputEntity).toEqual(inputSnapshot);
 
       const metadataCompare = structuredClone(inputSnapshot.metadata);
+      metadataCompare.annotations = {
+        ...(metadataCompare.annotations ?? {}),
+        vsCodeUrl:
+          'vscode://ms-vscode-remote.remote-containers/cloneInVolume?url=https://github.com/example-company/example-repo',
+      };
       delete metadataCompare.tags;
 
       expect(outputEntity).toEqual(
