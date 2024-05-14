@@ -1,11 +1,14 @@
 import React, {
   type PropsWithChildren,
   createContext,
+  useCallback,
   useContext,
   useEffect,
   useState,
+  useRef,
+  useLayoutEffect,
 } from 'react';
-
+import { createPortal } from 'react-dom';
 import {
   type UseQueryResult,
   useQuery,
@@ -18,6 +21,8 @@ import {
 } from '../../api/queryOptions';
 import { coderClientApiRef } from '../../api/CoderClient';
 import { useApi } from '@backstage/core-plugin-api';
+import { useId } from '../../hooks/hookPolyfills';
+import { makeStyles } from '@material-ui/core';
 
 const TOKEN_STORAGE_KEY = 'coder-backstage-plugin/token';
 
@@ -55,52 +60,24 @@ export type CoderAuthStatus = AuthState['status'];
 export type CoderAuth = Readonly<
   AuthState & {
     isAuthenticated: boolean;
-    tokenLoadedOnMount: boolean;
     registerNewToken: (newToken: string) => void;
     ejectToken: () => void;
   }
 >;
 
-function isAuthValid(state: AuthState): boolean {
-  return (
-    state.status === 'authenticated' ||
-    state.status === 'distrustedWithGracePeriod'
-  );
-}
+type TrackComponent = (componentInstanceId: string) => () => void;
 
-type ValidCoderAuth = Extract<
-  CoderAuth,
-  { status: 'authenticated' | 'distrustedWithGracePeriod' }
->;
+export const AuthStateContext = createContext<CoderAuth | null>(null);
+const AuthTrackingContext = createContext<TrackComponent | null>(null);
 
-export function assertValidCoderAuth(
-  auth: CoderAuth,
-): asserts auth is ValidCoderAuth {
-  if (!isAuthValid(auth)) {
-    throw new Error('Coder auth is not valid');
-  }
-}
-
-export const AuthContext = createContext<CoderAuth | null>(null);
-
-export function useCoderAuth(): CoderAuth {
-  const contextValue = useContext(AuthContext);
-  if (contextValue === null) {
-    throw new Error(
-      `Hook ${useCoderAuth.name} is being called outside of CoderProvider`,
-    );
-  }
-
-  return contextValue;
-}
-
-type CoderAuthProviderProps = Readonly<PropsWithChildren<unknown>>;
-
-export const CoderAuthProvider = ({ children }: CoderAuthProviderProps) => {
+function useAuthState(): CoderAuth {
   // Need to split hairs, because the query object can be disabled. Only want to
   // expose the initializing state if the app mounts with a token already in
   // localStorage
-  const [authToken, setAuthToken] = useState(readAuthToken);
+  const [authToken, setAuthToken] = useState(
+    () => window.localStorage.getItem(TOKEN_STORAGE_KEY) ?? '',
+  );
+
   const [readonlyInitialAuthToken] = useState(authToken);
   const [isInsideGracePeriod, setIsInsideGracePeriod] = useState(true);
 
@@ -174,28 +151,111 @@ export const CoderAuthProvider = ({ children }: CoderAuthProviderProps) => {
     return unsubscribe;
   }, [queryClient]);
 
-  return (
-    <AuthContext.Provider
-      value={{
-        ...authState,
-        isAuthenticated: isAuthValid(authState),
-        tokenLoadedOnMount: readonlyInitialAuthToken !== '',
-        registerNewToken: newToken => {
-          if (newToken !== '') {
-            setAuthToken(newToken);
-          }
-        },
-        ejectToken: () => {
-          window.localStorage.removeItem(TOKEN_STORAGE_KEY);
-          queryClient.removeQueries({ queryKey: [CODER_QUERY_KEY_PREFIX] });
-          setAuthToken('');
-        },
-      }}
-    >
-      {children}
-    </AuthContext.Provider>
-  );
-};
+  const validAuthStatuses: readonly CoderAuthStatus[] = [
+    'authenticated',
+    'distrustedWithGracePeriod',
+  ];
+
+  return {
+    ...authState,
+    isAuthenticated: validAuthStatuses.includes(authState.status),
+    registerNewToken: newToken => {
+      if (newToken !== '') {
+        setAuthToken(newToken);
+      }
+    },
+    ejectToken: () => {
+      window.localStorage.removeItem(TOKEN_STORAGE_KEY);
+      queryClient.removeQueries({ queryKey: [CODER_QUERY_KEY_PREFIX] });
+      setAuthToken('');
+    },
+  };
+}
+
+type AuthFallbackState = Readonly<{
+  trackComponent: TrackComponent;
+  hasNoAuthInputs: boolean;
+}>;
+
+function useAuthFallbackState(): AuthFallbackState {
+  // Can't do state syncs or anything else that would normally minimize
+  // re-renders here because we have to wait for the entire application to
+  // complete its initial render before we can decide if we need a fallback
+  const [isMounted, setIsMounted] = useState(false);
+  useEffect(() => {
+    setIsMounted(true);
+  }, []);
+
+  // Not the biggest fan of needing to keep the two pieces of state in sync, but
+  // setting the render state to a simple boolean rather than the whole Set
+  // means that we re-render only when we go from 0 trackers to 1+, or
+  // vice-versa, versus re-rendering when we get a new tracker at all. If we
+  // have 1+ trackers, we don't care about the actual number past that
+  const [hasTrackers, setHasTrackers] = useState(false);
+  const trackedComponentsRef = useRef<Set<string>>(null!);
+  if (trackedComponentsRef.current === null) {
+    trackedComponentsRef.current = new Set();
+  }
+
+  const trackComponent = useCallback((componentId: string) => {
+    // React will bail out of re-renders if you dispatch the same state value
+    // that it already has. Calling this function too often should cause no
+    // problems and should be a no-op 95% of the time
+    const syncTrackerToUi = () => {
+      setHasTrackers(trackedComponentsRef.current.size !== 0);
+    };
+
+    trackedComponentsRef.current.add(componentId);
+    syncTrackerToUi();
+
+    return () => {
+      trackedComponentsRef.current.delete(componentId);
+      syncTrackerToUi();
+    };
+  }, []);
+
+  return {
+    trackComponent,
+    hasNoAuthInputs: isMounted && !hasTrackers,
+  };
+}
+
+/**
+ * This is a lightweight hook for grabbing the Coder auth and doing nothing
+ * else.
+ *
+ * This is deemed "unsafe" for most of the UI, because getting the auth value
+ * this way does not interact with the component tracking logic at all.
+ */
+function useUnsafeCoderAuth(): CoderAuth {
+  const contextValue = useContext(AuthStateContext);
+  if (contextValue === null) {
+    throw new Error('Cannot retrieve auth information from CoderProvider');
+  }
+
+  return contextValue;
+}
+
+export function useCoderAuth(): CoderAuth {
+  const trackComponent = useContext(AuthTrackingContext);
+  if (trackComponent === null) {
+    throw new Error('Unable to retrieve state for displaying fallback auth UI');
+  }
+
+  // Assuming subscribe is set up properly, the values of instanceId and
+  // subscribe should both be stable until whatever component is using this hook
+  // unmounts. Values only added to dependency array to satisfy ESLint
+  const instanceId = useId();
+  useEffect(() => {
+    const cleanupTracking = trackComponent(instanceId);
+    return cleanupTracking;
+  }, [instanceId, trackComponent]);
+
+  // Getting the auth value is now safe, since we can guarantee that if another
+  // component calls this hook, the fallback auth UI won't ever need to be
+  // displayed
+  return useUnsafeCoderAuth();
+}
 
 type GenerateAuthStateInputs = Readonly<{
   authToken: string;
@@ -331,6 +391,86 @@ function generateAuthState({
   };
 }
 
-function readAuthToken(): string {
-  return window.localStorage.getItem(TOKEN_STORAGE_KEY) ?? '';
+// Have to get the root of the React application to adjust its dimensions when
+// we display the fallback UI. Sadly, we can't assert that the root is always
+// defined from outside a UI component, because throwing any errors here would
+// blow up the entire Backstage application, and wreck all the other plugins
+const mainAppRoot = document.querySelector<HTMLElement>('#root');
+
+const useFallbackStyles = makeStyles(theme => ({
+  root: {
+    width: '100%',
+    padding: theme.spacing(1),
+    backgroundColor: 'green',
+  },
+
+  modalTrigger: {
+    backgroundColor: 'inherit',
+    border: 'none',
+    display: 'block',
+    width: '100%',
+    maxWidth: '60%',
+    minWidth: 'fit-content',
+    color: 'blue',
+    marginLeft: 'auto',
+    marginRight: 'auto',
+  },
+}));
+
+function FallbackAuthUi() {
+  const styles = useFallbackStyles();
+
+  /**
+   * Would've been nice to be able to use ref callbacks here, but we need to
+   * make sure that we have a cleanup step available. Ref callbacks don't get
+   * cleanup support until React 19
+   *
+   * @see {@link https://github.com/facebook/react/pull/25686}
+   */
+  const fallbackRef = useRef<HTMLDivElement>(null);
+  useLayoutEffect(() => {
+    const fallback = fallbackRef.current;
+    if (fallback === null || mainAppRoot === null) {
+      return undefined;
+    }
+
+    const originalRootHeight = mainAppRoot.offsetHeight;
+    const fallbackHeight = fallback.offsetHeight;
+    mainAppRoot.style.height = `calc(${originalRootHeight}px - ${fallbackHeight}px)`;
+
+    return () => {
+      mainAppRoot.style.height = `${originalRootHeight}px`;
+    };
+  }, []);
+
+  const fallbackUi = (
+    <div ref={fallbackRef} className={styles.root}>
+      <button
+        className={styles.modalTrigger}
+        onClick={() => window.alert("I'm active!")}
+      >
+        Please add authentication
+      </button>
+    </div>
+  );
+
+  return createPortal(fallbackUi, document.body);
 }
+
+export const CoderAuthProvider = ({
+  children,
+}: Readonly<PropsWithChildren<unknown>>) => {
+  const authState = useAuthState();
+  const { hasNoAuthInputs, trackComponent } = useAuthFallbackState();
+  const needFallbackUi = true; // hasNoAuthInputs && !authState.isAuthenticated;
+
+  return (
+    <AuthStateContext.Provider value={authState}>
+      <AuthTrackingContext.Provider value={trackComponent}>
+        {children}
+      </AuthTrackingContext.Provider>
+
+      {needFallbackUi && <FallbackAuthUi />}
+    </AuthStateContext.Provider>
+  );
+};
