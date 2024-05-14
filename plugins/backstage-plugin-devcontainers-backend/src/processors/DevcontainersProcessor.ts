@@ -9,9 +9,17 @@ import { type Config } from '@backstage/config';
 import { isError, NotFoundError } from '@backstage/errors';
 import { type UrlReader, UrlReaders } from '@backstage/backend-common';
 import { type Logger } from 'winston';
+import { parseGitUrl } from '../utils/git';
 
 export const DEFAULT_TAG_NAME = 'devcontainers';
 export const PROCESSOR_NAME_PREFIX = 'backstage-plugin-devcontainers-backend';
+
+const vsCodeUrlKey = 'vsCodeUrl';
+
+// We export this type instead of the actual constant so we can validate the
+// constant on the frontend at compile-time instead of making the backend plugin
+// a run-time dependency, so it can continue to run standalone.
+export type VsCodeUrlKey = typeof vsCodeUrlKey;
 
 type ProcessorOptions = Readonly<{
   tagName: string;
@@ -89,7 +97,12 @@ export class DevcontainersProcessor implements CatalogProcessor {
     try {
       const jsonUrl = await this.findDevcontainerJson(rootUrl, entityLogger);
       entityLogger.info('Found devcontainer config', { url: jsonUrl });
-      return this.addTag(entity, this.options.tagName, entityLogger);
+      return this.addMetadata(
+        entity,
+        this.options.tagName,
+        location,
+        entityLogger,
+      );
     } catch (error) {
       if (!isError(error) || error.name !== 'NotFoundError') {
         emit(
@@ -115,16 +128,25 @@ export class DevcontainersProcessor implements CatalogProcessor {
     return entity;
   }
 
-  private addTag(entity: Entity, newTag: string, logger: Logger): Entity {
+  private addMetadata(
+    entity: Entity,
+    newTag: string,
+    location: LocationSpec,
+    logger: Logger,
+  ): Entity {
     if (entity.metadata.tags?.includes(newTag)) {
       return entity;
     }
 
-    logger.info(`Adding "${newTag}" tag to component`);
+    logger.info(`Adding VS Code URL and "${newTag}" tag to component`);
     return {
       ...entity,
       metadata: {
         ...entity.metadata,
+        annotations: {
+          ...(entity.metadata.annotations ?? {}),
+          [vsCodeUrlKey]: serializeVsCodeUrl(location.target),
+        },
         tags: [...(entity.metadata?.tags ?? []), newTag],
       },
     };
@@ -184,4 +206,16 @@ export class DevcontainersProcessor implements CatalogProcessor {
 
     return url;
   }
+}
+
+/**
+ * Current implementation for generating the URL will likely need to change as
+ * we flesh out the backend plugin.  For example, it would be nice if there was
+ * a way to specify the branch instead of always checking out the default.
+ */
+function serializeVsCodeUrl(repoUrl: string): string {
+  const cleaners: readonly RegExp[] = [/^url: */];
+  const cleanedUrl = cleaners.reduce((str, re) => str.replace(re, ''), repoUrl);
+  const rootUrl = parseGitUrl(cleanedUrl);
+  return `vscode://ms-vscode-remote.remote-containers/cloneInVolume?url=${rootUrl}`;
 }

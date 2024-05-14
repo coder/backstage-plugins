@@ -1,2 +1,5 @@
 export * from './service/router';
-export { DevcontainersProcessor } from './processors/DevcontainersProcessor';
+export {
+  DevcontainersProcessor,
+  type VsCodeUrlKey,
+} from './processors/DevcontainersProcessor';

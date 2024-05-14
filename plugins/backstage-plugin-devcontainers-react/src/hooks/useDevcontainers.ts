@@ -1,6 +1,11 @@
 import { useDevcontainersConfig } from '../components/DevcontainersProvider';
 import { useEntity } from '@backstage/plugin-catalog-react';
-import { ANNOTATION_SOURCE_LOCATION } from '@backstage/catalog-model';
+import type { VsCodeUrlKey } from '@coder/backstage-plugin-devcontainers-backend';
+
+// We avoid importing the actual constant to prevent making the backend plugin a
+// run-time dependency, but we can use the type at compile-time to validate the
+// string is the same.
+const vsCodeUrlKey: VsCodeUrlKey = 'vsCodeUrl';
 
 export type UseDevcontainersResult = Readonly<
   {
@@ -38,8 +43,8 @@ export function useDevcontainers(): UseDevcontainersResult {
     };
   }
 
-  const repoUrl = entity.metadata.annotations?.[ANNOTATION_SOURCE_LOCATION];
-  if (!repoUrl) {
+  const vsCodeUrl = entity.metadata.annotations?.[vsCodeUrlKey];
+  if (!vsCodeUrl) {
     return {
       tagName,
       hasUrl: false,
@@ -50,20 +55,6 @@ export function useDevcontainers(): UseDevcontainersResult {
   return {
     tagName,
     hasUrl: true,
-    vsCodeUrl: serializeVsCodeUrl(repoUrl),
+    vsCodeUrl,
   };
-}
-
-/**
- * Current implementation for generating the URL will likely need to change as
- * we flesh out the backend plugin.
- *
- * It might make more sense to add the direct VSCode link to the entity data
- * from the backend plugin via an annotation field, and remove the need for data
- * cleaning here in this function
- */
-function serializeVsCodeUrl(repoUrl: string): string {
-  const cleaners: readonly RegExp[] = [/^url: */, /\/tree\/main\/?$/];
-  const cleanedUrl = cleaners.reduce((str, re) => str.replace(re, ''), repoUrl);
-  return `vscode://ms-vscode-remote.remote-containers/cloneInVolume?url=${cleanedUrl}`;
 }

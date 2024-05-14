@@ -33,11 +33,13 @@
     "@types/express": "*",
     "express": "^4.17.1",
     "express-promise-router": "^4.1.0",
+    "git-url-parse": "^14.0.0",
     "winston": "^3.2.1",
     "yn": "^4.0.0"
   },
   "devDependencies": {
     "@backstage/cli": "^0.25.1",
+    "@types/git-url-parse": "^9.0.3",
     "@types/supertest": "^2.0.12",
     "msw": "^1.0.0",
     "supertest": "^6.2.4"

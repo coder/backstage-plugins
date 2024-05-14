@@ -4,7 +4,6 @@ import { useDevcontainers } from './useDevcontainers';
 import { type DevcontainersConfig, DevcontainersProvider } from '../plugin';
 import { wrapInTestApp } from '@backstage/test-utils';
 import { EntityProvider, useEntity } from '@backstage/plugin-catalog-react';
-import { ANNOTATION_SOURCE_LOCATION } from '@backstage/catalog-model';
 
 const mockTagName = 'devcontainers-test';
 const mockUrlRoot = 'https://www.github.com/example-company/example-repo';
@@ -17,7 +16,7 @@ const baseEntity: BackstageEntity = {
     name: 'metadata',
     tags: [mockTagName, 'other', 'random', 'values'],
     annotations: {
-      [ANNOTATION_SOURCE_LOCATION]: `${mockUrlRoot}/tree/main`,
+      vsCodeUrl: `vscode://ms-vscode-remote.remote-containers/cloneInVolume?url=${mockUrlRoot}`,
     },
   },
 };
@@ -61,7 +60,7 @@ describe(`${useDevcontainers.name}`, () => {
     expect(result2.current.vsCodeUrl).toBe(undefined);
   });
 
-  it('Does not expose a link when the entity lacks a repo URL', async () => {
+  it('Does not expose a link when the entity lacks one', async () => {
     const { result } = await render(mockTagName, {
       ...baseEntity,
       metadata: {
@@ -73,7 +72,7 @@ describe(`${useDevcontainers.name}`, () => {
     expect(result.current.vsCodeUrl).toBe(undefined);
   });
 
-  it('Provides a VS Code-formatted link when the current entity has a designated devcontainers tag', async () => {
+  it('Exposes the link when the entity has both the tag and link', async () => {
     const { result } = await render(mockTagName, baseEntity);
     expect(result.current.vsCodeUrl).toEqual(
       `vscode://ms-vscode-remote.remote-containers/cloneInVolume?url=${mockUrlRoot}`,

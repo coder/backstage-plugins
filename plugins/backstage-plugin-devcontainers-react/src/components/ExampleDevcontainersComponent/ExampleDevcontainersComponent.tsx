@@ -23,7 +23,7 @@ export const ExampleDevcontainersComponent = () => {
   return (
     <InfoCard title="Devcontainers plugin">
       <p>
-        Searched component entity for tag:{' '}
+        Searched component entity for VS Code URL and tag:{' '}
         <span className={styles.tagName}>{state.tagName}</span>
       </p>
 
