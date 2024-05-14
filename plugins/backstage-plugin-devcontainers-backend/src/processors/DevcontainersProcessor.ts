@@ -14,6 +14,13 @@ import { parseGitUrl } from '../utils/git';
 export const DEFAULT_TAG_NAME = 'devcontainers';
 export const PROCESSOR_NAME_PREFIX = 'backstage-plugin-devcontainers-backend';
 
+const vsCodeUrlKey = 'vsCodeUrl';
+
+// We export this type instead of the actual constant so we can validate the
+// constant on the frontend at compile-time instead of making the backend plugin
+// a run-time dependency, so it can continue to run standalone.
+export type VsCodeUrlKey = typeof vsCodeUrlKey;
+
 type ProcessorOptions = Readonly<{
   tagName: string;
   logger: Logger;
@@ -138,7 +145,7 @@ export class DevcontainersProcessor implements CatalogProcessor {
         ...entity.metadata,
         annotations: {
           ...(entity.metadata.annotations ?? {}),
-          vsCodeUrl: serializeVsCodeUrl(location.target),
+          [vsCodeUrlKey]: serializeVsCodeUrl(location.target),
         },
         tags: [...(entity.metadata?.tags ?? []), newTag],
       },
