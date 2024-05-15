@@ -23,6 +23,7 @@ import { coderClientApiRef } from '../../api/CoderClient';
 import { useApi } from '@backstage/core-plugin-api';
 import { useId } from '../../hooks/hookPolyfills';
 import { makeStyles } from '@material-ui/core';
+import { CoderLogo } from '../CoderLogo';
 
 const TOKEN_STORAGE_KEY = 'coder-backstage-plugin/token';
 
@@ -408,26 +409,39 @@ const useFallbackStyles = makeStyles(theme => ({
     width: '100%',
     maxWidth: 'fit-content',
     left: '50%',
-    transform: 'translateX(-50%)',
+
+    // Not using translateX(50%) for optical balance reasons. If the button is
+    // perfectly centered, the larger Coder logo on the left side makes the
+    // look left-heavy, and like it's not fully balanced
+    transform: 'translateX(-42%)',
   },
 
   modalTrigger: {
+    display: 'flex',
+    flexFlow: 'row nowrap',
+    columnGap: theme.spacing(1),
+    alignItems: 'center',
+
     cursor: 'pointer',
     color: theme.palette.primary.contrastText,
     backgroundColor: theme.palette.primary.main,
-    display: 'block',
     width: 'fit-content',
     border: 'none',
     fontWeight: 600,
     borderRadius: theme.shape.borderRadius,
     boxShadow: theme.shadows[1],
     transition: '10s color ease-in-out',
-    padding: `${theme.spacing(1)}px ${theme.spacing(2)}px`,
+    padding: `${theme.spacing(1.5)}px ${theme.spacing(2)}px`,
 
     '&:hover': {
       backgroundColor: theme.palette.primary.dark,
       boxShadow: theme.shadows[2],
     },
+  },
+
+  logo: {
+    fill: theme.palette.primary.contrastText,
+    width: theme.spacing(3),
   },
 }));
 
@@ -435,42 +449,40 @@ function FallbackAuthUi() {
   const hookId = useId();
   const styles = useFallbackStyles();
 
-  /**
-   * Adjust the heights of the original UI components so that the fallback UI
-   * can fit directly under them
-   *
-   * Would've been nice to be able to use ref callbacks here, but we need to
-   * make sure that we have a cleanup step available. Ref callbacks don't get
-   * cleanup support until React 19
-   * @see {@link https://github.com/facebook/react/pull/25686}
-   */
-  const fallbackRef = useRef<HTMLDivElement>(null);
+  // Have to add additional padding to the bottom of the main app to make sure
+  // that the user is still able to see all the content as long as they scroll
+  // down far enough
+  const fallbackRef = useRef<HTMLElement>(null);
   useLayoutEffect(() => {
     const fallback = fallbackRef.current;
-    const drawer = document.querySelector<HTMLDivElement>(
-      "div[class*='BackstageSidebar-drawer']",
-    );
-
-    if (fallback === null || mainAppRoot === null || drawer === null) {
+    if (fallback === null || mainAppRoot === null) {
       return undefined;
     }
 
-    // Need to adjust the drawer separately because it has fixed positioning, so
-    // changing the root height doesn't affect it
-    const adjustedHeight = `calc(100vh - ${fallback.offsetHeight}px)`;
-    mainAppRoot.style.height = adjustedHeight;
-    drawer.style.height = adjustedHeight;
+    // Can't access style properties directly from fallback because most of the
+    // styling goes through MUI, which is CSS class-based
+    const fallbackStyles = getComputedStyle(fallback);
+    const paddingToAdd =
+      fallback.offsetHeight + parseInt(fallbackStyles.bottom || '0', 10);
+
+    const prevPadding = mainAppRoot.style.paddingBottom || '0px';
+    mainAppRoot.style.paddingBottom = `calc(${prevPadding} + ${paddingToAdd}px)`;
 
     return () => {
-      const resetHeight = '100vh';
-      mainAppRoot.style.height = resetHeight;
-      drawer.style.height = resetHeight;
+      mainAppRoot.style.paddingBottom = prevPadding;
     };
   }, []);
 
+  // Wrapping fallback button in landmark so that screen reader users can jump
+  // straight to the button from a screen reader directory rotor, and don't have
+  // to go through every single other element first
   const landmarkId = `${hookId}-landmark`;
   const fallbackUi = (
-    <section aria-labelledby={landmarkId}>
+    <section
+      ref={fallbackRef}
+      className={styles.landmarkWrapper}
+      aria-labelledby={landmarkId}
+    >
       <h2 id={landmarkId} hidden>
         Authenticate with Coder
       </h2>
@@ -479,6 +491,7 @@ function FallbackAuthUi() {
         className={styles.modalTrigger}
         onClick={() => window.alert("I'm active!")}
       >
+        <CoderLogo className={styles.logo} />
         Authenticate with Coder
       </button>
     </section>
