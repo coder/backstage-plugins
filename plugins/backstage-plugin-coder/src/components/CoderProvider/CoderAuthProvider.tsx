@@ -401,34 +401,38 @@ function generateAuthState({
 const mainAppRoot = document.querySelector<HTMLElement>('#root');
 
 const useFallbackStyles = makeStyles(theme => ({
-  root: {
-    position: 'relative',
+  landmarkWrapper: {
     zIndex: 9999,
+    position: 'absolute',
+    bottom: theme.spacing(2),
     width: '100%',
-    bottom: 0,
-    backgroundColor: theme.palette.background.default,
-    borderTop: `1px solid ${theme.palette.background.default}`,
+    maxWidth: 'fit-content',
+    left: '50%',
+    transform: 'translateX(-50%)',
   },
 
   modalTrigger: {
     cursor: 'pointer',
-    color: theme.palette.text.primary,
-    backgroundColor: 'inherit',
-    transition: '10s color ease-in-out',
-    padding: theme.spacing(1),
-    border: 'none',
+    color: theme.palette.primary.contrastText,
+    backgroundColor: theme.palette.primary.main,
     display: 'block',
-    width: '100%',
-    marginLeft: 'auto',
-    marginRight: 'auto',
+    width: 'fit-content',
+    border: 'none',
+    fontWeight: 600,
+    borderRadius: theme.shape.borderRadius,
+    boxShadow: theme.shadows[1],
+    transition: '10s color ease-in-out',
+    padding: `${theme.spacing(1)}px ${theme.spacing(2)}px`,
 
     '&:hover': {
-      backgroundColor: theme.palette.action.hover,
+      backgroundColor: theme.palette.primary.dark,
+      boxShadow: theme.shadows[2],
     },
   },
 }));
 
 function FallbackAuthUi() {
+  const hookId = useId();
   const styles = useFallbackStyles();
 
   /**
@@ -464,15 +468,20 @@ function FallbackAuthUi() {
     };
   }, []);
 
+  const landmarkId = `${hookId}-landmark`;
   const fallbackUi = (
-    <div ref={fallbackRef} className={styles.root}>
+    <section aria-labelledby={landmarkId}>
+      <h2 id={landmarkId} hidden>
+        Authenticate with Coder
+      </h2>
+
       <button
         className={styles.modalTrigger}
         onClick={() => window.alert("I'm active!")}
       >
-        Please authenticate with Coder
+        Authenticate with Coder
       </button>
-    </div>
+    </section>
   );
 
   return createPortal(fallbackUi, document.body);
