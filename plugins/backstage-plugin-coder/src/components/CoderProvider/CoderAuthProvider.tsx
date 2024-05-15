@@ -399,21 +399,28 @@ const mainAppRoot = document.querySelector<HTMLElement>('#root');
 
 const useFallbackStyles = makeStyles(theme => ({
   root: {
+    position: 'relative',
+    zIndex: 9999,
     width: '100%',
-    padding: theme.spacing(1),
-    backgroundColor: 'green',
+    backgroundColor: theme.palette.background.default,
+    borderTop: `1px solid ${theme.palette.background.default}`,
   },
 
   modalTrigger: {
+    cursor: 'pointer',
+    color: theme.palette.text.primary,
     backgroundColor: 'inherit',
+    transition: '10s color ease-in-out',
+    padding: theme.spacing(1),
     border: 'none',
     display: 'block',
     width: '100%',
-    maxWidth: '60%',
-    minWidth: 'fit-content',
-    color: 'blue',
     marginLeft: 'auto',
     marginRight: 'auto',
+
+    '&:hover': {
+      backgroundColor: theme.palette.action.hover,
+    },
   },
 }));
 
@@ -421,25 +428,35 @@ function FallbackAuthUi() {
   const styles = useFallbackStyles();
 
   /**
+   * Adjust the heights of the original UI components so that the fallback UI
+   * can fit directly under them
+   *
    * Would've been nice to be able to use ref callbacks here, but we need to
    * make sure that we have a cleanup step available. Ref callbacks don't get
    * cleanup support until React 19
-   *
    * @see {@link https://github.com/facebook/react/pull/25686}
    */
   const fallbackRef = useRef<HTMLDivElement>(null);
   useLayoutEffect(() => {
     const fallback = fallbackRef.current;
-    if (fallback === null || mainAppRoot === null) {
+    const drawer = document.querySelector<HTMLDivElement>(
+      "div[class*='BackstageSidebar-drawer']",
+    );
+
+    if (fallback === null || mainAppRoot === null || drawer === null) {
       return undefined;
     }
 
-    const originalRootHeight = mainAppRoot.offsetHeight;
-    const fallbackHeight = fallback.offsetHeight;
-    mainAppRoot.style.height = `calc(${originalRootHeight}px - ${fallbackHeight}px)`;
+    // Need to adjust the drawer separately because it has fixed positioning, so
+    // changing the root height doesn't affect it
+    const adjustedHeight = `calc(100vh - ${fallback.offsetHeight}px)`;
+    mainAppRoot.style.height = adjustedHeight;
+    drawer.style.height = adjustedHeight;
 
     return () => {
-      mainAppRoot.style.height = `${originalRootHeight}px`;
+      const resetHeight = '100vh';
+      mainAppRoot.style.height = resetHeight;
+      drawer.style.height = resetHeight;
     };
   }, []);
 
@@ -449,7 +466,7 @@ function FallbackAuthUi() {
         className={styles.modalTrigger}
         onClick={() => window.alert("I'm active!")}
       >
-        Please add authentication
+        Please authenticate with Coder
       </button>
     </div>
   );
