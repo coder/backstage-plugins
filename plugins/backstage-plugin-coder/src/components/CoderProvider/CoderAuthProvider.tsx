@@ -68,7 +68,7 @@ export type CoderAuth = Readonly<
 type TrackComponent = (componentInstanceId: string) => () => void;
 
 export const AuthStateContext = createContext<CoderAuth | null>(null);
-const AuthTrackingContext = createContext<TrackComponent | null>(null);
+export const AuthTrackingContext = createContext<TrackComponent | null>(null);
 
 function useAuthState(): CoderAuth {
   // Need to split hairs, because the query object can be disabled. Only want to
@@ -202,7 +202,7 @@ function useAuthFallbackState(): AuthFallbackState {
     // that it already has. Calling this function too often should cause no
     // problems and should be a no-op 95% of the time
     const syncTrackerToUi = () => {
-      setHasTrackers(trackedComponentsRef.current.size !== 0);
+      setHasTrackers(trackedComponentsRef.current.size > 0);
     };
 
     trackedComponentsRef.current.add(componentId);
@@ -402,6 +402,7 @@ const useFallbackStyles = makeStyles(theme => ({
     position: 'relative',
     zIndex: 9999,
     width: '100%',
+    bottom: 0,
     backgroundColor: theme.palette.background.default,
     borderTop: `1px solid ${theme.palette.background.default}`,
   },
@@ -479,7 +480,7 @@ export const CoderAuthProvider = ({
 }: Readonly<PropsWithChildren<unknown>>) => {
   const authState = useAuthState();
   const { hasNoAuthInputs, trackComponent } = useAuthFallbackState();
-  const needFallbackUi = true; // hasNoAuthInputs && !authState.isAuthenticated;
+  const needFallbackUi = hasNoAuthInputs && !authState.isAuthenticated;
 
   return (
     <AuthStateContext.Provider value={authState}>
