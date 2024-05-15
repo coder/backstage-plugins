@@ -5,6 +5,7 @@
 import React, {
   type HTMLAttributes,
   createContext,
+  forwardRef,
   useContext,
   useState,
 } from 'react';
@@ -14,11 +15,38 @@ import {
   useCoderWorkspacesConfig,
   type CoderWorkspacesConfig,
 } from '../../hooks/useCoderWorkspacesConfig';
-
 import type { Workspace } from '../../typesConstants';
 import { useCoderWorkspacesQuery } from '../../hooks/useCoderWorkspacesQuery';
-import { Card } from '../Card';
+import { makeStyles } from '@material-ui/core';
 import { CoderAuthWrapper } from '../CoderAuthWrapper';
+
+const useCardStyles = makeStyles(theme => ({
+  root: {
+    color: theme.palette.type,
+    backgroundColor: theme.palette.background.paper,
+    padding: theme.spacing(2),
+    borderRadius: theme.shape.borderRadius,
+    boxShadow: theme.shadows[1],
+  },
+}));
+
+// Card should be treated as equivalent to Backstage's official InfoCard
+// component; had to make custom version so that it could forward properties for
+// accessibility/screen reader support
+const Card = forwardRef<HTMLDivElement, HTMLAttributes<HTMLDivElement>>(
+  (props, ref) => {
+    const { className, ...delegatedProps } = props;
+    const styles = useCardStyles();
+
+    return (
+      <div
+        ref={ref}
+        className={`${styles.root} ${className ?? ''}`}
+        {...delegatedProps}
+      />
+    );
+  },
+);
 
 export type WorkspacesQuery = UseQueryResult<readonly Workspace[]>;
 
