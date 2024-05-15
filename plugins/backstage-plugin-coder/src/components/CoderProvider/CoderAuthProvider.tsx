@@ -404,7 +404,7 @@ const mainAppRoot = document.querySelector<HTMLElement>('#root');
 const useFallbackStyles = makeStyles(theme => ({
   landmarkWrapper: {
     zIndex: 9999,
-    position: 'absolute',
+    position: 'fixed',
     bottom: theme.spacing(2),
     width: '100%',
     maxWidth: 'fit-content',
@@ -459,17 +459,33 @@ function FallbackAuthUi() {
       return undefined;
     }
 
+    const overrideClassName = 'backstage-root-override';
+
     // Can't access style properties directly from fallback because most of the
     // styling goes through MUI, which is CSS class-based
+    const rootStyles = getComputedStyle(mainAppRoot);
     const fallbackStyles = getComputedStyle(fallback);
+
+    const prevPadding = rootStyles.paddingBottom || '0px';
     const paddingToAdd =
       fallback.offsetHeight + parseInt(fallbackStyles.bottom || '0', 10);
 
-    const prevPadding = mainAppRoot.style.paddingBottom || '0px';
-    mainAppRoot.style.paddingBottom = `calc(${prevPadding} + ${paddingToAdd}px)`;
+    // Adding extra class to the root rather than using styles to help ensure
+    // that there aren't any weird conflicts with MUI's makeStyles
+    const overrideStyleNode = document.createElement('style');
+    overrideStyleNode.type = 'text/css';
+    overrideStyleNode.innerHTML = `
+      .${overrideClassName} {
+        padding-bottom: calc(${prevPadding} + ${paddingToAdd}px)
+      }
+    `;
+
+    document.head.append(overrideStyleNode);
+    mainAppRoot.classList.add(overrideClassName);
 
     return () => {
-      mainAppRoot.style.paddingBottom = prevPadding;
+      overrideStyleNode.remove();
+      mainAppRoot.classList.remove(overrideClassName);
     };
   }, []);
 
