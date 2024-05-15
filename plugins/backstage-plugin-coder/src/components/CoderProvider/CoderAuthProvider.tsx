@@ -236,7 +236,7 @@ function useUnsafeCoderAuth(): CoderAuth {
   return contextValue;
 }
 
-export function useCoderAuth(): CoderAuth {
+export function useAuthComponentTracking(): void {
   const trackComponent = useContext(AuthTrackingContext);
   if (trackComponent === null) {
     throw new Error('Unable to retrieve state for displaying fallback auth UI');
@@ -250,10 +250,13 @@ export function useCoderAuth(): CoderAuth {
     const cleanupTracking = trackComponent(instanceId);
     return cleanupTracking;
   }, [instanceId, trackComponent]);
+}
 
+export function useCoderAuth(): CoderAuth {
   // Getting the auth value is now safe, since we can guarantee that if another
   // component calls this hook, the fallback auth UI won't ever need to be
   // displayed
+  useAuthComponentTracking();
   return useUnsafeCoderAuth();
 }
 
