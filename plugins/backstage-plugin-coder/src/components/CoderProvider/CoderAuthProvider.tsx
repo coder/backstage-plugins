@@ -479,9 +479,13 @@ function FallbackAuthUi() {
     const liveFallbackStyles = getComputedStyle(fallback);
 
     let prevPaddingBottom: string | undefined = undefined;
-    const updatePaddingForFallbackUi = () => {
-      const newPaddingBottom = liveRootStyles.paddingBottom || '0px';
-      if (newPaddingBottom === prevPaddingBottom) {
+    const updatePaddingForFallbackUi: MutationCallback = () => {
+      const prevInnerHtml = overrideStyleNode.innerHTML;
+      overrideStyleNode.innerHTML = '';
+      const paddingBottomWithNoOverride = liveRootStyles.paddingBottom || '0px';
+
+      if (paddingBottomWithNoOverride === prevPaddingBottom) {
+        overrideStyleNode.innerHTML = prevInnerHtml;
         return;
       }
 
@@ -491,16 +495,15 @@ function FallbackAuthUi() {
 
       overrideStyleNode.innerHTML = `
         .${FALLBACK_UI_OVERRIDE_CLASS_NAME} {
-          padding-bottom: calc(${newPaddingBottom} + ${paddingToAdd}px) !important;
+          padding-bottom: calc(${paddingBottomWithNoOverride} + ${paddingToAdd}px) !important;
         }
       `;
 
       // Only update prev padding after state changes have definitely succeeded
-      prevPaddingBottom = newPaddingBottom;
+      prevPaddingBottom = paddingBottomWithNoOverride;
     };
 
     // Need to make sure that we apply initial setup mutations before observing
-    updatePaddingForFallbackUi();
     document.head.append(overrideStyleNode);
     mainAppRoot.classList.add(FALLBACK_UI_OVERRIDE_CLASS_NAME);
 
