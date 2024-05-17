@@ -448,9 +448,9 @@ const useFallbackStyles = makeStyles(theme => ({
 
 function FallbackAuthUi() {
   /**
-   * Add additional padding to the bottom of the main app to make sure that the
-   * user is still able to see all the content as long as they scroll down far
-   * enough.
+   * Add additional padding to the bottom of the main app to make sure that even
+   * with the fallback UI in place, it won't permanently cover up any of the
+   * other content as long as the user scrolls down far enough.
    *
    * Involves jumping through a bunch of hoops since we don't have 100% control
    * over the Backstage application. Need to minimize risks of breaking existing
@@ -459,7 +459,9 @@ function FallbackAuthUi() {
   const fallbackRef = useRef<HTMLElement>(null);
   useLayoutEffect(() => {
     const fallback = fallbackRef.current;
-    if (fallback === null || mainAppRoot === null) {
+    const mainAppContainer = mainAppRoot?.querySelector<HTMLElement>('main');
+
+    if (fallback === null || !mainAppContainer) {
       return undefined;
     }
 
@@ -475,20 +477,21 @@ function FallbackAuthUi() {
     // properties. Plus, since most styling goes through MUI's makeStyles (which
     // is based on CSS classes), trying to access properties directly off the
     // nodes won't always work
-    const liveRootStyles = getComputedStyle(mainAppRoot);
+    const liveAppStyles = getComputedStyle(mainAppContainer);
     const liveFallbackStyles = getComputedStyle(fallback);
 
     let prevPaddingBottom: string | undefined = undefined;
     const updatePaddingForFallbackUi: MutationCallback = () => {
       const prevInnerHtml = overrideStyleNode.innerHTML;
       overrideStyleNode.innerHTML = '';
-      const paddingBottomWithNoOverride = liveRootStyles.paddingBottom || '0px';
+      const paddingBottomWithNoOverride = liveAppStyles.paddingBottom || '0px';
 
       if (paddingBottomWithNoOverride === prevPaddingBottom) {
         overrideStyleNode.innerHTML = prevInnerHtml;
         return;
       }
 
+      // parseInt will automatically remove units from bottom property
       const parsedBottom = parseInt(liveFallbackStyles.bottom || '0', 10);
       const normalized = Number.isNaN(parsedBottom) ? 0 : parsedBottom;
       const paddingToAdd = fallback.offsetHeight + normalized;
@@ -505,11 +508,11 @@ function FallbackAuthUi() {
 
     // Need to make sure that we apply initial setup mutations before observing
     document.head.append(overrideStyleNode);
-    mainAppRoot.classList.add(FALLBACK_UI_OVERRIDE_CLASS_NAME);
+    mainAppContainer.classList.add(FALLBACK_UI_OVERRIDE_CLASS_NAME);
 
     const observer = new MutationObserver(updatePaddingForFallbackUi);
     observer.observe(document.head, { childList: true });
-    observer.observe(mainAppRoot, {
+    observer.observe(mainAppContainer, {
       subtree: false,
       attributes: true,
       attributeFilter: ['class', 'style'],
@@ -519,7 +522,7 @@ function FallbackAuthUi() {
       // Be sure to disconnect observer before applying other cleanup mutations
       observer.disconnect();
       overrideStyleNode.remove();
-      mainAppRoot.classList.remove(FALLBACK_UI_OVERRIDE_CLASS_NAME);
+      mainAppContainer.classList.remove(FALLBACK_UI_OVERRIDE_CLASS_NAME);
     };
   }, []);
 
