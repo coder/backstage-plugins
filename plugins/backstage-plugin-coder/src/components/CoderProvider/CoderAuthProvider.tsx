@@ -452,9 +452,9 @@ function FallbackAuthUi() {
    * user is still able to see all the content as long as they scroll down far
    * enough.
    *
-   * But because we don't own the full application, we have to jump through a
-   * bunch of hoops to minimize risks of breaking existing Backstage code or
-   * other plugins
+   * Involves jumping through a bunch of hoops since we don't have 100% control
+   * over the Backstage application. Need to minimize risks of breaking existing
+   * Backstage styling or other plugins
    */
   const fallbackRef = useRef<HTMLElement>(null);
   useLayoutEffect(() => {
@@ -471,10 +471,6 @@ function FallbackAuthUi() {
     const overrideStyleNode = document.createElement('style');
     overrideStyleNode.type = 'text/css';
 
-    // Need to make sure that we apply custom mutations before observing
-    document.head.append(overrideStyleNode);
-    mainAppRoot.classList.add(FALLBACK_UI_OVERRIDE_CLASS_NAME);
-
     // Using ComputedStyle objects because they maintain live links to computed
     // properties. Plus, since most styling goes through MUI's makeStyles (which
     // is based on CSS classes), trying to access properties directly off the
@@ -483,7 +479,7 @@ function FallbackAuthUi() {
     const liveFallbackStyles = getComputedStyle(fallback);
 
     let prevPaddingBottom: string | undefined = undefined;
-    const onMutation: MutationCallback = () => {
+    const updatePaddingForFallbackUi = () => {
       const newPaddingBottom = liveRootStyles.paddingBottom || '0px';
       if (newPaddingBottom === prevPaddingBottom) {
         return;
@@ -503,8 +499,13 @@ function FallbackAuthUi() {
       prevPaddingBottom = newPaddingBottom;
     };
 
-    const observer = new MutationObserver(onMutation);
-    observer.observe(document.head, { subtree: true });
+    // Need to make sure that we apply initial setup mutations before observing
+    updatePaddingForFallbackUi();
+    document.head.append(overrideStyleNode);
+    mainAppRoot.classList.add(FALLBACK_UI_OVERRIDE_CLASS_NAME);
+
+    const observer = new MutationObserver(updatePaddingForFallbackUi);
+    observer.observe(document.head, { childList: true });
     observer.observe(mainAppRoot, {
       subtree: false,
       attributes: true,
@@ -512,6 +513,7 @@ function FallbackAuthUi() {
     });
 
     return () => {
+      // Be sure to disconnect observer before applying other cleanup mutations
       observer.disconnect();
       overrideStyleNode.remove();
       mainAppRoot.classList.remove(FALLBACK_UI_OVERRIDE_CLASS_NAME);
