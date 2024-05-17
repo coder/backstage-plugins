@@ -22,8 +22,9 @@ import {
 import { coderClientApiRef } from '../../api/CoderClient';
 import { useApi } from '@backstage/core-plugin-api';
 import { useId } from '../../hooks/hookPolyfills';
-import { makeStyles } from '@material-ui/core';
+import { Theme, makeStyles } from '@material-ui/core';
 import { CoderLogo } from '../CoderLogo';
+import { CoderAuthFormDialog } from '../CoderAuthFormDialog/CoderAuthFormDialog';
 
 const FALLBACK_UI_OVERRIDE_CLASS_NAME = 'backstage-root-override';
 const TOKEN_STORAGE_KEY = 'coder-backstage-plugin/token';
@@ -402,38 +403,27 @@ function generateAuthState({
 // blow up the entire Backstage application, and wreck all the other plugins
 const mainAppRoot = document.querySelector<HTMLElement>('#root');
 
-const useFallbackStyles = makeStyles(theme => ({
-  landmarkWrapper: {
-    zIndex: 9999,
+type StyleKey = 'landmarkWrapper' | 'dialogButton' | 'logo';
+type StyleProps = Readonly<{
+  isDialogOpen: boolean;
+}>;
+
+const useFallbackStyles = makeStyles<Theme, StyleProps, StyleKey>(theme => ({
+  landmarkWrapper: ({ isDialogOpen }) => ({
+    zIndex: isDialogOpen ? 0 : 9999,
     position: 'fixed',
     bottom: theme.spacing(2),
     width: '100%',
     maxWidth: 'fit-content',
     left: '50%',
     transform: 'translateX(-50%)',
-  },
+  }),
 
-  modalTrigger: {
+  dialogButton: {
     display: 'flex',
     flexFlow: 'row nowrap',
     columnGap: theme.spacing(1),
     alignItems: 'center',
-
-    cursor: 'pointer',
-    color: theme.palette.primary.contrastText,
-    backgroundColor: theme.palette.primary.main,
-    width: 'fit-content',
-    border: 'none',
-    fontWeight: 600,
-    borderRadius: theme.shape.borderRadius,
-    transition: '10s color ease-in-out',
-    padding: `${theme.spacing(1.5)}px ${theme.spacing(2)}px`,
-    boxShadow: theme.shadows[10],
-
-    '&:hover': {
-      backgroundColor: theme.palette.primary.dark,
-      boxShadow: theme.shadows[15],
-    },
   },
 
   logo: {
@@ -527,7 +517,8 @@ function FallbackAuthUi() {
   }, []);
 
   const hookId = useId();
-  const styles = useFallbackStyles();
+  const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const styles = useFallbackStyles({ isDialogOpen });
 
   // Wrapping fallback button in landmark so that screen reader users can jump
   // straight to the button from a screen reader directory rotor, and don't have
@@ -543,11 +534,15 @@ function FallbackAuthUi() {
         Authenticate with Coder to enable Coder plugin features
       </h2>
 
-      {/** @todo Update placeholder button to have full modal functionality */}
-      <button className={styles.modalTrigger}>
+      <CoderAuthFormDialog
+        open={isDialogOpen}
+        onOpen={() => setIsDialogOpen(true)}
+        onClose={() => setIsDialogOpen(false)}
+        triggerClassName={styles.dialogButton}
+      >
         <CoderLogo className={styles.logo} />
         Authenticate with Coder
-      </button>
+      </CoderAuthFormDialog>
     </section>
   );
 
