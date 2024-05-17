@@ -189,9 +189,9 @@ function useAuthFallbackState(): AuthFallbackState {
 
   // Not the biggest fan of needing to keep the two pieces of state in sync, but
   // setting the render state to a simple boolean rather than the whole Set
-  // means that we re-render only when we go from 0 trackers to 1+, or
-  // vice-versa, versus re-rendering when we get a new tracker at all. If we
-  // have 1+ trackers, we don't care about the actual number past that
+  // means that we re-render only when we go from 0 trackers to 1+, or from 1+
+  // trackers to 0. We don't care about the exact number of components being
+  // tracked, just whether we have any at all
   const [hasTrackers, setHasTrackers] = useState(false);
   const trackedComponentsRef = useRef<Set<string>>(null!);
   if (trackedComponentsRef.current === null) {
@@ -459,24 +459,25 @@ function FallbackAuthUi() {
       return undefined;
     }
 
-    const overrideClassName = 'backstage-root-override';
-
     // Can't access style properties directly from fallback because most of the
     // styling goes through MUI, which is CSS class-based
     const rootStyles = getComputedStyle(mainAppRoot);
     const fallbackStyles = getComputedStyle(fallback);
 
-    const prevPadding = rootStyles.paddingBottom || '0px';
-    const paddingToAdd =
-      fallback.offsetHeight + parseInt(fallbackStyles.bottom || '0', 10);
+    const paddingBeforeOverride = rootStyles.paddingBottom || '0px';
+    const parsedBottom = parseInt(fallbackStyles.bottom || '0', 10);
+    const normalized = Number.isNaN(parsedBottom) ? 0 : parsedBottom;
+    const paddingToAdd = fallback.offsetHeight + normalized;
 
-    // Adding extra class to the root rather than using styles to help ensure
-    // that there aren't any weird conflicts with MUI's makeStyles
+    const overrideClassName = 'backstage-root-override';
+
+    // Adding extra class to the root rather than applying styling via inline
+    // styles to ensure no weird conflicts with MUI's makeStyles
     const overrideStyleNode = document.createElement('style');
     overrideStyleNode.type = 'text/css';
     overrideStyleNode.innerHTML = `
       .${overrideClassName} {
-        padding-bottom: calc(${prevPadding} + ${paddingToAdd}px)
+        padding-bottom: calc(${paddingBeforeOverride} + ${paddingToAdd}px)
       }
     `;
 
@@ -491,7 +492,7 @@ function FallbackAuthUi() {
 
   // Wrapping fallback button in landmark so that screen reader users can jump
   // straight to the button from a screen reader directory rotor, and don't have
-  // to go through every single other element first
+  // to navigate through every single other element first
   const landmarkId = `${hookId}-landmark`;
   const fallbackUi = (
     <section
