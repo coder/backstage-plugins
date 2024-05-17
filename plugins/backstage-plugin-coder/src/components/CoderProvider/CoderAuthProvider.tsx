@@ -414,7 +414,7 @@ const useFallbackStyles = makeStyles(theme => ({
     // Not using translateX(50%) for optical balance reasons. If the button is
     // perfectly centered, the larger Coder logo on the left side makes the
     // look left-heavy, and like it's not fully balanced
-    transform: 'translateX(-42%)',
+    transform: 'translateX(-40%)',
   },
 
   modalTrigger: {
@@ -492,8 +492,8 @@ function FallbackAuthUi() {
       }
 
       // parseInt will automatically remove units from bottom property
-      const parsedBottom = parseInt(liveFallbackStyles.bottom || '0', 10);
-      const normalized = Number.isNaN(parsedBottom) ? 0 : parsedBottom;
+      const fallbackBottom = parseInt(liveFallbackStyles.bottom || '0', 10);
+      const normalized = Number.isNaN(fallbackBottom) ? 0 : fallbackBottom;
       const paddingToAdd = fallback.offsetHeight + normalized;
 
       overrideStyleNode.innerHTML = `
@@ -506,10 +506,6 @@ function FallbackAuthUi() {
       prevPaddingBottom = paddingBottomWithNoOverride;
     };
 
-    // Need to make sure that we apply initial setup mutations before observing
-    document.head.append(overrideStyleNode);
-    mainAppContainer.classList.add(FALLBACK_UI_OVERRIDE_CLASS_NAME);
-
     const observer = new MutationObserver(updatePaddingForFallbackUi);
     observer.observe(document.head, { childList: true });
     observer.observe(mainAppContainer, {
@@ -517,6 +513,12 @@ function FallbackAuthUi() {
       attributes: true,
       attributeFilter: ['class', 'style'],
     });
+
+    // Applying mutations here after observing will trigger callback, but as
+    // long as the callback is set up properly, the user shouldn't notice. Also
+    // serves a way to ensure the mutation callback runs at least once
+    document.head.append(overrideStyleNode);
+    mainAppContainer.classList.add(FALLBACK_UI_OVERRIDE_CLASS_NAME);
 
     return () => {
       // Be sure to disconnect observer before applying other cleanup mutations
@@ -543,10 +545,8 @@ function FallbackAuthUi() {
         Authenticate with Coder to enable Coder plugin features
       </h2>
 
-      <button
-        className={styles.modalTrigger}
-        onClick={() => window.alert("I'm active!")}
-      >
+      {/** @todo Update placeholder button to have full modal functionality */}
+      <button className={styles.modalTrigger}>
         <CoderLogo className={styles.logo} />
         Authenticate with Coder
       </button>
