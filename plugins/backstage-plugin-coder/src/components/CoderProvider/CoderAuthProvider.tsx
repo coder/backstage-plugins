@@ -447,28 +447,21 @@ const useFallbackStyles = makeStyles(theme => ({
 }));
 
 function FallbackAuthUi() {
-  const hookId = useId();
-  const styles = useFallbackStyles();
-
-  // Have to add additional padding to the bottom of the main app to make sure
-  // that the user is still able to see all the content as long as they scroll
-  // down far enough
+  /**
+   * Add additional padding to the bottom of the main app to make sure that the
+   * user is still able to see all the content as long as they scroll down far
+   * enough.
+   *
+   * But because we don't own the full application, we have to jump through a
+   * bunch of hoops to minimize risks of breaking existing Backstage code or
+   * other plugins
+   */
   const fallbackRef = useRef<HTMLElement>(null);
   useLayoutEffect(() => {
     const fallback = fallbackRef.current;
     if (fallback === null || mainAppRoot === null) {
       return undefined;
     }
-
-    // Can't access style properties directly from fallback because most of the
-    // styling goes through MUI, which is CSS class-based
-    const rootStyles = getComputedStyle(mainAppRoot);
-    const fallbackStyles = getComputedStyle(fallback);
-
-    const paddingBeforeOverride = rootStyles.paddingBottom || '0px';
-    const parsedBottom = parseInt(fallbackStyles.bottom || '0', 10);
-    const normalized = Number.isNaN(parsedBottom) ? 0 : parsedBottom;
-    const paddingToAdd = fallback.offsetHeight + normalized;
 
     // Adding a new style node lets us override the existing styles without
     // directly touching them, minimizing the risks of breaking anything. If we
@@ -477,20 +470,56 @@ function FallbackAuthUi() {
     // stale values and try "resetting" things to a value that is no longer used
     const overrideStyleNode = document.createElement('style');
     overrideStyleNode.type = 'text/css';
-    overrideStyleNode.innerHTML = `
-      .${FALLBACK_UI_OVERRIDE_CLASS_NAME} {
-        padding-bottom: calc(${paddingBeforeOverride} + ${paddingToAdd}px) !important;
-      }
-    `;
 
+    // Need to make sure that we apply custom mutations before observing
     document.head.append(overrideStyleNode);
     mainAppRoot.classList.add(FALLBACK_UI_OVERRIDE_CLASS_NAME);
 
+    // Using ComputedStyle objects because they maintain live links to computed
+    // properties. Plus, since most styling goes through MUI's makeStyles (which
+    // is based on CSS classes), trying to access properties directly off the
+    // nodes won't always work
+    const liveRootStyles = getComputedStyle(mainAppRoot);
+    const liveFallbackStyles = getComputedStyle(fallback);
+
+    let prevPaddingBottom: string | undefined = undefined;
+    const onMutation: MutationCallback = () => {
+      const newPaddingBottom = liveRootStyles.paddingBottom || '0px';
+      if (newPaddingBottom === prevPaddingBottom) {
+        return;
+      }
+
+      const parsedBottom = parseInt(liveFallbackStyles.bottom || '0', 10);
+      const normalized = Number.isNaN(parsedBottom) ? 0 : parsedBottom;
+      const paddingToAdd = fallback.offsetHeight + normalized;
+
+      overrideStyleNode.innerHTML = `
+        .${FALLBACK_UI_OVERRIDE_CLASS_NAME} {
+          padding-bottom: calc(${newPaddingBottom} + ${paddingToAdd}px) !important;
+        }
+      `;
+
+      // Only update prev padding after state changes have definitely succeeded
+      prevPaddingBottom = newPaddingBottom;
+    };
+
+    const observer = new MutationObserver(onMutation);
+    observer.observe(document.head, { subtree: true });
+    observer.observe(mainAppRoot, {
+      subtree: false,
+      attributes: true,
+      attributeFilter: ['class', 'style'],
+    });
+
     return () => {
+      observer.disconnect();
       overrideStyleNode.remove();
       mainAppRoot.classList.remove(FALLBACK_UI_OVERRIDE_CLASS_NAME);
     };
   }, []);
+
+  const hookId = useId();
+  const styles = useFallbackStyles();
 
   // Wrapping fallback button in landmark so that screen reader users can jump
   // straight to the button from a screen reader directory rotor, and don't have
@@ -503,7 +532,7 @@ function FallbackAuthUi() {
       aria-labelledby={landmarkId}
     >
       <h2 id={landmarkId} hidden>
-        Authenticate with Coder
+        Authenticate with Coder to enable Coder plugin features
       </h2>
 
       <button
