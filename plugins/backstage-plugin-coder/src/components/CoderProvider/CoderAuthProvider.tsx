@@ -25,6 +25,7 @@ import { useId } from '../../hooks/hookPolyfills';
 import { makeStyles } from '@material-ui/core';
 import { CoderLogo } from '../CoderLogo';
 
+const FALLBACK_UI_OVERRIDE_CLASS_NAME = 'backstage-root-override';
 const TOKEN_STORAGE_KEY = 'coder-backstage-plugin/token';
 
 // Handles auth edge case where a previously-valid token can't be verified. Not
@@ -469,24 +470,25 @@ function FallbackAuthUi() {
     const normalized = Number.isNaN(parsedBottom) ? 0 : parsedBottom;
     const paddingToAdd = fallback.offsetHeight + normalized;
 
-    const overrideClassName = 'backstage-root-override';
-
-    // Adding extra class to the root rather than applying styling via inline
-    // styles to ensure no weird conflicts with MUI's makeStyles
+    // Adding a new style node lets us override the existing styles without
+    // directly touching them, minimizing the risks of breaking anything. If we
+    // were to modify the styles and try resetting them with the cleanup
+    // function, there's a risk the cleanup function would have closure over
+    // stale values and try "resetting" things to a value that is no longer used
     const overrideStyleNode = document.createElement('style');
     overrideStyleNode.type = 'text/css';
     overrideStyleNode.innerHTML = `
-      .${overrideClassName} {
-        padding-bottom: calc(${paddingBeforeOverride} + ${paddingToAdd}px)
+      .${FALLBACK_UI_OVERRIDE_CLASS_NAME} {
+        padding-bottom: calc(${paddingBeforeOverride} + ${paddingToAdd}px) !important;
       }
     `;
 
     document.head.append(overrideStyleNode);
-    mainAppRoot.classList.add(overrideClassName);
+    mainAppRoot.classList.add(FALLBACK_UI_OVERRIDE_CLASS_NAME);
 
     return () => {
       overrideStyleNode.remove();
-      mainAppRoot.classList.remove(overrideClassName);
+      mainAppRoot.classList.remove(FALLBACK_UI_OVERRIDE_CLASS_NAME);
     };
   }, []);
 
