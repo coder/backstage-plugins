@@ -410,11 +410,7 @@ const useFallbackStyles = makeStyles(theme => ({
     width: '100%',
     maxWidth: 'fit-content',
     left: '50%',
-
-    // Not using translateX(50%) for optical balance reasons. If the button is
-    // perfectly centered, the larger Coder logo on the left side makes the
-    // look left-heavy, and like it's not fully balanced
-    transform: 'translateX(-40%)',
+    transform: 'translateX(-50%)',
   },
 
   modalTrigger: {
@@ -430,13 +426,13 @@ const useFallbackStyles = makeStyles(theme => ({
     border: 'none',
     fontWeight: 600,
     borderRadius: theme.shape.borderRadius,
-    boxShadow: theme.shadows[1],
     transition: '10s color ease-in-out',
     padding: `${theme.spacing(1.5)}px ${theme.spacing(2)}px`,
+    boxShadow: theme.shadows[10],
 
     '&:hover': {
       backgroundColor: theme.palette.primary.dark,
-      boxShadow: theme.shadows[2],
+      boxShadow: theme.shadows[15],
     },
   },
 
@@ -459,9 +455,10 @@ function FallbackAuthUi() {
   const fallbackRef = useRef<HTMLElement>(null);
   useLayoutEffect(() => {
     const fallback = fallbackRef.current;
-    const mainAppContainer = mainAppRoot?.querySelector<HTMLElement>('main');
+    const mainAppContainer =
+      mainAppRoot?.querySelector<HTMLElement>('main') ?? null;
 
-    if (fallback === null || !mainAppContainer) {
+    if (fallback === null || mainAppContainer === null) {
       return undefined;
     }
 
@@ -509,14 +506,15 @@ function FallbackAuthUi() {
     const observer = new MutationObserver(updatePaddingForFallbackUi);
     observer.observe(document.head, { childList: true });
     observer.observe(mainAppContainer, {
+      childList: false,
       subtree: false,
       attributes: true,
       attributeFilter: ['class', 'style'],
     });
 
-    // Applying mutations here after observing will trigger callback, but as
-    // long as the callback is set up properly, the user shouldn't notice. Also
-    // serves a way to ensure the mutation callback runs at least once
+    // Applying mutations after we've started observing will trigger the
+    // callback, but as long as it's set up properly, the user shouldn't notice.
+    // Also serves a way to ensure the mutation callback runs at least once
     document.head.append(overrideStyleNode);
     mainAppContainer.classList.add(FALLBACK_UI_OVERRIDE_CLASS_NAME);
 
