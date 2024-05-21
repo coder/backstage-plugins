@@ -69,9 +69,8 @@ export type CoderAuth = Readonly<
 >;
 
 type TrackComponent = (componentInstanceId: string) => () => void;
-
-export const AuthStateContext = createContext<CoderAuth | null>(null);
 export const AuthTrackingContext = createContext<TrackComponent | null>(null);
+export const AuthStateContext = createContext<CoderAuth | null>(null);
 
 function useAuthState(): CoderAuth {
   // Need to split hairs, because the query object can be disabled. Only want to
@@ -223,23 +222,12 @@ function useAuthFallbackState(): AuthFallbackState {
   };
 }
 
-/**
- * This is a lightweight hook for grabbing the Coder auth and doing nothing
- * else.
- *
- * This is deemed "unsafe" for most of the UI, because getting the auth value
- * this way does not interact with the component tracking logic at all.
- */
-function useUnsafeCoderAuth(): CoderAuth {
-  const contextValue = useContext(AuthStateContext);
-  if (contextValue === null) {
+export function useCoderAuth(): CoderAuth {
+  const authContextValue = useContext(AuthStateContext);
+  if (authContextValue === null) {
     throw new Error('Cannot retrieve auth information from CoderProvider');
   }
 
-  return contextValue;
-}
-
-export function useAuthComponentTracking(): void {
   const trackComponent = useContext(AuthTrackingContext);
   if (trackComponent === null) {
     throw new Error('Unable to retrieve state for displaying fallback auth UI');
@@ -253,14 +241,8 @@ export function useAuthComponentTracking(): void {
     const cleanupTracking = trackComponent(instanceId);
     return cleanupTracking;
   }, [instanceId, trackComponent]);
-}
 
-export function useCoderAuth(): CoderAuth {
-  // Getting the auth value is now safe, since we can guarantee that if another
-  // component calls this hook, the fallback auth UI won't ever need to be
-  // displayed
-  useAuthComponentTracking();
-  return useUnsafeCoderAuth();
+  return authContextValue;
 }
 
 type GenerateAuthStateInputs = Readonly<{
@@ -549,12 +531,43 @@ function FallbackAuthUi() {
   return createPortal(fallbackUi, document.body);
 }
 
+/**
+ * This is very wacky, and I'm sorry for how cursed it is. We're definitely
+ * abusing React Context here, but this setup should simplify the code literally
+ * everywhere else in the app.
+ *
+ * The setup is that we have two versions of the tracking context: one that has
+ * the live trackComponent function, and one that has the dummy. The main parts
+ * of the UI get the live version, and the parts of the UI that deal with the
+ * fallback auth UI get the dummy version.
+ *
+ * By having two contexts, we can dynamically expose or hide the tracking
+ * state for different parts of the app without any other components needing to
+ * be rewritten at all.
+ *
+ * Any other component that uses useCoderAuth will reach up the component tree
+ * until it can grab *some* kind of tracking function. The hook only cares about
+ * whether it got a function at all; it doesn't care about what it does. It'll
+ * call the function the same way, but only the components in the "live" region
+ * will actually influence whether the fallback UI should be displayed.
+ *
+ * Function also defined outside the component to prevent risk of needless
+ * re-renders through Context.
+ */
+const dummyTrackComponent: TrackComponent = () => {
+  // Deliberately perform a no-op on initial call
+
+  return () => {
+    // And deliberately perform a no-op on cleanup
+  };
+};
+
 export const CoderAuthProvider = ({
   children,
 }: Readonly<PropsWithChildren<unknown>>) => {
   const authState = useAuthState();
   const { hasNoAuthInputs, trackComponent } = useAuthFallbackState();
-  const needFallbackUi = hasNoAuthInputs && !authState.isAuthenticated;
+  const needFallbackUi = !authState.isAuthenticated && hasNoAuthInputs;
 
   return (
     <AuthStateContext.Provider value={authState}>
@@ -562,7 +575,11 @@ export const CoderAuthProvider = ({
         {children}
       </AuthTrackingContext.Provider>
 
-      {needFallbackUi && <FallbackAuthUi />}
+      {needFallbackUi && (
+        <AuthTrackingContext.Provider value={dummyTrackComponent}>
+          <FallbackAuthUi />
+        </AuthTrackingContext.Provider>
+      )}
     </AuthStateContext.Provider>
   );
 };

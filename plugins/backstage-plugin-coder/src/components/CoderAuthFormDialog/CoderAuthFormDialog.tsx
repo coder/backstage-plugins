@@ -6,6 +6,7 @@ import Dialog from '@material-ui/core/Dialog';
 import DialogContent from '@material-ui/core/DialogContent';
 import DialogTitle from '@material-ui/core/DialogTitle';
 import DialogActions from '@material-ui/core/DialogActions';
+import { CoderAuthForm } from '../CoderAuthForm/CoderAuthForm';
 
 const useStyles = makeStyles(theme => ({
   trigger: {
@@ -122,7 +123,7 @@ export function CoderAuthFormDialog({
         </DialogTitle>
 
         <DialogContent className={styles.contentContainer}>
-          Here's some other content
+          <CoderAuthForm descriptionId={descriptionId} />
         </DialogContent>
 
         <DialogActions className={styles.actionsRow}>

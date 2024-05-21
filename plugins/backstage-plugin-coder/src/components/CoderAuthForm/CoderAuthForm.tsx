@@ -4,18 +4,26 @@ import { CoderAuthDistrustedForm } from './CoderAuthDistrustedForm';
 import { CoderAuthLoadingState } from './CoderAuthLoadingState';
 import { CoderAuthInputForm } from './CoderAuthInputForm';
 
-export const CoderAuthForm = ({
-  children,
-}: Readonly<PropsWithChildren<unknown>>) => {
+type Props = Readonly<
+  PropsWithChildren<{
+    descriptionId?: string;
+  }>
+>;
+
+export const CoderAuthForm = ({ descriptionId, children }: Props) => {
   const auth = useCoderAuth();
   if (auth.isAuthenticated) {
     return <>{children}</>;
   }
 
-  // Slightly awkward syntax with the IIFE, but need something switch-like
-  // to make sure that all status cases are handled exhaustively
   return (
     <>
+      <p id={descriptionId} hidden>
+        Please authenticate with Coder to enable the Coder plugin for Backstage.
+      </p>
+
+      {/* Slightly awkward syntax with the IIFE, but need something switch-like
+          to make sure that all status cases are handled exhaustively */}
       {(() => {
         switch (auth.status) {
           case 'initializing': {
