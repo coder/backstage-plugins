@@ -24,7 +24,7 @@ import { useApi } from '@backstage/core-plugin-api';
 import { useId } from '../../hooks/hookPolyfills';
 import { Theme, makeStyles } from '@material-ui/core';
 import { CoderLogo } from '../CoderLogo';
-import { CoderAuthFormDialog } from '../CoderAuthFormDialog/CoderAuthFormDialog';
+import { CoderAuthFormDialog } from '../CoderAuthFormDialog';
 
 const FALLBACK_UI_OVERRIDE_CLASS_NAME = 'backstage-root-override';
 const TOKEN_STORAGE_KEY = 'coder-backstage-plugin/token';
