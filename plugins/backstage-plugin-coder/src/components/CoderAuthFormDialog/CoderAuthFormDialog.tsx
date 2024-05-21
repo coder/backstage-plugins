@@ -45,7 +45,7 @@ const useStyles = makeStyles(theme => ({
   },
 
   contentContainer: {
-    padding: `0 ${theme.spacing(3)}px ${theme.spacing(4)}px`,
+    padding: `${theme.spacing(2)}px ${theme.spacing(3)}px`,
   },
 
   actionsRow: {
