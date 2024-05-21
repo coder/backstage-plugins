@@ -39,6 +39,11 @@ const useStyles = makeStyles(theme => ({
     width: '100%',
   },
 
+  dialogTitle: {
+    borderBottom: `${theme.palette.divider} 1px solid`,
+    padding: `${theme.spacing(1)}px ${theme.spacing(3)}px`,
+  },
+
   contentContainer: {
     padding: `0 ${theme.spacing(3)}px ${theme.spacing(4)}px`,
   },
@@ -51,8 +56,13 @@ const useStyles = makeStyles(theme => ({
   },
 
   closeButton: {
+    letterSpacing: '0.05em',
     padding: `${theme.spacing(0.5)}px ${theme.spacing(1)}px`,
     color: theme.palette.primary.main,
+
+    '&:hover': {
+      textDecoration: 'none',
+    },
   },
 }));
 
@@ -107,7 +117,10 @@ export function CoderAuthFormDialog({
           paper: styles.dialogPaper,
         }}
       >
-        <DialogTitle id={titleId}>Authenticate with Coder</DialogTitle>
+        <DialogTitle id={titleId} className={styles.dialogTitle}>
+          Authenticate with Coder
+        </DialogTitle>
+
         <DialogContent className={styles.contentContainer}>
           Here's some other content
         </DialogContent>
@@ -117,8 +130,9 @@ export function CoderAuthFormDialog({
             to=""
             onClick={handleClose}
             className={styles.closeButton}
+            disableRipple
           >
-            <span>Close</span>
+            Close
           </LinkButton>
         </DialogActions>
       </Dialog>
