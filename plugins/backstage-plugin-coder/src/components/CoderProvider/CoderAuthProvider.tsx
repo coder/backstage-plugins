@@ -4,9 +4,9 @@ import React, {
   useCallback,
   useContext,
   useEffect,
-  useState,
-  useRef,
   useLayoutEffect,
+  useRef,
+  useState,
 } from 'react';
 import { createPortal } from 'react-dom';
 import {
@@ -14,15 +14,15 @@ import {
   useQuery,
   useQueryClient,
 } from '@tanstack/react-query';
+import { useApi } from '@backstage/core-plugin-api';
+import { type Theme, makeStyles } from '@material-ui/core';
+import { useId } from '../../hooks/hookPolyfills';
 import { BackstageHttpError } from '../../api/errors';
 import {
   CODER_QUERY_KEY_PREFIX,
   sharedAuthQueryKey,
 } from '../../api/queryOptions';
 import { coderClientApiRef } from '../../api/CoderClient';
-import { useApi } from '@backstage/core-plugin-api';
-import { useId } from '../../hooks/hookPolyfills';
-import { Theme, makeStyles } from '@material-ui/core';
 import { CoderLogo } from '../CoderLogo';
 import { CoderAuthFormDialog } from '../CoderAuthFormDialog';
 
