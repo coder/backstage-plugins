@@ -1,5 +1,5 @@
 import React, { type PropsWithChildren } from 'react';
-import { useCoderAuth } from '../CoderProvider';
+import { useCoderAuthWithTracking } from '../CoderProvider';
 import { CoderAuthDistrustedForm } from './CoderAuthDistrustedForm';
 import { CoderAuthLoadingState } from './CoderAuthLoadingState';
 import { CoderAuthInputForm } from './CoderAuthInputForm';
@@ -11,7 +11,7 @@ type Props = Readonly<
 >;
 
 export const CoderAuthForm = ({ descriptionId, children }: Props) => {
-  const auth = useCoderAuth();
+  const auth = useCoderAuthWithTracking();
   if (auth.isAuthenticated) {
     return <>{children}</>;
   }
