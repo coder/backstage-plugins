@@ -12,12 +12,7 @@ import {
   useQuery,
 } from '@tanstack/react-query';
 import { useEndUserCoderAuth } from '../components/CoderProvider';
-
-/**
- * 2024-05-22 - While this isn't documented anywhere, TanStack Query defaults to
- * retrying a failed API request 3 times before exposing an error to the UI
- */
-const DEFAULT_RETRY_COUNT = 3;
+import { DEFAULT_TANSTACK_QUERY_RETRY_COUNT } from '../typesConstants';
 
 export function useCoderQuery<
   TQueryFnData = unknown,
@@ -72,7 +67,9 @@ export function useCoderQuery<
 
       const externalRetry = queryOptions.retry;
       if (typeof externalRetry === 'number') {
-        return failureCount < (externalRetry ?? DEFAULT_RETRY_COUNT);
+        return (
+          failureCount < (externalRetry ?? DEFAULT_TANSTACK_QUERY_RETRY_COUNT)
+        );
       }
 
       if (typeof externalRetry !== 'function') {
