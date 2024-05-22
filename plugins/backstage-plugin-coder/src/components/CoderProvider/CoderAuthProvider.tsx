@@ -26,6 +26,7 @@ import { coderClientApiRef } from '../../api/CoderClient';
 import { CoderLogo } from '../CoderLogo';
 import { CoderAuthFormDialog } from '../CoderAuthFormDialog';
 
+const BACKSTAGE_APP_ROOT_ID = '#root';
 const FALLBACK_UI_OVERRIDE_CLASS_NAME = 'backstage-root-override';
 const TOKEN_STORAGE_KEY = 'coder-backstage-plugin/token';
 
@@ -72,14 +73,19 @@ type TrackComponent = (componentInstanceId: string) => () => void;
 export const AuthTrackingContext = createContext<TrackComponent | null>(null);
 export const AuthStateContext = createContext<CoderAuth | null>(null);
 
+const validAuthStatuses: readonly CoderAuthStatus[] = [
+  'authenticated',
+  'distrustedWithGracePeriod',
+];
+
 function useAuthState(): CoderAuth {
-  // Need to split hairs, because the query object can be disabled. Only want to
-  // expose the initializing state if the app mounts with a token already in
-  // localStorage
   const [authToken, setAuthToken] = useState(
     () => window.localStorage.getItem(TOKEN_STORAGE_KEY) ?? '',
   );
 
+  // Need to differentiate the current token from the token loaded on mount
+  // because the query object can be disabled. Only want to expose the
+  // initializing state if the app mounts with a token already in localStorage
   const [readonlyInitialAuthToken] = useState(authToken);
   const [isInsideGracePeriod, setIsInsideGracePeriod] = useState(true);
 
@@ -91,6 +97,8 @@ function useAuthState(): CoderAuth {
     queryFn: () => coderClient.syncToken(authToken),
     enabled: queryIsEnabled,
     keepPreviousData: queryIsEnabled,
+
+    // Can't use !query.state.data because we want to refetch on undefined cases
     refetchOnWindowFocus: query => query.state.data !== false,
   });
 
@@ -102,8 +110,8 @@ function useAuthState(): CoderAuth {
   });
 
   // Mid-render state sync to avoid unnecessary re-renders that useEffect would
-  // introduce, especially since we don't know how costly re-renders could be in
-  // someone's arbitrarily-large Backstage deployment
+  // introduce. We don't know how costly re-renders could be in someone's
+  // arbitrarily-large Backstage deployment, so erring on the side of caution
   if (!isInsideGracePeriod && authState.status === 'authenticated') {
     setIsInsideGracePeriod(true);
   }
@@ -153,11 +161,6 @@ function useAuthState(): CoderAuth {
     return unsubscribe;
   }, [queryClient]);
 
-  const validAuthStatuses: readonly CoderAuthStatus[] = [
-    'authenticated',
-    'distrustedWithGracePeriod',
-  ];
-
   return {
     ...authState,
     isAuthenticated: validAuthStatuses.includes(authState.status),
@@ -167,9 +170,9 @@ function useAuthState(): CoderAuth {
       }
     },
     ejectToken: () => {
+      setAuthToken('');
       window.localStorage.removeItem(TOKEN_STORAGE_KEY);
       queryClient.removeQueries({ queryKey: [CODER_QUERY_KEY_PREFIX] });
-      setAuthToken('');
     },
   };
 }
@@ -182,7 +185,7 @@ type AuthFallbackState = Readonly<{
 function useAuthFallbackState(): AuthFallbackState {
   // Can't do state syncs or anything else that would normally minimize
   // re-renders here because we have to wait for the entire application to
-  // complete its initial render before we can decide if we need a fallback
+  // complete its initial render before we can decide if we need a fallback UI
   const [isMounted, setIsMounted] = useState(false);
   useEffect(() => {
     setIsMounted(true);
@@ -192,7 +195,7 @@ function useAuthFallbackState(): AuthFallbackState {
   // setting the render state to a simple boolean rather than the whole Set
   // means that we re-render only when we go from 0 trackers to 1+, or from 1+
   // trackers to 0. We don't care about the exact number of components being
-  // tracked, just whether we have any at all
+  // tracked - just whether we have any at all
   const [hasTrackers, setHasTrackers] = useState(false);
   const trackedComponentsRef = useRef<Set<string>>(null!);
   if (trackedComponentsRef.current === null) {
@@ -201,8 +204,9 @@ function useAuthFallbackState(): AuthFallbackState {
 
   const trackComponent = useCallback((componentId: string) => {
     // React will bail out of re-renders if you dispatch the same state value
-    // that it already has. Calling this function too often should cause no
-    // problems and should be a no-op 95% of the time
+    // that it already has, and that's easier to guarantee since the UI state
+    // only has a primitive. Calling this function too often should cause no
+    // problems, and most calls should be a no-op
     const syncTrackerToUi = () => {
       setHasTrackers(trackedComponentsRef.current.size > 0);
     };
@@ -233,9 +237,9 @@ export function useCoderAuth(): CoderAuth {
     throw new Error('Unable to retrieve state for displaying fallback auth UI');
   }
 
-  // Assuming subscribe is set up properly, the values of instanceId and
-  // subscribe should both be stable until whatever component is using this hook
-  // unmounts. Values only added to dependency array to satisfy ESLint
+  // Assuming trackComponent is set up properly, the values of it and instanceId
+  // should both be stable until whatever component is using this hook unmounts.
+  // Values only added to dependency array to satisfy ESLint
   const instanceId = useId();
   useEffect(() => {
     const cleanupTracking = trackComponent(instanceId);
@@ -383,12 +387,10 @@ function generateAuthState({
 // we display the fallback UI. Sadly, we can't assert that the root is always
 // defined from outside a UI component, because throwing any errors here would
 // blow up the entire Backstage application, and wreck all the other plugins
-const mainAppRoot = document.querySelector<HTMLElement>('#root');
+const mainAppRoot = document.querySelector<HTMLElement>(BACKSTAGE_APP_ROOT_ID);
 
 type StyleKey = 'landmarkWrapper' | 'dialogButton' | 'logo';
-type StyleProps = Readonly<{
-  isDialogOpen: boolean;
-}>;
+type StyleProps = Readonly<{ isDialogOpen: boolean }>;
 
 const useFallbackStyles = makeStyles<Theme, StyleProps, StyleKey>(theme => ({
   landmarkWrapper: ({ isDialogOpen }) => ({
@@ -434,11 +436,12 @@ function FallbackAuthUi() {
       return undefined;
     }
 
-    // Adding a new style node lets us override the existing styles without
-    // directly touching them, minimizing the risks of breaking anything. If we
-    // were to modify the styles and try resetting them with the cleanup
-    // function, there's a risk the cleanup function would have closure over
-    // stale values and try "resetting" things to a value that is no longer used
+    // Adding a new style node lets us override the existing styles via the CSS
+    // cascade rather than directly modifying them, which minimizes the risks of
+    // breaking anything. If we were to modify the styles and try resetting them
+    // with the cleanup function, there's a risk the cleanup function would have
+    // closure over stale values and try "resetting" things to a value that is
+    // no longer used
     const overrideStyleNode = document.createElement('style');
     overrideStyleNode.type = 'text/css';
 
@@ -532,9 +535,8 @@ function FallbackAuthUi() {
 }
 
 /**
- * This is very wacky, and I'm sorry for how cursed it is. We're definitely
- * abusing React Context here, but this setup should simplify the code literally
- * everywhere else in the app.
+ * Sorry about how wacky this approach is, but this setup should simplify the
+ * code literally everywhere else in the plugin.
  *
  * The setup is that we have two versions of the tracking context: one that has
  * the live trackComponent function, and one that has the dummy. The main parts
@@ -542,21 +544,20 @@ function FallbackAuthUi() {
  * fallback auth UI get the dummy version.
  *
  * By having two contexts, we can dynamically expose or hide the tracking
- * state for different parts of the app without any other components needing to
- * be rewritten at all.
+ * state for different parts of the plugin without any other components needing
+ * to be rewritten at all.
  *
  * Any other component that uses useCoderAuth will reach up the component tree
  * until it can grab *some* kind of tracking function. The hook only cares about
- * whether it got a function at all; it doesn't care about what it does. It'll
- * call the function the same way, but only the components in the "live" region
- * will actually influence whether the fallback UI should be displayed.
+ * whether it got a function at all; it doesn't care about what it does. The
+ * hook will call the function either way, but only the components in the "live"
+ * region will actually influence whether the fallback UI should be displayed.
  *
- * Function also defined outside the component to prevent risk of needless
+ * Dummy function defined outside the component to prevent risk of needless
  * re-renders through Context.
  */
 const dummyTrackComponent: TrackComponent = () => {
   // Deliberately perform a no-op on initial call
-
   return () => {
     // And deliberately perform a no-op on cleanup
   };
