@@ -192,7 +192,7 @@ export const CoderWorkspacesReminderAccordion = coderPlugin.provide(
 );
 
 /**
- * Custom hooks needed throughout
+ * Custom hooks needed for some of the custom Coder components
  */
 export { useWorkspacesCardContext } from './components/CoderWorkspacesCard/Root';
 
