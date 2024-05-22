@@ -1,31 +1,17 @@
 import React, { HTMLAttributes, ReactNode } from 'react';
-import { Theme, makeStyles } from '@material-ui/core';
+import { type Theme, makeStyles } from '@material-ui/core';
 import { useWorkspacesCardContext } from './Root';
+import type { HtmlHeader } from '../../typesConstants';
 
 type StyleKey = 'root' | 'header' | 'hgroup' | 'subheader';
-
-type MakeStylesInputs = Readonly<{
-  fullBleedLayout: boolean;
-}>;
-
-const useStyles = makeStyles<Theme, MakeStylesInputs, StyleKey>(theme => ({
-  root: ({ fullBleedLayout }) => ({
+const useStyles = makeStyles<Theme, {}, StyleKey>(theme => ({
+  root: {
     color: theme.palette.text.primary,
     display: 'flex',
     flexFlow: 'row nowrap',
     alignItems: 'center',
     gap: theme.spacing(1),
-
-    // Have to jump through some hoops for the border; have to extend out the
-    // root to make sure that the border stretches all the way across the
-    // parent, and then add padding back to just the main content
-    borderBottom: `1px solid ${theme.palette.divider}`,
-    marginLeft: fullBleedLayout ? `-${theme.spacing(2)}px` : 0,
-    marginRight: fullBleedLayout ? `-${theme.spacing(2)}px` : 0,
-    padding: `0 ${theme.spacing(2)}px ${theme.spacing(2)}px ${theme.spacing(
-      2.5,
-    )}px`,
-  }),
+  },
 
   hgroup: {
     marginRight: 'auto',
@@ -39,12 +25,13 @@ const useStyles = makeStyles<Theme, MakeStylesInputs, StyleKey>(theme => ({
 
   subheader: {
     margin: '0',
+    fontSize: '14px',
+    fontWeight: 400,
     color: theme.palette.text.secondary,
     paddingTop: theme.spacing(0.5),
   },
 }));
 
-type HtmlHeader = `h${1 | 2 | 3 | 4 | 5 | 6}`;
 type ClassName = `${Exclude<StyleKey, 'root'>}ClassName`;
 
 type HeaderProps = Readonly<
@@ -67,11 +54,10 @@ export const HeaderRow = ({
   subheaderClassName,
   activeRepoFilteringText,
   headerText = 'Coder Workspaces',
-  fullBleedLayout = true,
   ...delegatedProps
 }: HeaderProps) => {
   const { headerId, workspacesConfig } = useWorkspacesCardContext();
-  const styles = useStyles({ fullBleedLayout });
+  const styles = useStyles();
 
   const HeadingComponent = headerLevel ?? 'h2';
   const { repoUrl } = workspacesConfig;

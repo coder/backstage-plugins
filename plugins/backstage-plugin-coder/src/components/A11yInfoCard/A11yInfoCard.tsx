@@ -36,11 +36,6 @@ const useCardStyles = makeStyles(theme => ({
     marginRight: `-${theme.spacing(2)}px`,
     padding: `0 ${theme.spacing(2)}px ${theme.spacing(2)}px`,
   },
-
-  bodyContent: {
-    paddingTop: theme.spacing(6),
-    paddingBottom: theme.spacing(6),
-  },
 }));
 
 // Card should be treated as equivalent to Backstage's official InfoCard
@@ -61,7 +56,7 @@ export const A11yInfoCard = forwardRef<HTMLDivElement, A11yInfoCardProps>(
           <div className={styles.headerContent}>{headerContent}</div>
         )}
 
-        <div className={styles.bodyContent}>{children}</div>
+        {children}
       </div>
     );
   },

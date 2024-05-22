@@ -109,3 +109,5 @@ export type User = Readonly<{
  * retrying a failed API request 3 times before exposing an error to the UI
  */
 export const DEFAULT_TANSTACK_QUERY_RETRY_COUNT = 3;
+
+export type HtmlHeader = `h${1 | 2 | 3 | 4 | 5 | 6}`;

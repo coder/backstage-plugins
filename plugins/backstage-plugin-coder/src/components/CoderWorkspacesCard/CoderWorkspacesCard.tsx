@@ -22,17 +22,20 @@ export const CoderWorkspacesCard = (props: Props) => {
   const styles = useStyles();
 
   return (
-    <Root {...props}>
-      <HeaderRow
-        headerLevel="h2"
-        actions={
-          <>
-            <CreateWorkspaceLink />
-            <ExtraActionsButton />
-          </>
-        }
-      />
-
+    <Root
+      headerContent={
+        <HeaderRow
+          headerLevel="h2"
+          actions={
+            <>
+              <CreateWorkspaceLink />
+              <ExtraActionsButton />
+            </>
+          }
+        />
+      }
+      {...props}
+    >
       <div className={styles.searchWrapper}>
         <SearchBox />
       </div>

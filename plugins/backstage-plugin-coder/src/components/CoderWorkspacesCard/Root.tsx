@@ -4,8 +4,8 @@
  */
 import React, {
   type HTMLAttributes,
+  type ReactNode,
   createContext,
-  forwardRef,
   useContext,
   useState,
 } from 'react';
@@ -17,36 +17,7 @@ import {
 } from '../../hooks/useCoderWorkspacesConfig';
 import type { Workspace } from '../../typesConstants';
 import { useCoderWorkspacesQuery } from '../../hooks/useCoderWorkspacesQuery';
-import { makeStyles } from '@material-ui/core';
-import { CoderAuthWrapper } from '../CoderAuthWrapper';
-
-const useCardStyles = makeStyles(theme => ({
-  root: {
-    color: theme.palette.type,
-    backgroundColor: theme.palette.background.paper,
-    padding: theme.spacing(2),
-    borderRadius: theme.shape.borderRadius,
-    boxShadow: theme.shadows[1],
-  },
-}));
-
-// Card should be treated as equivalent to Backstage's official InfoCard
-// component; had to make custom version so that it could forward properties for
-// accessibility/screen reader support
-const Card = forwardRef<HTMLDivElement, HTMLAttributes<HTMLDivElement>>(
-  (props, ref) => {
-    const { className, ...delegatedProps } = props;
-    const styles = useCardStyles();
-
-    return (
-      <div
-        ref={ref}
-        className={`${styles.root} ${className ?? ''}`}
-        {...delegatedProps}
-      />
-    );
-  },
-);
+import { CoderAuthFormCardWrapper } from '../CoderAuthFormCardWrapper';
 
 export type WorkspacesQuery = UseQueryResult<readonly Workspace[]>;
 
@@ -68,12 +39,14 @@ export type WorkspacesCardProps = Readonly<
     defaultQueryFilter?: string;
     onFilterChange?: (newFilter: string) => void;
     readEntityData?: boolean;
+    headerContent?: ReactNode;
   }
 >;
 
 const InnerRoot = ({
   children,
   className,
+  headerContent,
   queryFilter: outerFilter,
   onFilterChange: onOuterFilterChange,
   defaultQueryFilter = 'owner:me',
@@ -93,44 +66,49 @@ const InnerRoot = ({
   const headerId = `${hookId}-header`;
 
   return (
-    <CoderAuthWrapper type="card">
-      <CardContext.Provider
-        value={{
-          headerId,
-          workspacesQuery,
-          workspacesConfig,
-          queryFilter: activeFilter,
-          onFilterChange: newFilter => {
-            setInnerFilter(newFilter);
-            onOuterFilterChange?.(newFilter);
-          },
-        }}
+    <CardContext.Provider
+      value={{
+        headerId,
+        workspacesQuery,
+        workspacesConfig,
+        queryFilter: activeFilter,
+        onFilterChange: newFilter => {
+          setInnerFilter(newFilter);
+          onOuterFilterChange?.(newFilter);
+        },
+      }}
+    >
+      <CoderAuthFormCardWrapper
+        role="search"
+        headerContent={headerContent}
+        aria-labelledby={headerId}
+        {...delegatedProps}
       >
-        {/*
-         * 2024-01-31: This output is a <div>, but that should be changed to a
-         * <search> once that element is supported by more browsers. Setting up
-         * accessibility markup and landmark behavior manually in the meantime
-         */}
-        <Card role="search" aria-labelledby={headerId} {...delegatedProps}>
-          {/* Want to expose the overall container as a form for good
-              semantics and screen reader support, but since there isn't an
-              explicit submission process (queries happen automatically), it
-              felt better to use a <div> with a role override to side-step edge
-              cases around keyboard input and button children that native <form>
-              elements automatically introduce */}
-          <div role="form">{children}</div>
-        </Card>
-      </CardContext.Provider>
-    </CoderAuthWrapper>
+        {/* Want to expose the overall container as a form for good
+            semantics and screen reader support, but since there isn't an
+            explicit submission process (queries happen automatically), it
+            felt better to use a <div> with a role override to side-step edge
+            cases around keyboard input and button children that native <form>
+            elements automatically introduce */}
+        <div role="form">{children}</div>
+      </CoderAuthFormCardWrapper>
+    </CardContext.Provider>
   );
 };
 
 export function Root(props: WorkspacesCardProps) {
-  // Doing this to insulate the user from needing to worry about accidentally
-  // flipping the value of readEntityData between renders. If this value
-  // changes, it will cause the component to unmount and remount, but that
-  // should be painless/maybe invisible compared to having the component throw
-  // a full error and triggering an error boundary
+  /**
+   * Binding the value of readEntityData as a render key to make using the
+   * component less painful to use overall for end users.
+   *
+   * Without this, the component will throw an error anytime the user flips the
+   * value of readEntityData from false to true, or vice-versa.
+   *
+   * With a render key, whenever the key changes, the whole component will
+   * unmount and then remount. This isn't a problem because all its important
+   * state is stored outside React via React Query, so on the remount, it can
+   * reuse the existing state and just has rebuild itself via the new props.
+   */
   const renderKey = String(props.readEntityData ?? false);
   return <InnerRoot key={renderKey} {...props} />;
 }
