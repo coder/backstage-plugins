@@ -544,14 +544,16 @@ function FallbackAuthUi() {
  * fallback auth UI get the dummy version.
  *
  * By having two contexts, we can dynamically expose or hide the tracking
- * state for different parts of the plugin without any other components needing
- * to be rewritten at all.
+ * state for any components that use useCoderAuth. All other components can
+ * use the same hook without being aware of where they're being mounted. That
+ * means you can use the exact same components in either region without needing
+ * to rewrite anything outside this file.
  *
  * Any other component that uses useCoderAuth will reach up the component tree
  * until it can grab *some* kind of tracking function. The hook only cares about
  * whether it got a function at all; it doesn't care about what it does. The
  * hook will call the function either way, but only the components in the "live"
- * region will actually influence whether the fallback UI should be displayed.
+ * region will influence whether the fallback UI should be displayed.
  *
  * Dummy function defined outside the component to prevent risk of needless
  * re-renders through Context.
