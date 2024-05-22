@@ -21,6 +21,13 @@ export const CoderAuthForm = ({
 
   return (
     <>
+      {/*
+       * By default this text will be inert, and not be exposed anywhere
+       * (Sighted and blind users won't be able to interact with it). To enable
+       * it for screen readers, a consuming component will need bind an ID to
+       * another component via aria-describedby and then pass the same ID down
+       * as props.
+       */}
       <p id={descriptionId} hidden>
         Please authenticate with Coder to enable the Coder plugin for Backstage.
       </p>
