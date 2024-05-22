@@ -1,6 +1,8 @@
 /**
  * @file A slightly different take on Backstage's official InfoCard component,
  * with better support for accessibility.
+ *
+ * Does not support all of InfoCard's properties just yet.
  */
 import React, { type HTMLAttributes, type ReactNode, forwardRef } from 'react';
 import { makeStyles } from '@material-ui/core';
@@ -20,7 +22,25 @@ const useCardStyles = makeStyles(theme => ({
     boxShadow: theme.shadows[1],
   },
 
-  headerContent: {},
+  headerContent: {
+    // Ideally wouldn't be using hard-coded font sizes, but couldn't figure out
+    // how to use the theme.typography property, especially since not all
+    // sub-properties have font sizes defined
+    fontSize: '24px',
+    color: theme.palette.text.primary,
+    fontWeight: 700,
+    borderBottom: `1px solid ${theme.palette.divider}`,
+
+    // Margins and padding are a bit wonky to support full-bleed layouts
+    marginLeft: `-${theme.spacing(2)}px`,
+    marginRight: `-${theme.spacing(2)}px`,
+    padding: `0 ${theme.spacing(2)}px ${theme.spacing(2)}px`,
+  },
+
+  bodyContent: {
+    paddingTop: theme.spacing(6),
+    paddingBottom: theme.spacing(6),
+  },
 }));
 
 // Card should be treated as equivalent to Backstage's official InfoCard
@@ -41,7 +61,7 @@ export const A11yInfoCard = forwardRef<HTMLDivElement, A11yInfoCardProps>(
           <div className={styles.headerContent}>{headerContent}</div>
         )}
 
-        {children}
+        <div className={styles.bodyContent}>{children}</div>
       </div>
     );
   },
