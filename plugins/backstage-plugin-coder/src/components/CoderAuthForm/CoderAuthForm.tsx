@@ -4,13 +4,16 @@ import { CoderAuthDistrustedForm } from './CoderAuthDistrustedForm';
 import { CoderAuthLoadingState } from './CoderAuthLoadingState';
 import { CoderAuthInputForm } from './CoderAuthInputForm';
 
-type Props = Readonly<
+export type CoderAuthFormProps = Readonly<
   PropsWithChildren<{
     descriptionId?: string;
   }>
 >;
 
-export const CoderAuthForm = ({ descriptionId, children }: Props) => {
+export const CoderAuthForm = ({
+  children,
+  descriptionId,
+}: CoderAuthFormProps) => {
   const auth = useInternalCoderAuth();
   if (auth.isAuthenticated) {
     return <>{children}</>;
