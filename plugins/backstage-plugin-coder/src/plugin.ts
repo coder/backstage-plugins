@@ -191,7 +191,6 @@ export { useWorkspacesCardContext } from './components/CoderWorkspacesCard/Root'
  */
 export { useCoderWorkspacesConfig } from './hooks/useCoderWorkspacesConfig';
 export { useCoderSdk } from './hooks/useCoderSdk';
-export { useCoderQuery } from './hooks/useCoderQuery';
 export { useEndUserCoderAuth as useCoderAuth } from './components/CoderProvider/CoderAuthProvider';
 
 /**
