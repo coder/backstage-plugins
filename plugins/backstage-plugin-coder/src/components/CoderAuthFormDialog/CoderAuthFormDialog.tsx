@@ -46,14 +46,18 @@ const useStyles = makeStyles(theme => ({
   },
 
   contentContainer: {
-    padding: `${theme.spacing(2)}px ${theme.spacing(3)}px`,
+    padding: `${theme.spacing(6)}px ${theme.spacing(3)}px ${theme.spacing(
+      3,
+    )}px`,
   },
 
   actionsRow: {
     display: 'flex',
     flexFlow: 'row nowrap',
     justifyContent: 'center',
-    padding: `${theme.spacing(1)}px ${theme.spacing(2)}px`,
+    padding: `${theme.spacing(1)}px ${theme.spacing(2)}px ${theme.spacing(
+      2,
+    )}px`,
   },
 
   closeButton: {
