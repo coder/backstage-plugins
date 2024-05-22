@@ -1,5 +1,6 @@
 import {
   type UseMutationOptions,
+  type UseMutationResult,
   useQueryClient,
   useMutation,
 } from '@tanstack/react-query';
@@ -11,7 +12,9 @@ export function useCoderMutation<
   TError = unknown,
   TVariables = void,
   TContext = unknown,
->(mutationOptions: UseMutationOptions<TData, TError, TVariables, TContext>) {
+>(
+  mutationOptions: UseMutationOptions<TData, TError, TVariables, TContext>,
+): UseMutationResult<TData, TError, TVariables, TContext> {
   // This hook is intended for the end user only; don't need internal version of
   // auth hook
   const { isAuthenticated } = useEndUserCoderAuth();
