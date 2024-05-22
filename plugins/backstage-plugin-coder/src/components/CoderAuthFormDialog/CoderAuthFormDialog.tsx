@@ -41,14 +41,13 @@ const useStyles = makeStyles(theme => ({
   },
 
   dialogTitle: {
+    fontSize: '24px',
     borderBottom: `${theme.palette.divider} 1px solid`,
     padding: `${theme.spacing(1)}px ${theme.spacing(3)}px`,
   },
 
   contentContainer: {
-    padding: `${theme.spacing(6)}px ${theme.spacing(3)}px ${theme.spacing(
-      3,
-    )}px`,
+    padding: `${theme.spacing(6)}px ${theme.spacing(3)}px 0`,
   },
 
   actionsRow: {
@@ -56,7 +55,7 @@ const useStyles = makeStyles(theme => ({
     flexFlow: 'row nowrap',
     justifyContent: 'center',
     padding: `${theme.spacing(1)}px ${theme.spacing(2)}px ${theme.spacing(
-      2,
+      6,
     )}px`,
   },
 
