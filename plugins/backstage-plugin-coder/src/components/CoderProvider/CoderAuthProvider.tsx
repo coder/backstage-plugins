@@ -227,17 +227,17 @@ function useAuthFallbackState(): AuthFallbackState {
 }
 
 /**
- * Behaves almost exactly like useCoderAuth, but has additional logic for
- * spying on consumers of this hook.
- *
- * A fallback UI for letting the user input auth information will appear if
- * there are no official Coder components that are able to give the user a way
- * to do that through normal user flows.
+ * Exposes auth state for other components, but has additional logic for spying
+ * on consumers of the hook.
  *
  * Caveats:
  * 1. This hook should *NEVER* be exposed to the end user
  * 2. All official Coder plugin components should favor this hook over
  *    useEndUserCoderAuth when possible
+ *
+ * A fallback UI for letting the user input auth information will appear if
+ * there are no official Coder components that are able to give the user a way
+ * to do that through normal user flows.
  */
 export function useInternalCoderAuth(): CoderAuth {
   const trackComponent = useContext(AuthTrackingContext);
@@ -566,16 +566,17 @@ function FallbackAuthUi() {
  * fallback auth UI get the dummy version.
  *
  * By having two contexts, we can dynamically expose or hide the tracking
- * state for any components that use useCoderAuth. All other components can
- * use the same hook without being aware of where they're being mounted. That
- * means you can use the exact same components in either region without needing
- * to rewrite anything outside this file.
+ * state for any components that use any version of the Coder auth state. All
+ * other components can use the same hook without being aware of where they're
+ * being mounted. That means you can use the exact same components in either
+ * region without needing to rewrite anything outside this file.
  *
- * Any other component that uses useCoderAuth will reach up the component tree
- * until it can grab *some* kind of tracking function. The hook only cares about
- * whether it got a function at all; it doesn't care about what it does. The
- * hook will call the function either way, but only the components in the "live"
- * region will influence whether the fallback UI should be displayed.
+ * Any other component that uses useInternalCoderAuth will reach up the
+ * component tree until it can grab *some* kind of tracking function. The hook
+ * only cares about whether it got a function at all; it doesn't care about what
+ * it does. The hook will call the function either way, but only the components
+ * in the "live" region will influence whether the fallback UI should be
+ * displayed.
  *
  * Dummy function defined outside the component to prevent risk of needless
  * re-renders through Context.

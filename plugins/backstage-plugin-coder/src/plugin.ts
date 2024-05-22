@@ -192,11 +192,17 @@ export const CoderWorkspacesReminderAccordion = coderPlugin.provide(
 );
 
 /**
- * All custom hooks exposed by the plugin.
+ * Custom hooks needed throughout
+ */
+export { useWorkspacesCardContext } from './components/CoderWorkspacesCard/Root';
+
+/**
+ * General custom hooks that can be used in various places.
  */
 export { useCoderWorkspacesConfig } from './hooks/useCoderWorkspacesConfig';
-export { useCoderWorkspacesQuery } from './hooks/useCoderWorkspacesQuery';
-export { useWorkspacesCardContext } from './components/CoderWorkspacesCard/Root';
+export { useCoderSdk } from './hooks/useCoderSdk';
+export { useCoderQuery } from './hooks/useCoderQuery';
+export { useEndUserCoderAuth as useCoderAuth } from './components/CoderProvider/CoderAuthProvider';
 
 /**
  * All custom types
