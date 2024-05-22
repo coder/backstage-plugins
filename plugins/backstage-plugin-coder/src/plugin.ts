@@ -58,16 +58,6 @@ export const CoderProvider = coderPlugin.provide(
   }),
 );
 
-export const CoderAuthWrapper = coderPlugin.provide(
-  createComponentExtension({
-    name: 'CoderAuthWrapper',
-    component: {
-      lazy: () =>
-        import('./components/CoderAuthWrapper').then(m => m.CoderAuthWrapper),
-    },
-  }),
-);
-
 export const CoderErrorBoundary = coderPlugin.provide(
   createComponentExtension({
     name: 'CoderErrorBoundary',
