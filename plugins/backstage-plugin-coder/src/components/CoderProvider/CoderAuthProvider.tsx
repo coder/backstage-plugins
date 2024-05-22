@@ -226,12 +226,20 @@ function useAuthFallbackState(): AuthFallbackState {
   };
 }
 
-export function useCoderAuth(): CoderAuth {
-  const authContextValue = useContext(AuthStateContext);
-  if (authContextValue === null) {
-    throw new Error('Cannot retrieve auth information from CoderProvider');
-  }
-
+/**
+ * Behaves almost exactly like useCoderAuth, but has additional logic for
+ * spying on consumers of this hook.
+ *
+ * A fallback UI for letting the user input auth information will appear if
+ * there are no official Coder components that are able to give the user a way
+ * to do that through normal user flows.
+ *
+ * Caveats:
+ * 1. This hook should *NEVER* be exposed to the end user
+ * 2. All official Coder plugin components should favor this hook over
+ *    useCoderAuth when possible
+ */
+export function useCoderAuthWithTracking(): CoderAuth {
   const trackComponent = useContext(AuthTrackingContext);
   if (trackComponent === null) {
     throw new Error('Unable to retrieve state for displaying fallback auth UI');
@@ -245,6 +253,18 @@ export function useCoderAuth(): CoderAuth {
     const cleanupTracking = trackComponent(instanceId);
     return cleanupTracking;
   }, [instanceId, trackComponent]);
+
+  return useCoderAuth();
+}
+
+/**
+ * Exposes Coder auth state to the rest of the UI.
+ */
+export function useCoderAuth(): CoderAuth {
+  const authContextValue = useContext(AuthStateContext);
+  if (authContextValue === null) {
+    throw new Error('Cannot retrieve auth information from CoderProvider');
+  }
 
   return authContextValue;
 }
