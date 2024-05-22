@@ -3,7 +3,7 @@ import { useId } from '../../hooks/hookPolyfills';
 import {
   type CoderAuthStatus,
   useCoderAppConfig,
-  useCoderAuth,
+  useInternalCoderAuth,
 } from '../CoderProvider';
 
 import { CoderLogo } from '../CoderLogo';
@@ -49,7 +49,7 @@ export const CoderAuthInputForm = () => {
   const hookId = useId();
   const styles = useStyles();
   const appConfig = useCoderAppConfig();
-  const { status, registerNewToken } = useCoderAuth();
+  const { status, registerNewToken } = useInternalCoderAuth();
 
   const onSubmit = (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();

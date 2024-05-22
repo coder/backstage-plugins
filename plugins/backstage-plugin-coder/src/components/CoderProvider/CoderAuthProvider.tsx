@@ -237,9 +237,9 @@ function useAuthFallbackState(): AuthFallbackState {
  * Caveats:
  * 1. This hook should *NEVER* be exposed to the end user
  * 2. All official Coder plugin components should favor this hook over
- *    useCoderAuth when possible
+ *    useEndUserCoderAuth when possible
  */
-export function useCoderAuthWithTracking(): CoderAuth {
+export function useInternalCoderAuth(): CoderAuth {
   const trackComponent = useContext(AuthTrackingContext);
   if (trackComponent === null) {
     throw new Error('Unable to retrieve state for displaying fallback auth UI');
@@ -254,13 +254,15 @@ export function useCoderAuthWithTracking(): CoderAuth {
     return cleanupTracking;
   }, [instanceId, trackComponent]);
 
-  return useCoderAuth();
+  return useEndUserCoderAuth();
 }
 
 /**
  * Exposes Coder auth state to the rest of the UI.
  */
-export function useCoderAuth(): CoderAuth {
+// This hook should only be used by end users trying to use the Coder SDK inside
+// Backstage. The hook is renamed on final export to avoid confusion
+export function useEndUserCoderAuth(): CoderAuth {
   const authContextValue = useContext(AuthStateContext);
   if (authContextValue === null) {
     throw new Error('Cannot retrieve auth information from CoderProvider');

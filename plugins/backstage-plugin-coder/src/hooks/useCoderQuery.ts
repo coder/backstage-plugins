@@ -1,6 +1,9 @@
 /**
  * @file Provides a convenience wrapper for end users trying to cache data from
- * the Coder SDK. Removes the need to manually bring in useCoderAuth
+ * the Coder SDK. Removes the need to manually bring in useCoderAuth and wire
+ * it up to all of useQuery's config properties
+ *
+ * This has a little more overhead, but the hook is a lot more fire-and-forget
  */
 import {
   type QueryKey,
@@ -8,7 +11,7 @@ import {
   type UseQueryResult,
   useQuery,
 } from '@tanstack/react-query';
-import { useCoderAuth } from '../components/CoderProvider';
+import { useEndUserCoderAuth } from '../components/CoderProvider';
 
 /**
  * 2024-05-22 - While this isn't documented anywhere, TanStack Query defaults to
@@ -26,7 +29,7 @@ export function useCoderQuery<
 ): UseQueryResult<TData, TError> {
   // This hook is intended for the end user only; don't need internal version of
   // auth hook
-  const { isAuthenticated } = useCoderAuth();
+  const { isAuthenticated } = useEndUserCoderAuth();
 
   const patchedOptions: typeof queryOptions = {
     ...queryOptions,

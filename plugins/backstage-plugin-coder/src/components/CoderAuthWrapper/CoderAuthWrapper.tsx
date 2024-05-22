@@ -1,5 +1,5 @@
 import React, { type FC, type PropsWithChildren } from 'react';
-import { useCoderAuthWithTracking } from '../CoderProvider';
+import { useInternalCoderAuth } from '../CoderProvider';
 import { InfoCard } from '@backstage/core-components';
 import { CoderAuthDistrustedForm } from './CoderAuthDistrustedForm';
 import { makeStyles } from '@material-ui/core';
@@ -29,7 +29,7 @@ type WrapperProps = Readonly<
 >;
 
 export const CoderAuthWrapper = ({ children, type }: WrapperProps) => {
-  const auth = useCoderAuthWithTracking();
+  const auth = useInternalCoderAuth();
   if (auth.isAuthenticated) {
     return <>{children}</>;
   }

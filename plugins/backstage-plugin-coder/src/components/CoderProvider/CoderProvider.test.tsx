@@ -12,7 +12,7 @@ import {
 
 import { CoderProvider } from './CoderProvider';
 import { useCoderAppConfig } from './CoderAppConfigProvider';
-import { type CoderAuth, useCoderAuth } from './CoderAuthProvider';
+import { type CoderAuth, useEndUserCoderAuth } from './CoderAuthProvider';
 
 import {
   getMockConfigApi,
@@ -70,7 +70,7 @@ describe(`${CoderProvider.name}`, () => {
         apis: { urlSync, identityApi },
       });
 
-      return renderHook(useCoderAuth, {
+      return renderHook(useEndUserCoderAuth, {
         wrapper: ({ children }) => (
           <TestApiProvider
             apis={[

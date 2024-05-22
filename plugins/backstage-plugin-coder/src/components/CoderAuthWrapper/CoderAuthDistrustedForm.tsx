@@ -2,7 +2,7 @@ import React from 'react';
 import { CoderLogo } from '../CoderLogo';
 import { LinkButton } from '@backstage/core-components';
 import { makeStyles } from '@material-ui/core';
-import { useCoderAuthWithTracking } from '../CoderProvider';
+import { useInternalCoderAuth } from '../CoderProvider';
 
 const useStyles = makeStyles(theme => ({
   root: {
@@ -31,7 +31,7 @@ const useStyles = makeStyles(theme => ({
 
 export const CoderAuthDistrustedForm = () => {
   const styles = useStyles();
-  const { ejectToken } = useCoderAuthWithTracking();
+  const { ejectToken } = useInternalCoderAuth();
 
   return (
     <div className={styles.root}>
