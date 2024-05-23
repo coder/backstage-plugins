@@ -77,7 +77,7 @@ describe(`${CoderAuthForm.name}`, () => {
 
       const user = userEvent.setup();
       const ejectButton = await screen.findByRole('button', {
-        name: /Eject token/,
+        name: /Unlink Coder account/,
       });
 
       await user.click(ejectButton);
@@ -87,7 +87,6 @@ describe(`${CoderAuthForm.name}`, () => {
 
   describe('Token submission form', () => {
     it("Is displayed when the token either doesn't exist or is definitely not valid", async () => {
-      const tokenFormMatcher = /Please enter a new token/;
       const statusesForInvalidUser: readonly CoderAuthStatus[] = [
         'invalid',
         'tokenMissing',
@@ -96,7 +95,7 @@ describe(`${CoderAuthForm.name}`, () => {
       for (const authStatus of statusesForInvalidUser) {
         const { unmount } = await renderAuthWrapper({ authStatus });
         const form = screen.getByRole('form', {
-          name: tokenFormMatcher,
+          name: /Authenticate with Coder/,
         });
 
         expect(form).toBeInTheDocument();
