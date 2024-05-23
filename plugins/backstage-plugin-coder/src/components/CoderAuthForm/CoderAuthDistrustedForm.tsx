@@ -1,7 +1,6 @@
 import React from 'react';
 import { CoderLogo } from '../CoderLogo';
 import { makeStyles } from '@material-ui/core';
-import { useInternalCoderAuth } from '../CoderProvider';
 import { UnlinkAccountButton } from './UnlinkAccountButton';
 
 const useStyles = makeStyles(theme => ({
