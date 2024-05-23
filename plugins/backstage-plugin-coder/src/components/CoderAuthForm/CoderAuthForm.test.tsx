@@ -8,18 +8,14 @@ import {
   mockAuthStates,
   mockCoderAuthToken,
 } from '../../testHelpers/mockBackstageData';
-import { CoderAuthWrapper } from './CoderAuthWrapper';
+import { CoderAuthForm } from './CoderAuthForm';
 import { renderInTestApp } from '@backstage/test-utils';
 
 type RenderInputs = Readonly<{
   authStatus: CoderAuthStatus;
-  childButtonText?: string;
 }>;
 
-async function renderAuthWrapper({
-  authStatus,
-  childButtonText = 'Default button text',
-}: RenderInputs) {
+async function renderAuthWrapper({ authStatus }: RenderInputs) {
   const ejectToken = jest.fn();
   const registerNewToken = jest.fn();
 
@@ -40,50 +36,24 @@ async function renderAuthWrapper({
    */
   const renderOutput = await renderInTestApp(
     <CoderProviderWithMockAuth appConfig={mockAppConfig} auth={auth}>
-      <CoderAuthWrapper type="card">
-        <button>{childButtonText}</button>
-      </CoderAuthWrapper>
+      <CoderAuthForm />
     </CoderProviderWithMockAuth>,
   );
 
   return { ...renderOutput, ejectToken, registerNewToken };
 }
 
-describe(`${CoderAuthWrapper.name}`, () => {
-  describe('Displaying main content', () => {
-    it('Displays the main children when the user is authenticated', async () => {
-      const buttonText = 'I have secret Coder content!';
-      renderAuthWrapper({
-        authStatus: 'authenticated',
-        childButtonText: buttonText,
-      });
-
-      const button = await screen.findByRole('button', { name: buttonText });
-
-      // This assertion isn't necessary because findByRole will throw an error
-      // if the button can't be found within the expected period of time. Doing
-      // this purely to make the Backstage linter happy
-      expect(button).toBeInTheDocument();
-    });
-  });
-
+describe(`${CoderAuthForm.name}`, () => {
   describe('Loading UI', () => {
     it('Is displayed while the auth is initializing', async () => {
-      const buttonText = "You shouldn't be able to see me!";
-      renderAuthWrapper({
-        authStatus: 'initializing',
-        childButtonText: buttonText,
-      });
-
-      await screen.findByText(/Loading/);
-      const button = screen.queryByRole('button', { name: buttonText });
-      expect(button).not.toBeInTheDocument();
+      renderAuthWrapper({ authStatus: 'initializing' });
+      const loadingIndicator = await screen.findByText(/Loading/);
+      expect(loadingIndicator).toBeInTheDocument();
     });
   });
 
   describe('Token distrusted form', () => {
     it("Is displayed when the user's auth status cannot be verified", async () => {
-      const buttonText = 'Not sure if you should be able to see me';
       const distrustedTextMatcher = /Unable to verify token authenticity/;
       const distrustedStatuses: readonly CoderAuthStatus[] = [
         'distrusted',
@@ -91,16 +61,11 @@ describe(`${CoderAuthWrapper.name}`, () => {
         'deploymentUnavailable',
       ];
 
-      for (const status of distrustedStatuses) {
-        const { unmount } = await renderAuthWrapper({
-          authStatus: status,
-          childButtonText: buttonText,
-        });
+      for (const authStatus of distrustedStatuses) {
+        const { unmount } = await renderAuthWrapper({ authStatus });
+        const message = await screen.findByText(distrustedTextMatcher);
 
-        await screen.findByText(distrustedTextMatcher);
-        const button = screen.queryByRole('button', { name: buttonText });
-        expect(button).not.toBeInTheDocument();
-
+        expect(message).toBeInTheDocument();
         unmount();
       }
     });
@@ -112,58 +77,29 @@ describe(`${CoderAuthWrapper.name}`, () => {
 
       const user = userEvent.setup();
       const ejectButton = await screen.findByRole('button', {
-        name: 'Eject token',
+        name: /Eject token/,
       });
 
       await user.click(ejectButton);
       expect(ejectToken).toHaveBeenCalled();
     });
-
-    it('Will appear if auth status changes during re-renders', async () => {
-      const buttonText = "Now you see me, now you don't";
-      const { rerender } = await renderAuthWrapper({
-        authStatus: 'authenticated',
-        childButtonText: buttonText,
-      });
-
-      // Capture button after it first appears on the screen
-      const button = await screen.findByRole('button', { name: buttonText });
-
-      rerender(
-        <CoderProviderWithMockAuth
-          appConfig={mockAppConfig}
-          authStatus="distrusted"
-        >
-          <CoderAuthWrapper type="card">
-            <button>{buttonText}</button>
-          </CoderAuthWrapper>
-        </CoderProviderWithMockAuth>,
-      );
-
-      // Assert that the button is now gone
-      expect(button).not.toBeInTheDocument();
-    });
   });
 
   describe('Token submission form', () => {
     it("Is displayed when the token either doesn't exist or is definitely not valid", async () => {
-      const buttonText = "You're not allowed to gaze upon my visage";
       const tokenFormMatcher = /Please enter a new token/;
       const statusesForInvalidUser: readonly CoderAuthStatus[] = [
         'invalid',
         'tokenMissing',
       ];
 
-      for (const status of statusesForInvalidUser) {
-        const { unmount } = await renderAuthWrapper({
-          authStatus: status,
-          childButtonText: buttonText,
+      for (const authStatus of statusesForInvalidUser) {
+        const { unmount } = await renderAuthWrapper({ authStatus });
+        const form = screen.getByRole('form', {
+          name: tokenFormMatcher,
         });
 
-        await screen.findByText(tokenFormMatcher);
-        const button = screen.queryByRole('button', { name: buttonText });
-        expect(button).not.toBeInTheDocument();
-
+        expect(form).toBeInTheDocument();
         unmount();
       }
     });
@@ -178,7 +114,8 @@ describe(`${CoderAuthWrapper.name}`, () => {
        * 1. The auth input is of type password, which does not have a role
        *    compatible with Testing Library; can't use getByRole to select it
        * 2. MUI adds a star to its labels that are required, meaning that any
-       *    attempts at trying to match the string "Auth token" will fail
+       *    attempts at trying to match string literal "Auth token" will fail;
+       *    have to use a regex selector
        */
       const inputField = screen.getByLabelText(/Auth token/);
       const submitButton = screen.getByRole('button', { name: 'Authenticate' });
