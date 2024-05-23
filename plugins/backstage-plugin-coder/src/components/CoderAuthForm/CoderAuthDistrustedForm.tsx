@@ -1,8 +1,8 @@
 import React from 'react';
 import { CoderLogo } from '../CoderLogo';
-import { LinkButton } from '@backstage/core-components';
 import { makeStyles } from '@material-ui/core';
 import { useInternalCoderAuth } from '../CoderProvider';
+import { UnlinkAccountButton } from './UnlinkAccountButton';
 
 const useStyles = makeStyles(theme => ({
   root: {
@@ -31,8 +31,6 @@ const useStyles = makeStyles(theme => ({
 
 export const CoderAuthDistrustedForm = () => {
   const styles = useStyles();
-  const { ejectToken } = useInternalCoderAuth();
-
   return (
     <div className={styles.root}>
       <div>
@@ -43,18 +41,7 @@ export const CoderAuthDistrustedForm = () => {
         </p>
       </div>
 
-      <LinkButton
-        disableRipple
-        to=""
-        component="button"
-        type="submit"
-        color="primary"
-        variant="contained"
-        className={styles.button}
-        onClick={ejectToken}
-      >
-        Eject token
-      </LinkButton>
+      <UnlinkAccountButton className={styles.button} />
     </div>
   );
 };

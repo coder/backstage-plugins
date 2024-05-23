@@ -1,23 +1,16 @@
-import React, { type PropsWithChildren } from 'react';
+import React from 'react';
 import { useInternalCoderAuth } from '../CoderProvider';
 import { CoderAuthDistrustedForm } from './CoderAuthDistrustedForm';
 import { CoderAuthLoadingState } from './CoderAuthLoadingState';
 import { CoderAuthInputForm } from './CoderAuthInputForm';
+import { CoderAuthSuccessStatus } from './CoderAuthSuccessStatus';
 
-export type CoderAuthFormProps = Readonly<
-  PropsWithChildren<{
-    descriptionId?: string;
-  }>
->;
+export type CoderAuthFormProps = Readonly<{
+  descriptionId?: string;
+}>;
 
-export const CoderAuthForm = ({
-  children,
-  descriptionId,
-}: CoderAuthFormProps) => {
+export const CoderAuthForm = ({ descriptionId }: CoderAuthFormProps) => {
   const auth = useInternalCoderAuth();
-  if (auth.isAuthenticated) {
-    return <>{children}</>;
-  }
 
   return (
     <>
@@ -54,9 +47,7 @@ export const CoderAuthForm = ({
 
           case 'authenticated':
           case 'distrustedWithGracePeriod': {
-            throw new Error(
-              'Tried to process authenticated user after main content should already be shown',
-            );
+            return <CoderAuthSuccessStatus />;
           }
 
           default: {
