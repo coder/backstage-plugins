@@ -13,7 +13,7 @@ export type A11yInfoCardProps = Readonly<
   }
 >;
 
-const useCardStyles = makeStyles(theme => ({
+const useStyles = makeStyles(theme => ({
   root: {
     color: theme.palette.type,
     backgroundColor: theme.palette.background.paper,
@@ -26,7 +26,7 @@ const useCardStyles = makeStyles(theme => ({
     // Ideally wouldn't be using hard-coded font sizes, but couldn't figure out
     // how to use the theme.typography property, especially since not all
     // sub-properties have font sizes defined
-    fontSize: '24px',
+    fontSize: '1.5rem',
     color: theme.palette.text.primary,
     fontWeight: 700,
     borderBottom: `1px solid ${theme.palette.divider}`,
@@ -44,7 +44,7 @@ const useCardStyles = makeStyles(theme => ({
 export const A11yInfoCard = forwardRef<HTMLDivElement, A11yInfoCardProps>(
   (props, ref) => {
     const { className, children, headerContent, ...delegatedProps } = props;
-    const styles = useCardStyles();
+    const styles = useStyles();
 
     return (
       <div

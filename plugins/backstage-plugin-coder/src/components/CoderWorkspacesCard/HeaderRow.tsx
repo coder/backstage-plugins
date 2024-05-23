@@ -18,14 +18,14 @@ const useStyles = makeStyles<Theme, {}, StyleKey>(theme => ({
   },
 
   header: {
-    fontSize: '24px',
+    fontSize: '1.5rem',
     lineHeight: 1,
     margin: 0,
   },
 
   subheader: {
     margin: '0',
-    fontSize: '14px',
+    fontSize: '0.875rem',
     fontWeight: 400,
     color: theme.palette.text.secondary,
     paddingTop: theme.spacing(0.5),
