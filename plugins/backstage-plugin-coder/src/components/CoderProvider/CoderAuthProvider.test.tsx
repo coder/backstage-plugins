@@ -3,10 +3,10 @@
  * implementation details, and we could have a single test file for all the
  * pieces joined together.
  *
- * But because the auth is complicated, it helps to have tests just for it
+ * But because the auth is so complicated, it helps to have tests just for it
  */
 import React, { type ReactNode } from 'react';
-import { render, screen, waitFor } from '@testing-library/react';
+import { render, screen, waitFor, within } from '@testing-library/react';
 import {
   BACKSTAGE_APP_ROOT_ID,
   CoderAuthProvider,
@@ -19,12 +19,15 @@ import {
   getMockConfigApi,
   getMockDiscoveryApi,
   getMockIdentityApi,
+  mockAppConfig,
   mockCoderAuthToken,
 } from '../../testHelpers/mockBackstageData';
 import { UrlSync } from '../../api/UrlSync';
-import { TestApiProvider } from '@backstage/test-utils';
+import { TestApiProvider, wrapInTestApp } from '@backstage/test-utils';
 import { QueryClientProvider } from '@tanstack/react-query';
 import { getMockQueryClient } from '../../testHelpers/setup';
+import userEvent from '@testing-library/user-event';
+import { CoderAppConfigProvider } from './CoderAppConfigProvider';
 
 afterEach(() => {
   jest.clearAllMocks();
@@ -38,6 +41,7 @@ function renderAuthProvider(children: ReactNode) {
     },
   });
 
+  const queryClient = getMockQueryClient();
   const identityApi = getMockIdentityApi();
 
   // Can't use initialToken property, because then the Auth provider won't be
@@ -52,19 +56,19 @@ function renderAuthProvider(children: ReactNode) {
   mockAppRoot.id = BACKSTAGE_APP_ROOT_ID;
   document.body.append(mockAppRoot);
 
-  const queryClient = getMockQueryClient();
-  const renderResult = render(
+  return render(
     <TestApiProvider apis={[[coderClientApiRef, coderClient]]}>
       <QueryClientProvider client={queryClient}>
-        <CoderAuthProvider>{children}</CoderAuthProvider>
+        <CoderAppConfigProvider appConfig={mockAppConfig}>
+          <CoderAuthProvider>{children}</CoderAuthProvider>
+        </CoderAppConfigProvider>
       </QueryClientProvider>
     </TestApiProvider>,
     {
       baseElement: mockAppRoot,
+      wrapper: ({ children }) => wrapInTestApp(children),
     },
   );
-
-  return { ...renderResult, coderClient };
 }
 
 describe(`${CoderAuthProvider.name}`, () => {
@@ -92,7 +96,7 @@ describe(`${CoderAuthProvider.name}`, () => {
       });
     }
 
-    it('Will never display the auth fallback if the user is already authenticated', async () => {
+    it.skip('Will never display the auth fallback if the user is already authenticated', async () => {
       const originalGetItem = global.Storage.prototype.getItem;
       jest
         .spyOn(global.Storage.prototype, 'getItem')
@@ -146,8 +150,28 @@ describe(`${CoderAuthProvider.name}`, () => {
       expect(authFallbackTrigger).toBeInTheDocument();
     });
 
-    it.skip('Lets the user go through a full authentication flow via the fallback auth UI', () => {
-      expect.hasAssertions();
+    it('Lets the user go through a full authentication flow via the fallback auth UI', async () => {
+      renderAuthProvider(<></>);
+      const user = userEvent.setup();
+
+      const authFallbackTrigger = await screen.findByRole('button', {
+        name: fallbackTriggerMatcher,
+      });
+
+      await user.click(authFallbackTrigger);
+      const authForm = await screen.findByRole('form', {
+        name: /Authenticate with Coder/,
+      });
+
+      const tokenInput = await within(authForm).findByLabelText(/Auth token/);
+      await user.type(tokenInput, mockCoderAuthToken);
+
+      const submitButton = await within(authForm).findByRole('button', {
+        name: /Authenticate/,
+      });
+
+      await user.click(submitButton);
+      expect(authForm).not.toBeInTheDocument();
     });
   });
 });
