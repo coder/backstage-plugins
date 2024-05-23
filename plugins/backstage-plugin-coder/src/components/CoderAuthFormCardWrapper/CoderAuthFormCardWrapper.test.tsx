@@ -18,15 +18,6 @@ async function renderAuthWrapper({
   authStatus,
   childButtonText,
 }: RenderInputs) {
-  /**
-   * @todo RTL complains about the current environment not being configured to
-   * support act. Luckily, it doesn't seem to be making any of our main test
-   * cases to kick up false positives.
-   *
-   * This may not be an issue with our code, and might be a bug from Backstage's
-   * migration to React 18. Need to figure out where this issue is coming from,
-   * and open an issue upstream if necessary
-   */
   return renderInTestApp(
     <CoderProviderWithMockAuth
       appConfig={mockAppConfig}
@@ -86,5 +77,31 @@ describe(`${CoderAuthFormCardWrapper.name}`, () => {
       expect(button).not.toBeInTheDocument();
       unmount();
     }
+  });
+
+  it('Will go back to hiding content if auth state becomes invalid after re-renders', async () => {
+    const buttonText = "Now you see me, now you don't";
+    const { rerender } = await renderAuthWrapper({
+      authStatus: 'authenticated',
+      childButtonText: buttonText,
+    });
+
+    // Capture button after it first appears on the screen; findBy will throw if
+    // the button is not actually visible
+    const button = await screen.findByRole('button', { name: buttonText });
+
+    rerender(
+      <CoderProviderWithMockAuth
+        appConfig={mockAppConfig}
+        authStatus="distrusted"
+      >
+        <CoderAuthFormCardWrapper>
+          <button>{buttonText}</button>
+        </CoderAuthFormCardWrapper>
+      </CoderProviderWithMockAuth>,
+    );
+
+    // Assert that the button is gone after the re-render flushes
+    expect(button).not.toBeInTheDocument();
   });
 });
