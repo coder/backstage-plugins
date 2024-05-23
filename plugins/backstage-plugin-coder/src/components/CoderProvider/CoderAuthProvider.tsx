@@ -27,9 +27,9 @@ import { coderClientApiRef } from '../../api/CoderClient';
 import { CoderLogo } from '../CoderLogo';
 import { CoderAuthFormDialog } from '../CoderAuthFormDialog';
 
-const BACKSTAGE_APP_ROOT_ID = '#root';
+export const TOKEN_STORAGE_KEY = 'coder-backstage-plugin/token';
+export const BACKSTAGE_APP_ROOT_ID = '#root';
 const FALLBACK_UI_OVERRIDE_CLASS_NAME = 'backstage-root-override';
-const TOKEN_STORAGE_KEY = 'coder-backstage-plugin/token';
 
 // Handles auth edge case where a previously-valid token can't be verified. Not
 // immediately removing token to provide better UX in case someone's internet
