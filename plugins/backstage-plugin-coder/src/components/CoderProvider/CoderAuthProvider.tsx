@@ -10,6 +10,7 @@ import React, {
 } from 'react';
 import { createPortal } from 'react-dom';
 import {
+  type QueryCacheNotifyEvent,
   type UseQueryResult,
   useQuery,
   useQueryClient,
@@ -139,13 +140,14 @@ function useAuthState(): CoderAuth {
   // outside React because we let the user connect their own queryClient
   const queryClient = useQueryClient();
   useEffect(() => {
-    let isRefetchingTokenQuery = false;
-    const queryCache = queryClient.getQueryCache();
+    // Pseudo-mutex; makes sure that if we get a bunch of errors, only one
+    // revalidation will be processed at a time
+    let isRevalidatingToken = false;
 
-    const unsubscribe = queryCache.subscribe(async event => {
+    const revalidateTokenOnError = async (event: QueryCacheNotifyEvent) => {
       const queryError = event.query.state.error;
       const shouldRevalidate =
-        !isRefetchingTokenQuery &&
+        !isRevalidatingToken &&
         BackstageHttpError.isInstance(queryError) &&
         queryError.status === 401;
 
@@ -153,11 +155,13 @@ function useAuthState(): CoderAuth {
         return;
       }
 
-      isRefetchingTokenQuery = true;
+      isRevalidatingToken = true;
       await queryClient.refetchQueries({ queryKey: sharedAuthQueryKey });
-      isRefetchingTokenQuery = false;
-    });
+      isRevalidatingToken = false;
+    };
 
+    const queryCache = queryClient.getQueryCache();
+    const unsubscribe = queryCache.subscribe(revalidateTokenOnError);
     return unsubscribe;
   }, [queryClient]);
 
