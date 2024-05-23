@@ -585,16 +585,27 @@ function FallbackAuthUi() {
  * Dummy function defined outside the component to prevent risk of needless
  * re-renders through Context.
  */
-const dummyTrackComponent: TrackComponent = () => {
+
+/**
+ * A dummy version of the component tracker function.
+ *
+ * In production, this is used to define a dummy version of the context
+ * dependency for the "fallback auth UI" portion of the app.
+ *
+ * In testing, this is used for the vast majority of component tests to provide
+ * the tracker dependency and make sure that the components can properly render
+ * without having to be wired up to the entire plugin.
+ */
+export const dummyTrackComponent: TrackComponent = () => {
   // Deliberately perform a no-op on initial call
   return () => {
     // And deliberately perform a no-op on cleanup
   };
 };
 
-export const CoderAuthProvider = ({
+export function CoderAuthProvider({
   children,
-}: Readonly<PropsWithChildren<unknown>>) => {
+}: Readonly<PropsWithChildren<unknown>>) {
   const authState = useAuthState();
   const { hasNoAuthInputs, trackComponent } = useAuthFallbackState();
   const needFallbackUi = !authState.isAuthenticated && hasNoAuthInputs;
@@ -612,4 +623,4 @@ export const CoderAuthProvider = ({
       )}
     </AuthStateContext.Provider>
   );
-};
+}
