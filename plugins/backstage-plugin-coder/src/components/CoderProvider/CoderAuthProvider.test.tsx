@@ -30,7 +30,7 @@ import userEvent from '@testing-library/user-event';
 import { CoderAppConfigProvider } from './CoderAppConfigProvider';
 
 afterEach(() => {
-  jest.clearAllMocks();
+  jest.restoreAllMocks();
 });
 
 function renderAuthProvider(children: ReactNode) {
@@ -89,13 +89,6 @@ describe(`${CoderAuthProvider.name}`, () => {
       return <p>Authenticated? {auth.isAuthenticated ? 'Yes!' : 'No...'}</p>;
     }
 
-    async function waitForNAuthenticatedComponents(n: number) {
-      await waitFor(() => {
-        const authenticatedComponents = screen.getAllByText(/Yes!/);
-        expect(authenticatedComponents.length).toBe(n);
-      });
-    }
-
     it.skip('Will never display the auth fallback if the user is already authenticated', async () => {
       const originalGetItem = global.Storage.prototype.getItem;
       jest
@@ -115,7 +108,11 @@ describe(`${CoderAuthProvider.name}`, () => {
         </>,
       );
 
-      await waitForNAuthenticatedComponents(2);
+      await waitFor(() => {
+        const authenticatedComponents = screen.getAllByText(/Yes!/);
+        expect(authenticatedComponents).toHaveLength(2);
+      });
+
       const authFallbackTrigger = screen.queryByRole('button', {
         name: fallbackTriggerMatcher,
       });
