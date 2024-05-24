@@ -91,7 +91,7 @@ const mainTestHandlers: readonly RestHandler[] = [
       `param:"\\w+?=${repoUrl.replace('/', '\\/')}"`,
     );
 
-    const queryText = String(req.url.searchParams.get('q'));
+    const queryText = String(req.url.searchParams.get('q') ?? '');
     const requestContainsRepoInfo = paramMatcherRe.test(queryText);
 
     const baseWorkspaces = requestContainsRepoInfo
