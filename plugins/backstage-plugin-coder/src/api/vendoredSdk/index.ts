@@ -22,7 +22,7 @@ type PropertyToHide =
 
 // Wanted to have a CoderSdk class (mainly re-exporting the Api class as itself
 // with the extra properties omitted). But because classes are wonky and exist
-// as both runtime values and times, it didn't seem possible, even with things
+// as both runtime values and types, it didn't seem possible, even with things
 // like class declarations. Making a new function is good enough for now, though
 export type CoderSdk = Omit<Api, PropertyToHide>;
 export function makeCoderSdk(): CoderSdk {
