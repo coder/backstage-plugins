@@ -12,7 +12,7 @@ import { delay } from '../utils/time';
 import {
   mockWorkspacesList,
   mockWorkspacesListForRepoSearch,
-} from '../testHelpers/mockCoderAppData';
+} from '../testHelpers/mockCoderPluginData';
 import type { Workspace, WorkspacesResponse } from './vendoredSdk';
 import {
   getMockConfigApi,

@@ -14,7 +14,7 @@ import {
   mockUserWithProxyUrls,
   mockWorkspacesList,
   mockWorkspacesListForRepoSearch,
-} from './mockCoderAppData';
+} from './mockCoderPluginData';
 import {
   mockBearerToken,
   mockCoderAuthToken,
