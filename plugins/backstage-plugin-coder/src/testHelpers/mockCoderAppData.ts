@@ -1,5 +1,15 @@
+import { User } from '../api/vendoredSdk';
 import type { Workspace } from '../typesConstants';
-import { mockBackstageApiEndpoint } from './mockBackstageData';
+import { MockUser } from './coderEntities';
+import {
+  mockBackstageApiEndpoint,
+  mockBackstageAssetsEndpoint,
+} from './mockBackstageData';
+
+export const mockUserWithProxyUrls: User = {
+  ...MockUser,
+  avatar_url: `${mockBackstageAssetsEndpoint}/blueberry.png`,
+};
 
 /**
  * The main mock for a workspace whose repo URL matches cleanedRepoUrl

@@ -11,11 +11,11 @@ import { setupServer } from 'msw/node';
 /* eslint-enable @backstage/no-undeclared-imports */
 
 import {
+  mockUserWithProxyUrls,
   mockWorkspacesList,
   mockWorkspacesListForRepoSearch,
 } from './mockCoderAppData';
 import {
-  mockBackstageAssetsEndpoint,
   mockBearerToken,
   mockCoderAuthToken,
   mockCoderWorkspacesConfig,
@@ -23,7 +23,7 @@ import {
 } from './mockBackstageData';
 import type { WorkspacesResponse } from '../typesConstants';
 import { CODER_AUTH_HEADER_KEY } from '../api/CoderClient';
-import { User } from '../typesConstants';
+import type { User } from '../api/vendoredSdk';
 
 type RestResolver<TBody extends DefaultBodyType = any> = ResponseResolver<
   RestRequest<TBody>,
@@ -129,14 +129,7 @@ const mainTestHandlers: readonly RestHandler[] = [
 
   // This is the dummy request used to verify a user's auth status
   wrappedGet(mockServerEndpoints.authenticatedUser, (_, res, ctx) => {
-    return res(
-      ctx.status(200),
-      ctx.json<User>({
-        id: '1',
-        avatar_url: `${mockBackstageAssetsEndpoint}/blueberry.png`,
-        username: 'blueberry',
-      }),
-    );
+    return res(ctx.status(200), ctx.json<User>(mockUserWithProxyUrls));
   }),
 ];
 

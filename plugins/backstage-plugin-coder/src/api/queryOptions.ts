@@ -1,5 +1,5 @@
 import type { UseQueryOptions } from '@tanstack/react-query';
-import type { Workspace, WorkspacesRequest } from '../typesConstants';
+import type { Workspace, WorkspacesRequest } from './vendoredSdk';
 import type { CoderWorkspacesConfig } from '../hooks/useCoderWorkspacesConfig';
 import type { BackstageCoderSdk } from './CoderClient';
 import type { CoderAuth } from '../components/CoderProvider';

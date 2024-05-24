@@ -87,23 +87,6 @@ export type WorkspaceBuild = Output<typeof workspaceBuildSchema>;
 export type Workspace = Output<typeof workspaceSchema>;
 export type WorkspacesResponse = Output<typeof workspacesResponseSchema>;
 
-export type WorkspacesRequest = Readonly<{
-  after_id?: string;
-  limit?: number;
-  offset?: number;
-  q?: string;
-}>;
-
-// This is actually the MinimalUser type from Coder core (User extends from
-// ReducedUser, which extends from MinimalUser). Don't need all the properties
-// until we roll out full SDK support, so going with the least privileged
-// type definition for now
-export type User = Readonly<{
-  id: string;
-  username: string;
-  avatar_url: string;
-}>;
-
 /**
  * 2024-05-22 - While this isn't documented anywhere, TanStack Query defaults to
  * retrying a failed API request 3 times before exposing an error to the UI
