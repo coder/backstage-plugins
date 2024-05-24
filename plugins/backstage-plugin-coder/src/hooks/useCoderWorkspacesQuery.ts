@@ -2,7 +2,7 @@ import { useQuery } from '@tanstack/react-query';
 import { workspaces, workspacesByRepo } from '../api/queryOptions';
 import type { CoderWorkspacesConfig } from './useCoderWorkspacesConfig';
 import { useCoderSdk } from './useCoderSdk';
-import { useCoderAuth } from '../components/CoderProvider';
+import { useInternalCoderAuth } from '../components/CoderProvider';
 
 type QueryInput = Readonly<{
   coderQuery: string;
@@ -13,7 +13,7 @@ export function useCoderWorkspacesQuery({
   coderQuery,
   workspacesConfig,
 }: QueryInput) {
-  const auth = useCoderAuth();
+  const auth = useInternalCoderAuth();
   const coderSdk = useCoderSdk();
   const hasRepoData = workspacesConfig && workspacesConfig.repoUrl;
 

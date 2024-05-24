@@ -159,7 +159,6 @@ export const mockCoderWorkspacesConfig = (() => {
 const authedState = {
   token: mockCoderAuthToken,
   error: undefined,
-  tokenLoadedOnMount: true,
   isAuthenticated: true,
   registerNewToken: jest.fn(),
   ejectToken: jest.fn(),
@@ -168,7 +167,6 @@ const authedState = {
 const notAuthedState = {
   token: undefined,
   error: undefined,
-  tokenLoadedOnMount: false,
   isAuthenticated: false,
   registerNewToken: jest.fn(),
   ejectToken: jest.fn(),

@@ -1,52 +1,30 @@
-import React, { type FC, type PropsWithChildren } from 'react';
-import { useCoderAuth } from '../CoderProvider';
-import { InfoCard } from '@backstage/core-components';
+import React from 'react';
+import { useInternalCoderAuth } from '../CoderProvider';
 import { CoderAuthDistrustedForm } from './CoderAuthDistrustedForm';
-import { makeStyles } from '@material-ui/core';
 import { CoderAuthLoadingState } from './CoderAuthLoadingState';
 import { CoderAuthInputForm } from './CoderAuthInputForm';
+import { CoderAuthSuccessStatus } from './CoderAuthSuccessStatus';
 
-const useStyles = makeStyles(theme => ({
-  cardContent: {
-    paddingTop: theme.spacing(5),
-    paddingBottom: theme.spacing(5),
-  },
-}));
+export type CoderAuthFormProps = Readonly<{
+  descriptionId?: string;
+}>;
 
-function CoderAuthCard({ children }: PropsWithChildren<unknown>) {
-  const styles = useStyles();
-  return (
-    <InfoCard title="Authenticate with Coder">
-      <div className={styles.cardContent}>{children}</div>
-    </InfoCard>
-  );
-}
-
-type WrapperProps = Readonly<
-  PropsWithChildren<{
-    type: 'card';
-  }>
->;
-
-export const CoderAuthWrapper = ({ children, type }: WrapperProps) => {
-  const auth = useCoderAuth();
-  if (auth.isAuthenticated) {
-    return <>{children}</>;
-  }
-
-  let Wrapper: FC<PropsWithChildren<unknown>>;
-  switch (type) {
-    case 'card': {
-      Wrapper = CoderAuthCard;
-      break;
-    }
-    default: {
-      assertExhaustion(type);
-    }
-  }
+export const CoderAuthForm = ({ descriptionId }: CoderAuthFormProps) => {
+  const auth = useInternalCoderAuth();
 
   return (
-    <Wrapper>
+    <>
+      {/*
+       * By default this text will be inert, and not be exposed anywhere
+       * (Sighted and blind users won't be able to interact with it). To enable
+       * it for screen readers, a consuming component will need bind an ID to
+       * another component via aria-describedby and then pass the same ID down
+       * as props.
+       */}
+      <p id={descriptionId} hidden>
+        Please authenticate with Coder to enable the Coder plugin for Backstage.
+      </p>
+
       {/* Slightly awkward syntax with the IIFE, but need something switch-like
           to make sure that all status cases are handled exhaustively */}
       {(() => {
@@ -69,9 +47,7 @@ export const CoderAuthWrapper = ({ children, type }: WrapperProps) => {
 
           case 'authenticated':
           case 'distrustedWithGracePeriod': {
-            throw new Error(
-              'Tried to process authenticated user after main content should already be shown',
-            );
+            return <CoderAuthSuccessStatus />;
           }
 
           default: {
@@ -79,7 +55,7 @@ export const CoderAuthWrapper = ({ children, type }: WrapperProps) => {
           }
         }
       })()}
-    </Wrapper>
+    </>
   );
 };
 

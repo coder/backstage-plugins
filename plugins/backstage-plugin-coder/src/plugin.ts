@@ -58,16 +58,6 @@ export const CoderProvider = coderPlugin.provide(
   }),
 );
 
-export const CoderAuthWrapper = coderPlugin.provide(
-  createComponentExtension({
-    name: 'CoderAuthWrapper',
-    component: {
-      lazy: () =>
-        import('./components/CoderAuthWrapper').then(m => m.CoderAuthWrapper),
-    },
-  }),
-);
-
 export const CoderErrorBoundary = coderPlugin.provide(
   createComponentExtension({
     name: 'CoderErrorBoundary',
@@ -192,11 +182,16 @@ export const CoderWorkspacesReminderAccordion = coderPlugin.provide(
 );
 
 /**
- * All custom hooks exposed by the plugin.
+ * Custom hooks needed for some of the custom Coder components
+ */
+export { useWorkspacesCardContext } from './components/CoderWorkspacesCard/Root';
+
+/**
+ * General custom hooks that can be used in various places.
  */
 export { useCoderWorkspacesConfig } from './hooks/useCoderWorkspacesConfig';
-export { useCoderWorkspacesQuery } from './hooks/useCoderWorkspacesQuery';
-export { useWorkspacesCardContext } from './components/CoderWorkspacesCard/Root';
+export { useCoderSdk } from './hooks/useCoderSdk';
+export { useEndUserCoderAuth as useCoderAuth } from './components/CoderProvider/CoderAuthProvider';
 
 /**
  * All custom types

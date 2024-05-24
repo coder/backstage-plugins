@@ -12,7 +12,7 @@ import {
 
 import { CoderProvider } from './CoderProvider';
 import { useCoderAppConfig } from './CoderAppConfigProvider';
-import { type CoderAuth, useCoderAuth } from './CoderAuthProvider';
+import { type CoderAuth, useInternalCoderAuth } from './CoderAuthProvider';
 
 import {
   getMockConfigApi,
@@ -56,7 +56,7 @@ describe(`${CoderProvider.name}`, () => {
   describe('Auth', () => {
     // Can't use the render helpers because they all assume that the auth isn't
     // core to the functionality. In this case, you do need to bring in the full
-    // CoderProvider
+    // CoderProvider to make sure that it's working properly
     const renderUseCoderAuth = () => {
       const discoveryApi = getMockDiscoveryApi();
       const configApi = getMockConfigApi();
@@ -70,7 +70,7 @@ describe(`${CoderProvider.name}`, () => {
         apis: { urlSync, identityApi },
       });
 
-      return renderHook(useCoderAuth, {
+      return renderHook(useInternalCoderAuth, {
         wrapper: ({ children }) => (
           <TestApiProvider
             apis={[

@@ -17,8 +17,10 @@ import {
   type CoderAuthStatus,
   type CoderAppConfig,
   type CoderProviderProps,
-  AuthContext,
+  AuthStateContext,
+  AuthTrackingContext,
   CoderAppConfigProvider,
+  dummyTrackComponent,
 } from '../components/CoderProvider';
 import {
   mockAppConfig,
@@ -128,9 +130,11 @@ export const CoderProviderWithMockAuth = ({
     <CoderErrorBoundary>
       <QueryClientProvider client={queryClient}>
         <CoderAppConfigProvider appConfig={appConfig}>
-          <AuthContext.Provider value={activeAuth}>
-            {children}
-          </AuthContext.Provider>
+          <AuthTrackingContext.Provider value={dummyTrackComponent}>
+            <AuthStateContext.Provider value={activeAuth}>
+              {children}
+            </AuthStateContext.Provider>
+          </AuthTrackingContext.Provider>
         </CoderAppConfigProvider>
       </QueryClientProvider>
     </CoderErrorBoundary>
@@ -164,7 +168,9 @@ export const renderHookAsCoderEntity = async <
             queryClient={mockQueryClient}
             authStatus={authStatus}
           >
-            <EntityProvider entity={mockEntity}>{children}</EntityProvider>
+            <EntityProvider entity={mockEntity}>
+              <>{children}</>
+            </EntityProvider>
           </CoderProviderWithMockAuth>
         </TestApiProvider>
       );
