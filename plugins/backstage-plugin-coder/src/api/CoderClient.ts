@@ -7,11 +7,12 @@ import { CODER_API_REF_ID_PREFIX } from '../typesConstants';
 import type { UrlSync } from './UrlSync';
 import type { CoderWorkspacesConfig } from '../hooks/useCoderWorkspacesConfig';
 import {
+  type CoderSdk,
   type User,
   type Workspace,
   type WorkspacesRequest,
   type WorkspacesResponse,
-  CoderSdk,
+  makeCoderSdk,
 } from './vendoredSdk';
 
 export const CODER_AUTH_HEADER_KEY = 'Coder-Session-Token';
@@ -181,7 +182,7 @@ export class CoderClient implements CoderClientApi {
   }
 
   private getBackstageCoderSdk(): BackstageCoderSdk {
-    const baseSdk = new CoderSdk();
+    const baseSdk = makeCoderSdk();
 
     const getWorkspaces: (typeof baseSdk)['getWorkspaces'] = async request => {
       const workspacesRes = await baseSdk.getWorkspaces(request);
