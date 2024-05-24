@@ -1,4 +1,4 @@
-import type { Workspace, WorkspaceAgentStatus } from '../typesConstants';
+import { Workspace, WorkspaceAgentStatus } from '../api/vendoredSdk';
 
 export function getWorkspaceAgentStatuses(
   workspace: Workspace,

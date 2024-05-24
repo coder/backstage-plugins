@@ -1,7 +1,6 @@
 import {
   type Output,
   array,
-  number,
   object,
   string,
   union,
@@ -74,18 +73,7 @@ export const workspaceSchema = object({
   latest_build: workspaceBuildSchema,
 });
 
-export const workspacesResponseSchema = object({
-  count: number(),
-  workspaces: array(workspaceSchema),
-});
-
-export type WorkspaceAgentStatus = Output<typeof workspaceAgentStatusSchema>;
-export type WorkspaceAgent = Output<typeof workspaceAgentSchema>;
-export type WorkspaceResource = Output<typeof workspaceResourceSchema>;
-export type WorkspaceStatus = Output<typeof workspaceStatusSchema>;
-export type WorkspaceBuild = Output<typeof workspaceBuildSchema>;
 export type Workspace = Output<typeof workspaceSchema>;
-export type WorkspacesResponse = Output<typeof workspacesResponseSchema>;
 
 /**
  * 2024-05-22 - While this isn't documented anywhere, TanStack Query defaults to

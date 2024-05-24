@@ -13,7 +13,7 @@ import {
   mockWorkspacesList,
   mockWorkspacesListForRepoSearch,
 } from '../testHelpers/mockCoderAppData';
-import type { Workspace, WorkspacesResponse } from '../typesConstants';
+import type { Workspace, WorkspacesResponse } from './vendoredSdk';
 import {
   getMockConfigApi,
   getMockDiscoveryApi,
@@ -103,7 +103,6 @@ describe(`${CoderClient.name}`, () => {
   describe('cleanupClient functionality', () => {
     it('Will prevent any new SDK requests from going through', async () => {
       const client = new CoderClient({ apis: getConstructorApis() });
-      client.cleanupClient();
 
       // Request should fail, even though token is valid
       await expect(() => {
@@ -139,7 +138,7 @@ describe(`${CoderClient.name}`, () => {
         q: 'owner:me',
         limit: 0,
       });
-      client.cleanupClient();
+
       await expect(() => workspacesPromise2).rejects.toThrow();
     });
   });

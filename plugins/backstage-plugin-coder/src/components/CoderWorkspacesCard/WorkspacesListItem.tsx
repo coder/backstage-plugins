@@ -11,7 +11,8 @@ import { useId } from '../../hooks/hookPolyfills';
 import { useCoderAppConfig } from '../CoderProvider';
 import { getWorkspaceAgentStatuses } from '../../utils/workspaces';
 
-import type { Workspace, WorkspaceStatus } from '../../typesConstants';
+import type { WorkspaceStatus } from '../../api/vendoredSdk';
+import type { Workspace } from '../../typesConstants';
 import { WorkspacesListIcon } from './WorkspacesListIcon';
 import { VisuallyHidden } from '../VisuallyHidden';
 

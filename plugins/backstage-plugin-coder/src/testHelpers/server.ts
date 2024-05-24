@@ -21,9 +21,8 @@ import {
   mockCoderWorkspacesConfig,
   mockBackstageApiEndpoint as root,
 } from './mockBackstageData';
-import type { WorkspacesResponse } from '../typesConstants';
 import { CODER_AUTH_HEADER_KEY } from '../api/CoderClient';
-import type { User } from '../api/vendoredSdk';
+import type { User, WorkspacesResponse } from '../api/vendoredSdk';
 
 type RestResolver<TBody extends DefaultBodyType = any> = ResponseResolver<
   RestRequest<TBody>,
