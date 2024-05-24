@@ -1,5 +1,10 @@
 import type { User, Workspace } from '../api/vendoredSdk';
-import { MockUser, MockWorkspace } from './coderEntities';
+import {
+  MockUser,
+  MockWorkspace,
+  MockWorkspaceAgent,
+  MockWorkspaceResource,
+} from './coderEntities';
 import {
   mockBackstageApiEndpoint,
   mockBackstageAssetsEndpoint,
@@ -26,8 +31,15 @@ export const mockWorkspaceWithMatch: Workspace = {
     status: 'running',
     resources: [
       {
+        ...MockWorkspaceResource,
         id: 'workspace-with-match-resource',
-        agents: [{ id: 'test-workspace-agent', status: 'connected' }],
+        agents: [
+          {
+            ...MockWorkspaceAgent,
+            id: 'test-workspace-agent',
+            status: 'connected',
+          },
+        ],
       },
     ],
   },
@@ -52,8 +64,15 @@ export const mockWorkspaceWithMatch2: Workspace = {
     status: 'running',
     resources: [
       {
+        ...MockWorkspaceResource,
         id: 'workspace-with-match-2-resource',
-        agents: [{ id: 'test-workspace-agent', status: 'connected' }],
+        agents: [
+          {
+            ...MockWorkspaceAgent,
+            id: 'test-workspace-agent',
+            status: 'connected',
+          },
+        ],
       },
     ],
   },
@@ -69,15 +88,26 @@ export const mockWorkspaceNoMatch: Workspace = {
   name: 'No-match',
   template_icon: `${mockBackstageApiEndpoint}/emojis/star.svg`,
   owner_name: 'homestar runner',
+
   latest_build: {
+    ...MockWorkspace.latest_build,
     id: 'workspace-no-match-build',
     status: 'stopped',
     resources: [
       {
+        ...MockWorkspaceResource,
         id: 'workspace-no-match-resource',
         agents: [
-          { id: 'test-workspace-agent-a', status: 'disconnected' },
-          { id: 'test-workspace-agent-b', status: 'timeout' },
+          {
+            ...MockWorkspaceAgent,
+            id: 'test-workspace-agent-a',
+            status: 'disconnected',
+          },
+          {
+            ...MockWorkspaceAgent,
+            id: 'test-workspace-agent-b',
+            status: 'timeout',
+          },
         ],
       },
     ],
@@ -94,12 +124,16 @@ export const mockWorkspaceNoParameters: Workspace = {
   template_icon: `${mockBackstageApiEndpoint}/emojis/cheese.png`,
   owner_name: 'The Cheat',
   latest_build: {
+    ...MockWorkspace.latest_build,
     id: 'workspace-no-parameters-build',
     status: 'running',
     resources: [
       {
+        ...MockWorkspaceResource,
         id: 'workspace-no-parameters-resource',
-        agents: [{ id: 'test-workspace-c', status: 'timeout' }],
+        agents: [
+          { ...MockWorkspaceAgent, id: 'test-workspace-c', status: 'timeout' },
+        ],
       },
     ],
   },
