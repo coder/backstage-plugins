@@ -132,10 +132,10 @@ describe(`${CoderClient.name}`, () => {
       });
 
       const { urlSync } = apis;
-      const apiEndpoint = await urlSync.getApiEndpoint();
+      const assetsEndpoint = await urlSync.getAssetsEndpoint();
 
-      const allWorkspacesAreRemapped = !workspaces.some(ws =>
-        ws.template_icon.startsWith(apiEndpoint),
+      const allWorkspacesAreRemapped = workspaces.every(ws =>
+        ws.template_icon.startsWith(assetsEndpoint),
       );
 
       expect(allWorkspacesAreRemapped).toBe(true);
