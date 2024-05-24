@@ -73,7 +73,7 @@ export const mockBackstageUrlRoot = 'http://localhost:7007';
  * the final result is.
  */
 export const mockBackstageApiEndpoint =
-  `${mockBackstageUrlRoot}${defaultUrlPrefixes.proxyPrefix}${CODER_PROXY_PREFIX}${defaultUrlPrefixes.apiRoutePrefix}` as const;
+  `${mockBackstageUrlRoot}${defaultUrlPrefixes.proxyPrefix}${CODER_PROXY_PREFIX}${defaultUrlPrefixes.apiRoutePrefix}/api/v2` as const;
 
 /**
  * The assets endpoint to use during testing.

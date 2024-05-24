@@ -48,7 +48,7 @@ type UrlPrefixes = Readonly<{
 
 export const defaultUrlPrefixes = {
   proxyPrefix: `/api/proxy`,
-  apiRoutePrefix: '/api/v2',
+  apiRoutePrefix: '', // Left as empty string because code assumes that CoderSdk will add /api/v2
   assetsRoutePrefix: '', // Deliberately left as empty string
 } as const satisfies UrlPrefixes;
 
