@@ -2,7 +2,7 @@ import React from 'react';
 import { screen } from '@testing-library/react';
 import { renderInCoderEnvironment } from '../../testHelpers/setup';
 import { mockWorkspaceWithMatch } from '../../testHelpers/mockCoderAppData';
-import type { Workspace } from '../../typesConstants';
+import type { Workspace } from '../../api/vendoredSdk';
 import { WorkspacesListItem } from './WorkspacesListItem';
 
 type RenderInput = Readonly<{

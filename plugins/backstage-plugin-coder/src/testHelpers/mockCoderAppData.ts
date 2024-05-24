@@ -1,5 +1,5 @@
 import { User } from '../api/vendoredSdk';
-import type { Workspace } from '../typesConstants';
+import type { Workspace } from '../api/vendoredSdk';
 import { MockUser } from './coderEntities';
 import {
   mockBackstageApiEndpoint,

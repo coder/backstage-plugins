@@ -12,7 +12,7 @@ import { useCoderAppConfig } from '../CoderProvider';
 import { getWorkspaceAgentStatuses } from '../../utils/workspaces';
 
 import type { WorkspaceStatus } from '../../api/vendoredSdk';
-import type { Workspace } from '../../typesConstants';
+import type { Workspace } from '../../api/vendoredSdk';
 import { WorkspacesListIcon } from './WorkspacesListIcon';
 import { VisuallyHidden } from '../VisuallyHidden';
 

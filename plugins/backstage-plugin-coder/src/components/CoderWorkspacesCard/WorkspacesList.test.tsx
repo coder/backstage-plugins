@@ -4,7 +4,7 @@ import { renderInCoderEnvironment } from '../../testHelpers/setup';
 import { CardContext, WorkspacesCardContext, WorkspacesQuery } from './Root';
 import { mockCoderWorkspacesConfig } from '../../testHelpers/mockBackstageData';
 import { mockWorkspaceWithMatch } from '../../testHelpers/mockCoderAppData';
-import { Workspace } from '../../typesConstants';
+import type { Workspace } from '../../api/vendoredSdk';
 import { screen } from '@testing-library/react';
 
 type RenderInputs = Readonly<{
