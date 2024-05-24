@@ -1,8 +1,4 @@
-import {
-  CODER_AUTH_HEADER_KEY,
-  CoderClient,
-  disabledClientError,
-} from './CoderClient';
+import { CODER_AUTH_HEADER_KEY, CoderClient } from './CoderClient';
 import type { IdentityApi } from '@backstage/core-plugin-api';
 import { UrlSync } from './UrlSync';
 import { rest } from 'msw';
@@ -97,49 +93,6 @@ describe(`${CoderClient.name}`, () => {
       await expect(() => {
         return client.syncToken(mockCoderAuthToken);
       }).rejects.toThrow(CanceledError);
-    });
-  });
-
-  describe('cleanupClient functionality', () => {
-    it('Will prevent any new SDK requests from going through', async () => {
-      const client = new CoderClient({ apis: getConstructorApis() });
-
-      // Request should fail, even though token is valid
-      await expect(() => {
-        return client.syncToken(mockCoderAuthToken);
-      }).rejects.toThrow(disabledClientError);
-
-      await expect(() => {
-        return client.sdk.getWorkspaces({
-          q: 'owner:me',
-          limit: 0,
-        });
-      }).rejects.toThrow(disabledClientError);
-    });
-
-    it('Will abort any pending requests', async () => {
-      const client = new CoderClient({
-        initialToken: mockCoderAuthToken,
-        apis: getConstructorApis(),
-      });
-
-      // Sanity check to ensure that request can still go through normally
-      const workspacesPromise1 = client.sdk.getWorkspaces({
-        q: 'owner:me',
-        limit: 0,
-      });
-
-      await expect(workspacesPromise1).resolves.toEqual<WorkspacesResponse>({
-        workspaces: mockWorkspacesList,
-        count: mockWorkspacesList.length,
-      });
-
-      const workspacesPromise2 = client.sdk.getWorkspaces({
-        q: 'owner:me',
-        limit: 0,
-      });
-
-      await expect(() => workspacesPromise2).rejects.toThrow();
     });
   });
 

@@ -1,6 +1,5 @@
-import { User } from '../api/vendoredSdk';
-import type { Workspace } from '../api/vendoredSdk';
-import { MockUser } from './coderEntities';
+import type { User, Workspace } from '../api/vendoredSdk';
+import { MockUser, MockWorkspace } from './coderEntities';
 import {
   mockBackstageApiEndpoint,
   mockBackstageAssetsEndpoint,
@@ -15,11 +14,14 @@ export const mockUserWithProxyUrls: User = {
  * The main mock for a workspace whose repo URL matches cleanedRepoUrl
  */
 export const mockWorkspaceWithMatch: Workspace = {
+  ...MockWorkspace,
   id: 'workspace-with-match',
   name: 'Test-Workspace',
   template_icon: `${mockBackstageApiEndpoint}/emojis/dog.svg`,
   owner_name: 'lil brudder',
+
   latest_build: {
+    ...MockWorkspace.latest_build,
     id: 'workspace-with-match-build',
     status: 'running',
     resources: [
@@ -38,11 +40,14 @@ export const mockWorkspaceWithMatch: Workspace = {
  * return multiple values back
  */
 export const mockWorkspaceWithMatch2: Workspace = {
+  ...MockWorkspace,
   id: 'workspace-with-match-2',
   name: 'Another-Test',
   template_icon: `${mockBackstageApiEndpoint}/emojis/z.svg`,
   owner_name: 'Coach Z',
+
   latest_build: {
+    ...MockWorkspace.latest_build,
     id: 'workspace-with-match-2-build',
     status: 'running',
     resources: [
@@ -59,6 +64,7 @@ export const mockWorkspaceWithMatch2: Workspace = {
  * cleanedRepoUrl
  */
 export const mockWorkspaceNoMatch: Workspace = {
+  ...MockWorkspace,
   id: 'workspace-no-match',
   name: 'No-match',
   template_icon: `${mockBackstageApiEndpoint}/emojis/star.svg`,
@@ -82,6 +88,7 @@ export const mockWorkspaceNoMatch: Workspace = {
  * A workspace with no build parameters whatsoever
  */
 export const mockWorkspaceNoParameters: Workspace = {
+  ...MockWorkspace,
   id: 'workspace-no-parameters',
   name: 'No-parameters',
   template_icon: `${mockBackstageApiEndpoint}/emojis/cheese.png`,

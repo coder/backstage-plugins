@@ -82,7 +82,6 @@ export function wrappedGet<TBody extends DefaultBodyType = any>(
 export const mockServerEndpoints = {
   workspaces: `${root}/workspaces`,
   authenticatedUser: `${root}/users/me`,
-  workspaceBuildParameters: `${root}/workspacebuilds/:workspaceBuildId/parameters`,
 } as const satisfies Record<string, string>;
 
 const mainTestHandlers: readonly RestHandler[] = [
