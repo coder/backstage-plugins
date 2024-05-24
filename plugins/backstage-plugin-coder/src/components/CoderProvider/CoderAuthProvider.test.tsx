@@ -9,12 +9,14 @@
  * @todo 2024-05-23 - Right now, there is a conflict when you try to call
  * Backstage's wrapInTestApp and also try to mock out localStorage. They
  * interact in such a way that when you call your mock's getItem method, it
- * immediately throws an error with an error message that is so obscure that
- * there are no Google results for it.
+ * immediately throws an error. Didn't want to get rid of wrapInTestApp, because
+ * then that would require removing official Backstage components. wrapInTestApp
+ * sets up a lot of things behind the scenes like React Router that these
+ * components rely on.
  *
- * Figured out a way to write the tests in a way that didn't involve extra
- * mocking, but it's not as airtight as it could be. Definitely worth opening an
- * issue with the Backstage repo upstream.
+ * Figured out a way to write the tests that didn't involve extra mocking, but
+ * it's not as airtight as it could be. Definitely worth opening an issue with
+ * the Backstage repo upstream.
  */
 import React, { type ReactNode } from 'react';
 import { render, screen, waitFor, within } from '@testing-library/react';
@@ -43,12 +45,12 @@ import { CoderAppConfigProvider } from './CoderAppConfigProvider';
 afterEach(() => {
   jest.restoreAllMocks();
 
-  const wrapperNode = document.querySelector(BACKSTAGE_APP_ROOT_ID);
-  wrapperNode?.remove();
+  const appRootNodes = document.querySelectorAll(BACKSTAGE_APP_ROOT_ID);
+  appRootNodes.forEach(node => node.remove());
   window.localStorage.removeItem(TOKEN_STORAGE_KEY);
 });
 
-function renderAuthProvider(children: ReactNode) {
+function renderAuthProvider(children?: ReactNode) {
   const urlSync = new UrlSync({
     apis: {
       configApi: getMockConfigApi(),
@@ -135,7 +137,7 @@ describe(`${CoderAuthProvider.name}`, () => {
     });
 
     it('Will display an auth fallback input when there are no Coder components to be tracked and does not consider users of', async () => {
-      renderAuthProvider(<></>);
+      renderAuthProvider();
       const authFallbackTrigger = await screen.findByRole('button', {
         name: fallbackTriggerMatcher,
       });
@@ -162,7 +164,7 @@ describe(`${CoderAuthProvider.name}`, () => {
     });
 
     it('Lets the user go through a full authentication flow via the fallback auth UI', async () => {
-      renderAuthProvider(<></>);
+      renderAuthProvider();
       const user = userEvent.setup();
 
       const authFallbackTrigger = await screen.findByRole('button', {
