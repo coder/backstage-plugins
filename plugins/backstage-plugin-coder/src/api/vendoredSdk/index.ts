@@ -4,5 +4,11 @@
  * this file, to provide some degree of insulation between the vendored files
  * and the rest of the plugin logic.
  */
-export * from './api/api';
 export type * from './api/typesGenerated';
+export {
+  type DeleteWorkspaceOptions,
+  type GetLicensesResponse,
+  type InsightsParams,
+  type InsightsTemplateParams,
+  Api as CoderSdk,
+} from './api/api';
