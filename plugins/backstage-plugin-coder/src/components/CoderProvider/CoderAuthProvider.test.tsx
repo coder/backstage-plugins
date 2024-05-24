@@ -3,7 +3,18 @@
  * implementation details, and we could have a single test file for all the
  * pieces joined together.
  *
- * But because the auth is so complicated, it helps to have tests just for it
+ * But because the auth is so complicated, it helps to have tests just for it.
+ *
+ * ---
+ * @todo 2024-05-23 - Right now, there is a conflict when you try to call
+ * Backstage's wrapInTestApp and also try to mock out localStorage. They
+ * interact in such a way that when you call your mock's getItem method, it
+ * immediately throws an error with an error message that is so obscure that
+ * there are no Google results for it.
+ *
+ * Figured out a way to write the tests in a way that didn't involve extra
+ * mocking, but it's not as airtight as it could be. Definitely worth opening an
+ * issue with the Backstage repo upstream.
  */
 import React, { type ReactNode } from 'react';
 import { render, screen, waitFor, within } from '@testing-library/react';
@@ -31,6 +42,10 @@ import { CoderAppConfigProvider } from './CoderAppConfigProvider';
 
 afterEach(() => {
   jest.restoreAllMocks();
+
+  const wrapperNode = document.querySelector(BACKSTAGE_APP_ROOT_ID);
+  wrapperNode?.remove();
+  window.localStorage.removeItem(TOKEN_STORAGE_KEY);
 });
 
 function renderAuthProvider(children: ReactNode) {
@@ -89,17 +104,16 @@ describe(`${CoderAuthProvider.name}`, () => {
       return <p>Authenticated? {auth.isAuthenticated ? 'Yes!' : 'No...'}</p>;
     }
 
-    it.skip('Will never display the auth fallback if the user is already authenticated', async () => {
-      const originalGetItem = global.Storage.prototype.getItem;
-      jest
-        .spyOn(global.Storage.prototype, 'getItem')
-        .mockImplementation(key => {
-          if (key === TOKEN_STORAGE_KEY) {
-            return mockCoderAuthToken;
-          }
-
-          return originalGetItem(key);
-        });
+    it('Will never display the auth fallback if the user is already authenticated', async () => {
+      /**
+       * Not 100% sure on why this works. We load the token in before rendering,
+       * so that we can bring the token into the UI on the initial render
+       *
+       * But as part of that rendering, wrapInTestApp eventually replaces
+       * localStorage with a mock. So the initial state is getting carried over
+       * to the mock? Or maybe it's not really a full mock and is just a spy?
+       */
+      window.localStorage.setItem(TOKEN_STORAGE_KEY, mockCoderAuthToken);
 
       renderAuthProvider(
         <>
