@@ -1,10 +1,6 @@
 import React from 'react';
 import { act, renderHook, waitFor } from '@testing-library/react';
-import {
-  type QueryClient,
-  type QueryKey,
-  type UseQueryResult,
-} from '@tanstack/react-query';
+import { type QueryKey, type UseQueryResult } from '@tanstack/react-query';
 import { type UseCoderQueryOptions, useCoderQuery } from './reactQueryWrappers';
 import {
   CoderProvider,
@@ -21,6 +17,7 @@ import {
   getMockQueryClient,
 } from '../testHelpers/setup';
 import { TestApiProvider, wrapInTestApp } from '@backstage/test-utils';
+import { CODER_QUERY_KEY_PREFIX } from '../plugin';
 
 type RenderUseQueryOptions<
   TQueryFnData = unknown,
@@ -28,7 +25,7 @@ type RenderUseQueryOptions<
   TData = TQueryFnData,
   TQueryKey extends QueryKey = QueryKey,
 > = Readonly<{
-  queryClient?: QueryClient;
+  authenticateOnMount?: boolean;
   queryOptions: UseCoderQueryOptions<TQueryFnData, TError, TData, TQueryKey>;
 }>;
 
@@ -38,7 +35,7 @@ async function renderCoderQuery<
   TData = TQueryFnData,
   TQueryKey extends QueryKey = QueryKey,
 >(options: RenderUseQueryOptions<TQueryFnData, TError, TData, TQueryKey>) {
-  const { queryOptions, queryClient = getMockQueryClient() } = options;
+  const { queryOptions, authenticateOnMount = true } = options;
 
   let latestRegisterNewToken!: CoderAuth['registerNewToken'];
   let latestEjectToken!: CoderAuth['ejectToken'];
@@ -61,7 +58,7 @@ async function renderCoderQuery<
             <CoderProvider
               showFallbackAuthForm
               appConfig={mockAppConfig}
-              queryClient={queryClient}
+              queryClient={getMockQueryClient()}
             >
               {children}
               <AuthEscapeHatch />
@@ -76,15 +73,19 @@ async function renderCoderQuery<
 
   await waitFor(() => expect(renderOutput.result.current).not.toBeNull());
 
-  return {
-    ...renderOutput,
-    registerMockToken: () => {
-      return act(() => latestRegisterNewToken(mockCoderAuthToken));
-    },
-    ejectToken: () => {
-      return act(() => latestEjectToken());
-    },
+  const registerMockToken = () => {
+    return act(() => latestRegisterNewToken(mockCoderAuthToken));
   };
+
+  const ejectToken = () => {
+    return act(() => latestEjectToken());
+  };
+
+  if (authenticateOnMount) {
+    registerMockToken();
+  }
+
+  return { ...renderOutput, registerMockToken, ejectToken };
 }
 
 describe(`${useCoderQuery.name}`, () => {
@@ -92,10 +93,14 @@ describe(`${useCoderQuery.name}`, () => {
    * Really wanted to make mock components for each test case, to simulate some
    * of the steps of using the hook as an actual end-user, but the setup steps
    * got to be a bit much, just because of all the dependencies to juggle.
+   *
+   * @todo Add a new describe block with custom components to mirror some
+   * example user flows
    */
   describe('Hook functionality', () => {
     it('Disables requests while user is not authenticated', async () => {
       const { result, registerMockToken, ejectToken } = await renderCoderQuery({
+        authenticateOnMount: false,
         queryOptions: {
           queryKey: ['workspaces'],
           queryFn: ({ sdk }) => sdk.getWorkspaces({ q: 'owner:me' }),
@@ -116,6 +121,52 @@ describe(`${useCoderQuery.name}`, () => {
       await waitFor(() => expect(result.current.isLoading).toBe(true));
     });
 
+    it("Automatically prefixes queryKey with the global Coder query key prefix if it doesn't already exist", async () => {
+      // Have to escape out the key because useQuery doesn't expose any way to
+      // access the key after it's been processed into a query result object
+      let processedQueryKey: QueryKey | undefined = undefined;
+
+      // Verify that key is updated if the prefix isn't already there
+      const { unmount } = await renderCoderQuery({
+        queryOptions: {
+          queryKey: ['blah'],
+          queryFn: ({ queryKey }) => {
+            processedQueryKey = queryKey;
+            return Promise.resolve('Working as expected!');
+          },
+        },
+      });
+
+      await waitFor(() => {
+        expect(processedQueryKey).toEqual([CODER_QUERY_KEY_PREFIX, 'blah']);
+      });
+
+      unmount();
+
+      // Verify that the key is unchanged if the prefix is already present
+      await renderCoderQuery({
+        queryOptions: {
+          queryKey: [CODER_QUERY_KEY_PREFIX, 'nah'],
+          queryFn: ({ queryKey }) => {
+            processedQueryKey = queryKey;
+            return Promise.resolve('Working as expected!');
+          },
+        },
+      });
+
+      await waitFor(() => {
+        expect(processedQueryKey).toEqual([CODER_QUERY_KEY_PREFIX, 'nah']);
+      });
+    });
+
+    it('Does not disable retries while the user is authenticated', async () => {
+      expect.hasAssertions();
+    });
+
+    it('Disables everything when the user unlinks their access token', async () => {
+      expect.hasAssertions();
+    });
+
     /**
      * In case the title isn't clear (had to rewrite it a bunch), the flow is:
      *
@@ -127,11 +178,11 @@ describe(`${useCoderQuery.name}`, () => {
      * 5. But the hook should tell the Query Client NOT retry the request
      *    because the user is no longer authenticated
      */
-    it.only('Will not retry a request if it gets sent out while the user is authenticated, but then fails after the user revokes authentication', async () => {
+    it('Will not retry a request if it gets sent out while the user is authenticated, but then fails after the user revokes authentication', async () => {
       const { promise, reject } = createInvertedPromise();
       const queryFn = jest.fn(() => promise);
 
-      const { registerMockToken, ejectToken } = await renderCoderQuery({
+      const { ejectToken } = await renderCoderQuery({
         queryOptions: {
           queryFn,
           queryKey: ['blah'],
@@ -142,7 +193,6 @@ describe(`${useCoderQuery.name}`, () => {
         },
       });
 
-      registerMockToken();
       await waitFor(() => expect(queryFn).toHaveBeenCalled());
       ejectToken();
 
@@ -150,25 +200,5 @@ describe(`${useCoderQuery.name}`, () => {
       act(() => reject(new Error("Don't feel like giving you data today")));
       expect(queryFn).not.toHaveBeenCalled();
     });
-  });
-
-  it('Never displays previous data for changing query keys if the user is not authenticated', () => {
-    expect.hasAssertions();
-  });
-
-  it("Automatically prefixes queryKey with the global Coder query key prefix if it doesn't already exist", () => {
-    expect.hasAssertions();
-  });
-
-  it('Disables all refetch-based properties when the user is not authenticated', () => {
-    expect.hasAssertions();
-  });
-
-  it('Behaves exactly like useQuery if the user is fully authenticated (aside from queryKey patching)', () => {
-    expect.hasAssertions();
-  });
-
-  it('Disables everything when the user unlinks their access token', () => {
-    expect.hasAssertions();
   });
 });
