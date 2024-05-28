@@ -195,6 +195,11 @@ export { useCoderQuery } from './hooks/reactQueryWrappers';
 export { useEndUserCoderAuth as useCoderAuth } from './components/CoderProvider/CoderAuthProvider';
 
 /**
+ * General constants
+ */
+export { CODER_QUERY_KEY_PREFIX } from './api/queryOptions';
+
+/**
  * All custom types
  */
 export type { CoderAppConfig } from './components/CoderProvider';
