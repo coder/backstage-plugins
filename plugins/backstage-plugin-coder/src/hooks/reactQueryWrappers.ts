@@ -18,14 +18,37 @@
  * @see {@link https://gist.github.com/Parkreiner/5c1e01f820500a49e2e81897a507e907}
  */
 import {
+  type QueryFunctionContext,
   type QueryKey,
   type UseQueryOptions,
   type UseQueryResult,
   useQuery,
+  useQueryClient,
 } from '@tanstack/react-query';
 import { DEFAULT_TANSTACK_QUERY_RETRY_COUNT } from '../typesConstants';
 import { useEndUserCoderAuth } from '../components/CoderProvider';
 import { CODER_QUERY_KEY_PREFIX } from '../api/queryOptions';
+import { useCoderSdk } from './useCoderSdk';
+import type { BackstageCoderSdk } from '../api/CoderClient';
+
+export type CoderQueryFunctionContext<TQueryKey extends QueryKey = QueryKey> =
+  QueryFunctionContext<TQueryKey> & {
+    sdk: BackstageCoderSdk;
+  };
+
+export type CoderQueryFunction<
+  T = unknown,
+  TQueryKey extends QueryKey = QueryKey,
+> = (context: CoderQueryFunctionContext<TQueryKey>) => Promise<T>;
+
+export type UseCoderQueryOptions<
+  TQueryFnData = unknown,
+  TError = unknown,
+  TData = TQueryFnData,
+  TQueryKey extends QueryKey = QueryKey,
+> = Omit<UseQueryOptions<TQueryFnData, TError, TData, TQueryKey>, 'queryFn'> & {
+  queryFn: CoderQueryFunction<TQueryFnData, TQueryKey>;
+};
 
 export function useCoderQuery<
   TQueryFnData = unknown,
@@ -33,9 +56,11 @@ export function useCoderQuery<
   TData = TQueryFnData,
   TQueryKey extends QueryKey = QueryKey,
 >(
-  queryOptions: UseQueryOptions<TQueryFnData, TError, TData, TQueryKey>,
+  queryOptions: UseCoderQueryOptions<TQueryFnData, TError, TData, TQueryKey>,
 ): UseQueryResult<TData, TError> {
+  const queryClient = useQueryClient();
   const { isAuthenticated } = useEndUserCoderAuth();
+  const { sdk } = useCoderSdk();
 
   let patchedQueryKey: TQueryKey;
   if (
@@ -44,13 +69,21 @@ export function useCoderQuery<
   ) {
     patchedQueryKey = queryOptions.queryKey;
   } else {
+    const baseKey =
+      queryOptions.queryKey ?? queryClient.defaultQueryOptions().queryKey;
+
+    if (baseKey === undefined) {
+      throw new Error('No Query Key provided to useCoderQuery');
+    }
+
     patchedQueryKey = [
       CODER_QUERY_KEY_PREFIX,
-      ...(queryOptions.queryKey ?? []),
+      ...baseKey,
     ] as QueryKey as TQueryKey;
   }
 
-  const patchedOptions: typeof queryOptions = {
+  type Options = UseQueryOptions<TQueryFnData, TError, TData, TQueryKey>;
+  const patchedOptions: Options = {
     ...queryOptions,
     queryKey: patchedQueryKey,
     enabled: isAuthenticated && (queryOptions.enabled ?? true),
@@ -58,6 +91,10 @@ export function useCoderQuery<
       isAuthenticated && (queryOptions.keepPreviousData ?? false),
     refetchIntervalInBackground:
       isAuthenticated && (queryOptions.refetchIntervalInBackground ?? false),
+
+    queryFn: async context => {
+      return queryOptions.queryFn({ ...context, sdk });
+    },
 
     refetchInterval: (data, query) => {
       if (!isAuthenticated) {
