@@ -229,17 +229,20 @@ export async function renderInCoderEnvironment({
   return renderOutput;
 }
 
-type InvertedPromiseResult<T = unknown> = Readonly<{
-  promise: Promise<T>;
-  resolve: (value: T) => void;
-  reject: (errorReason: unknown) => void;
+type InvertedPromiseResult<TData = unknown, TError = Error> = Readonly<{
+  promise: Promise<TData>;
+  resolve: (value: TData) => void;
+  reject: (errorReason: TError) => void;
 }>;
 
-export function createInvertedPromise<T = unknown>(): InvertedPromiseResult<T> {
-  let resolve!: (value: T) => void;
-  let reject!: (error: unknown) => void;
+export function createInvertedPromise<
+  TData = unknown,
+  TError = unknown,
+>(): InvertedPromiseResult<TData, TError> {
+  let resolve!: (value: TData) => void;
+  let reject!: (error: TError) => void;
 
-  const promise = new Promise<T>((innerResolve, innerReject) => {
+  const promise = new Promise<TData>((innerResolve, innerReject) => {
     resolve = innerResolve;
     reject = innerReject;
   });
