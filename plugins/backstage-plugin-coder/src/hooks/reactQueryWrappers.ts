@@ -62,13 +62,11 @@ export function useCoderQuery<
   const { isAuthenticated } = useEndUserCoderAuth();
   const { sdk } = useCoderSdk();
 
-  let patchedQueryKey: TQueryKey;
+  let patchedQueryKey = queryOptions.queryKey;
   if (
-    queryOptions.queryKey &&
-    queryOptions.queryKey[0] === CODER_QUERY_KEY_PREFIX
+    patchedQueryKey === undefined ||
+    patchedQueryKey[0] !== CODER_QUERY_KEY_PREFIX
   ) {
-    patchedQueryKey = queryOptions.queryKey;
-  } else {
     const baseKey =
       queryOptions.queryKey ?? queryClient.defaultQueryOptions().queryKey;
 
