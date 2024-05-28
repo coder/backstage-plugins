@@ -13,9 +13,6 @@
  *
  * Making the useMutation wrapper shouldn't be hard, but you want some good
  * integration tests to verify that the two hooks can satisfy common user flows.
- *
- * Draft version of wrapper:
- * @see {@link https://gist.github.com/Parkreiner/5c1e01f820500a49e2e81897a507e907}
  */
 import {
   type QueryFunctionContext,
@@ -131,13 +128,19 @@ export function useCoderQuery<
 
       const externalRetry = queryOptions.retry;
       if (typeof externalRetry === 'number') {
-        return (
-          failureCount < (externalRetry ?? DEFAULT_TANSTACK_QUERY_RETRY_COUNT)
-        );
+        const normalized = Number.isInteger(externalRetry)
+          ? Math.max(1, externalRetry)
+          : DEFAULT_TANSTACK_QUERY_RETRY_COUNT;
+
+        return failureCount < normalized;
       }
 
       if (typeof externalRetry !== 'function') {
-        return externalRetry ?? true;
+        // Could use the nullish coalescing operator here, but Prettier made the
+        // output hard to read
+        return externalRetry
+          ? externalRetry
+          : failureCount < DEFAULT_TANSTACK_QUERY_RETRY_COUNT;
       }
 
       return externalRetry(failureCount, error);
