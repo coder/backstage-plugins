@@ -165,19 +165,23 @@ function useAuthState(): CoderAuth {
     return unsubscribe;
   }, [queryClient]);
 
+  const registerNewToken = useCallback((newToken: string) => {
+    if (newToken !== '') {
+      setAuthToken(newToken);
+    }
+  }, []);
+
+  const ejectToken = useCallback(() => {
+    setAuthToken('');
+    window.localStorage.removeItem(TOKEN_STORAGE_KEY);
+    queryClient.removeQueries({ queryKey: [CODER_QUERY_KEY_PREFIX] });
+  }, [queryClient]);
+
   return {
     ...authState,
     isAuthenticated: validAuthStatuses.includes(authState.status),
-    registerNewToken: newToken => {
-      if (newToken !== '') {
-        setAuthToken(newToken);
-      }
-    },
-    ejectToken: () => {
-      setAuthToken('');
-      window.localStorage.removeItem(TOKEN_STORAGE_KEY);
-      queryClient.removeQueries({ queryKey: [CODER_QUERY_KEY_PREFIX] });
-    },
+    registerNewToken,
+    ejectToken,
   };
 }
 

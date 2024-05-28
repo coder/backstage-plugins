@@ -14,12 +14,12 @@ export function useCoderWorkspacesQuery({
   workspacesConfig,
 }: QueryInput) {
   const auth = useInternalCoderAuth();
-  const coderSdk = useCoderSdk();
+  const { sdk } = useCoderSdk();
   const hasRepoData = workspacesConfig && workspacesConfig.repoUrl;
 
   const queryOptions = hasRepoData
-    ? workspacesByRepo({ auth, coderSdk, coderQuery, workspacesConfig })
-    : workspaces({ auth, coderSdk, coderQuery });
+    ? workspacesByRepo({ auth, sdk, coderQuery, workspacesConfig })
+    : workspaces({ auth, sdk, coderQuery });
 
   return useQuery(queryOptions);
 }
