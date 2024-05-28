@@ -44,13 +44,13 @@ function getSharedWorkspacesQueryKey(coderQuery: string) {
 
 type WorkspacesFetchInputs = Readonly<{
   auth: CoderAuth;
-  coderSdk: BackstageCoderSdk;
+  sdk: BackstageCoderSdk;
   coderQuery: string;
 }>;
 
 export function workspaces({
   auth,
-  coderSdk,
+  sdk,
   coderQuery,
 }: WorkspacesFetchInputs): UseQueryOptions<readonly Workspace[]> {
   const enabled = auth.isAuthenticated;
@@ -61,7 +61,7 @@ export function workspaces({
     keepPreviousData: enabled && coderQuery !== '',
     refetchInterval: getCoderWorkspacesRefetchInterval,
     queryFn: async () => {
-      const res = await coderSdk.getWorkspaces({
+      const res = await sdk.getWorkspaces({
         q: coderQuery,
         limit: 0,
       });
@@ -79,7 +79,7 @@ type WorkspacesByRepoFetchInputs = Readonly<
 
 export function workspacesByRepo({
   coderQuery,
-  coderSdk,
+  sdk,
   auth,
   workspacesConfig,
 }: WorkspacesByRepoFetchInputs): UseQueryOptions<readonly Workspace[]> {
@@ -95,7 +95,7 @@ export function workspacesByRepo({
     refetchInterval: getCoderWorkspacesRefetchInterval,
     queryFn: async () => {
       const request: WorkspacesRequest = { q: coderQuery, limit: 0 };
-      const res = await coderSdk.getWorkspacesByRepo(request, workspacesConfig);
+      const res = await sdk.getWorkspacesByRepo(request, workspacesConfig);
       return res.workspaces;
     },
   };
