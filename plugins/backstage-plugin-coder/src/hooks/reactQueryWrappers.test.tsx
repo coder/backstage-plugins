@@ -1,7 +1,11 @@
-import React, { ReactNode } from 'react';
-import { act, render, screen, waitFor } from '@testing-library/react';
-import { type QueryClient } from '@tanstack/react-query';
-import { useCoderQuery } from './reactQueryWrappers';
+import React from 'react';
+import { act, renderHook, waitFor } from '@testing-library/react';
+import {
+  type QueryClient,
+  type QueryKey,
+  type UseQueryResult,
+} from '@tanstack/react-query';
+import { type UseCoderQueryOptions, useCoderQuery } from './reactQueryWrappers';
 import {
   CoderProvider,
   CoderAuth,
@@ -12,21 +16,32 @@ import {
   mockAppConfig,
   mockCoderAuthToken,
 } from '../testHelpers/mockBackstageData';
-import { getMockQueryClient } from '../testHelpers/setup';
+import {
+  createInvertedPromise,
+  getMockQueryClient,
+} from '../testHelpers/setup';
 import { TestApiProvider, wrapInTestApp } from '@backstage/test-utils';
 
-type RenderMockQueryOptions = Readonly<{
-  children: ReactNode;
+type RenderUseQueryOptions<
+  TQueryFnData = unknown,
+  TError = unknown,
+  TData = TQueryFnData,
+  TQueryKey extends QueryKey = QueryKey,
+> = Readonly<{
   queryClient?: QueryClient;
+  queryOptions: UseCoderQueryOptions<TQueryFnData, TError, TData, TQueryKey>;
 }>;
 
-function renderMockQueryComponent(options: RenderMockQueryOptions) {
-  const { children: mainComponent, queryClient = getMockQueryClient() } =
-    options;
+async function renderCoderQuery<
+  TQueryFnData = unknown,
+  TError = unknown,
+  TData = TQueryFnData,
+  TQueryKey extends QueryKey = QueryKey,
+>(options: RenderUseQueryOptions<TQueryFnData, TError, TData, TQueryKey>) {
+  const { queryOptions, queryClient = getMockQueryClient() } = options;
 
   let latestRegisterNewToken!: CoderAuth['registerNewToken'];
   let latestEjectToken!: CoderAuth['ejectToken'];
-
   const AuthEscapeHatch = () => {
     const auth = useEndUserCoderAuth();
     latestRegisterNewToken = auth.registerNewToken;
@@ -35,29 +50,36 @@ function renderMockQueryComponent(options: RenderMockQueryOptions) {
     return null;
   };
 
-  const renderOutput = render(mainComponent, {
-    wrapper: ({ children }) => {
-      const mainMarkup = (
-        <TestApiProvider apis={getMockApiList()}>
-          <CoderProvider
-            showFallbackAuthForm
-            appConfig={mockAppConfig}
-            queryClient={queryClient}
-          >
-            {children}
-            <AuthEscapeHatch />
-          </CoderProvider>
-        </TestApiProvider>
-      );
+  type Result = UseQueryResult<TData, TError>;
+  const renderOutput = renderHook<Result, typeof queryOptions>(
+    newOptions => useCoderQuery(newOptions),
+    {
+      initialProps: queryOptions,
+      wrapper: ({ children }) => {
+        const mainMarkup = (
+          <TestApiProvider apis={getMockApiList()}>
+            <CoderProvider
+              showFallbackAuthForm
+              appConfig={mockAppConfig}
+              queryClient={queryClient}
+            >
+              {children}
+              <AuthEscapeHatch />
+            </CoderProvider>
+          </TestApiProvider>
+        );
 
-      return wrapInTestApp(mainMarkup) as unknown as typeof mainMarkup;
+        return wrapInTestApp(mainMarkup) as unknown as typeof mainMarkup;
+      },
     },
-  });
+  );
+
+  await waitFor(() => expect(renderOutput.result.current).not.toBeNull());
 
   return {
     ...renderOutput,
-    registerNewToken: (newToken: string) => {
-      return act(() => latestRegisterNewToken(newToken));
+    registerMockToken: () => {
+      return act(() => latestRegisterNewToken(mockCoderAuthToken));
     },
     ejectToken: () => {
       return act(() => latestEjectToken());
@@ -66,54 +88,68 @@ function renderMockQueryComponent(options: RenderMockQueryOptions) {
 }
 
 describe(`${useCoderQuery.name}`, () => {
-  it('Disables requests while user is not authenticated', async () => {
-    const MockUserComponent = () => {
-      const workspacesQuery = useCoderQuery({
-        queryKey: ['workspaces'],
-        queryFn: ({ sdk }) => sdk.getWorkspaces({ q: 'owner:me' }),
-        select: response => response.workspaces,
+  /**
+   * Really wanted to make mock components for each test case, to simulate some
+   * of the steps of using the hook as an actual end-user, but the setup steps
+   * got to be a bit much, just because of all the dependencies to juggle.
+   */
+  describe('Hook functionality', () => {
+    it('Disables requests while user is not authenticated', async () => {
+      const { result, registerMockToken, ejectToken } = await renderCoderQuery({
+        queryOptions: {
+          queryKey: ['workspaces'],
+          queryFn: ({ sdk }) => sdk.getWorkspaces({ q: 'owner:me' }),
+          select: response => response.workspaces,
+        },
       });
 
-      return (
-        <div>
-          {workspacesQuery.error instanceof Error && (
-            <p>Encountered error: {workspacesQuery.error.message}</p>
-          )}
+      expect(result.current.isLoading).toBe(true);
 
-          {workspacesQuery.isLoading && <p>Loading&hellip;</p>}
+      registerMockToken();
+      await waitFor(() => {
+        expect(result.current.isLoading).toBe(false);
+        expect(result.current.isSuccess).toBe(true);
+        expect(result.current.data?.length).toBeGreaterThan(0);
+      });
 
-          {workspacesQuery.data !== undefined && (
-            <ul>
-              {workspacesQuery.data.map(workspace => (
-                <li key={workspace.id}>{workspace.name}</li>
-              ))}
-            </ul>
-          )}
-        </div>
-      );
-    };
-
-    const loadingMatcher = /^Loading/;
-    const { registerNewToken, ejectToken } = renderMockQueryComponent({
-      children: <MockUserComponent />,
+      ejectToken();
+      await waitFor(() => expect(result.current.isLoading).toBe(true));
     });
 
-    const initialLoadingIndicator = screen.getByText(loadingMatcher);
-    registerNewToken(mockCoderAuthToken);
+    /**
+     * In case the title isn't clear (had to rewrite it a bunch), the flow is:
+     *
+     * 1. User gets authenticated
+     * 2. User makes a request that will fail
+     * 3. Before the request comes back, the user revokes their authentication
+     * 4. The failed request comes back, which would normally add error state,
+     *    and kick off a bunch of retry logic for React Query
+     * 5. But the hook should tell the Query Client NOT retry the request
+     *    because the user is no longer authenticated
+     */
+    it.only('Will not retry a request if it gets sent out while the user is authenticated, but then fails after the user revokes authentication', async () => {
+      const { promise, reject } = createInvertedPromise();
+      const queryFn = jest.fn(() => promise);
 
-    await waitFor(() => {
-      const workspaceItems = screen.getAllByRole('listitem');
-      expect(workspaceItems.length).toBeGreaterThan(0);
-      expect(initialLoadingIndicator).not.toBeInTheDocument();
+      const { registerMockToken, ejectToken } = await renderCoderQuery({
+        queryOptions: {
+          queryFn,
+          queryKey: ['blah'],
+
+          // From the end user's perspective, the query should always retry, but
+          // the hook should override that when the user isn't authenticated
+          retry: true,
+        },
+      });
+
+      registerMockToken();
+      await waitFor(() => expect(queryFn).toHaveBeenCalled());
+      ejectToken();
+
+      queryFn.mockReset();
+      act(() => reject(new Error("Don't feel like giving you data today")));
+      expect(queryFn).not.toHaveBeenCalled();
     });
-
-    ejectToken();
-    const newLoadingIndicator = await screen.findByText(loadingMatcher);
-    expect(newLoadingIndicator).toBeInTheDocument();
-  });
-
-  it('Never retries requests if the user is not authenticated', () => {
-    expect.hasAssertions();
   });
 
   it('Never displays previous data for changing query keys if the user is not authenticated', () => {
