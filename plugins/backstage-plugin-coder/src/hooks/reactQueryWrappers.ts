@@ -37,13 +37,22 @@ export function useCoderQuery<
 ): UseQueryResult<TData, TError> {
   const { isAuthenticated } = useEndUserCoderAuth();
 
-  const patchedOptions: typeof queryOptions = {
-    ...queryOptions,
-    queryKey: [
+  let patchedQueryKey: TQueryKey;
+  if (
+    queryOptions.queryKey &&
+    queryOptions.queryKey[0] === CODER_QUERY_KEY_PREFIX
+  ) {
+    patchedQueryKey = queryOptions.queryKey;
+  } else {
+    patchedQueryKey = [
       CODER_QUERY_KEY_PREFIX,
       ...(queryOptions.queryKey ?? []),
-    ] as QueryKey as TQueryKey,
+    ] as QueryKey as TQueryKey;
+  }
 
+  const patchedOptions: typeof queryOptions = {
+    ...queryOptions,
+    queryKey: patchedQueryKey,
     enabled: isAuthenticated && (queryOptions.enabled ?? true),
     keepPreviousData:
       isAuthenticated && (queryOptions.keepPreviousData ?? false),
