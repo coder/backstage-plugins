@@ -237,7 +237,7 @@ type InvertedPromiseResult<TData = unknown, TError = Error> = Readonly<{
 
 export function createInvertedPromise<
   TData = unknown,
-  TError = unknown,
+  TError = Error,
 >(): InvertedPromiseResult<TData, TError> {
   let resolve!: (value: TData) => void;
   let reject!: (error: TError) => void;
