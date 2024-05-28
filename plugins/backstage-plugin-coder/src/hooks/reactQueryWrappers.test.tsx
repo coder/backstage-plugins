@@ -1,74 +1,74 @@
 import React, { ReactNode } from 'react';
-import { render, screen, waitFor } from '@testing-library/react';
-import type { QueryClient } from '@tanstack/react-query';
+import { act, render, screen, waitFor } from '@testing-library/react';
+import { type QueryClient } from '@tanstack/react-query';
 import { useCoderQuery } from './reactQueryWrappers';
-import { useEndUserCoderAuth } from '../components/CoderProvider';
-import { CoderProvider } from '../plugin';
 import {
+  CoderProvider,
+  CoderAuth,
+  useEndUserCoderAuth,
+} from '../components/CoderProvider';
+import {
+  getMockApiList,
   mockAppConfig,
   mockCoderAuthToken,
 } from '../testHelpers/mockBackstageData';
 import { getMockQueryClient } from '../testHelpers/setup';
-import userEvent from '@testing-library/user-event';
+import { TestApiProvider, wrapInTestApp } from '@backstage/test-utils';
 
-type RenderMockQueryComponentOptions = Readonly<{
+type RenderMockQueryOptions = Readonly<{
   children: ReactNode;
   queryClient?: QueryClient;
 }>;
 
-function renderMockQueryComponent(options: RenderMockQueryComponentOptions) {
+function renderMockQueryComponent(options: RenderMockQueryOptions) {
   const { children: mainComponent, queryClient = getMockQueryClient() } =
     options;
 
-  const injectorLabel = 'Register mock Coder token';
-  const TokenInjector = () => {
-    const { isAuthenticated, registerNewToken } = useEndUserCoderAuth();
+  let latestRegisterNewToken!: CoderAuth['registerNewToken'];
+  let latestEjectToken!: CoderAuth['ejectToken'];
 
-    if (isAuthenticated) {
-      return null;
-    }
+  const AuthEscapeHatch = () => {
+    const auth = useEndUserCoderAuth();
+    latestRegisterNewToken = auth.registerNewToken;
+    latestEjectToken = auth.ejectToken;
 
-    return (
-      <button onClick={() => registerNewToken(mockCoderAuthToken)}>
-        {injectorLabel}
-      </button>
-    );
-  };
-
-  const injectMockToken = async (): Promise<void> => {
-    const injectorButton = await screen.findByRole('button', {
-      name: injectorLabel,
-    });
-
-    const user = userEvent.setup();
-    await user.click(injectorButton);
-
-    return waitFor(() => expect(injectorButton).not.toBeInTheDocument());
+    return null;
   };
 
   const renderOutput = render(mainComponent, {
-    wrapper: ({ children }) => (
-      <CoderProvider
-        showFallbackAuthForm
-        appConfig={mockAppConfig}
-        queryClient={queryClient}
-      >
-        {children}
-        <TokenInjector />
-      </CoderProvider>
-    ),
+    wrapper: ({ children }) => {
+      const mainMarkup = (
+        <TestApiProvider apis={getMockApiList()}>
+          <CoderProvider
+            showFallbackAuthForm
+            appConfig={mockAppConfig}
+            queryClient={queryClient}
+          >
+            {children}
+            <AuthEscapeHatch />
+          </CoderProvider>
+        </TestApiProvider>
+      );
+
+      return wrapInTestApp(mainMarkup) as unknown as typeof mainMarkup;
+    },
   });
 
   return {
     ...renderOutput,
-    injectMockToken,
+    registerNewToken: (newToken: string) => {
+      return act(() => latestRegisterNewToken(newToken));
+    },
+    ejectToken: () => {
+      return act(() => latestEjectToken());
+    },
   };
 }
 
 describe(`${useCoderQuery.name}`, () => {
-  it('Does not enable requests until the user is authenticated', async () => {
+  it('Disables requests while user is not authenticated', async () => {
     const MockUserComponent = () => {
-      const query = useCoderQuery({
+      const workspacesQuery = useCoderQuery({
         queryKey: ['workspaces'],
         queryFn: ({ sdk }) => sdk.getWorkspaces({ q: 'owner:me' }),
         select: response => response.workspaces,
@@ -76,15 +76,15 @@ describe(`${useCoderQuery.name}`, () => {
 
       return (
         <div>
-          {query.error instanceof Error && (
-            <p>Encountered error: {query.error.message}</p>
+          {workspacesQuery.error instanceof Error && (
+            <p>Encountered error: {workspacesQuery.error.message}</p>
           )}
 
-          {query.isLoading && <p>Loading&hellip;</p>}
+          {workspacesQuery.isLoading && <p>Loading&hellip;</p>}
 
-          {query.data !== undefined && (
+          {workspacesQuery.data !== undefined && (
             <ul>
-              {query.data.map(workspace => (
+              {workspacesQuery.data.map(workspace => (
                 <li key={workspace.id}>{workspace.name}</li>
               ))}
             </ul>
@@ -93,11 +93,23 @@ describe(`${useCoderQuery.name}`, () => {
       );
     };
 
-    const { injectMockToken } = renderMockQueryComponent({
+    const loadingMatcher = /^Loading/;
+    const { registerNewToken, ejectToken } = renderMockQueryComponent({
       children: <MockUserComponent />,
     });
 
-    expect.hasAssertions();
+    const initialLoadingIndicator = screen.getByText(loadingMatcher);
+    registerNewToken(mockCoderAuthToken);
+
+    await waitFor(() => {
+      const workspaceItems = screen.getAllByRole('listitem');
+      expect(workspaceItems.length).toBeGreaterThan(0);
+      expect(initialLoadingIndicator).not.toBeInTheDocument();
+    });
+
+    ejectToken();
+    const newLoadingIndicator = await screen.findByText(loadingMatcher);
+    expect(newLoadingIndicator).toBeInTheDocument();
   });
 
   it('Never retries requests if the user is not authenticated', () => {
