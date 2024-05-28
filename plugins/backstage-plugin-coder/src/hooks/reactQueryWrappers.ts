@@ -91,6 +91,10 @@ export function useCoderQuery<
       isAuthenticated && (queryOptions.refetchIntervalInBackground ?? false),
 
     queryFn: async context => {
+      if (!isAuthenticated) {
+        throw new Error('Cannot complete request - user is not authenticated');
+      }
+
       return queryOptions.queryFn({ ...context, sdk });
     },
 
