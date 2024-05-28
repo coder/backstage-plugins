@@ -1,8 +1,8 @@
 import { useQuery } from '@tanstack/react-query';
-import { workspaces, workspacesByRepo } from '../api/queryOptions';
-import type { CoderWorkspacesConfig } from './useCoderWorkspacesConfig';
-import { useCoderSdk } from './useCoderSdk';
-import { useInternalCoderAuth } from '../components/CoderProvider';
+import { workspaces, workspacesByRepo } from '../../api/queryOptions';
+import type { CoderWorkspacesConfig } from '../../hooks/useCoderWorkspacesConfig';
+import { useCoderSdk } from '../../hooks/useCoderSdk';
+import { useInternalCoderAuth } from '../../components/CoderProvider';
 
 type QueryInput = Readonly<{
   coderQuery: string;
