@@ -607,12 +607,21 @@ export const dummyTrackComponent: TrackComponent = () => {
   };
 };
 
+type CoderAuthProviderProps = Readonly<
+  PropsWithChildren<{
+    showFallbackAuthForm?: boolean;
+  }>
+>;
+
 export function CoderAuthProvider({
   children,
-}: Readonly<PropsWithChildren<unknown>>) {
+  showFallbackAuthForm = true,
+}: CoderAuthProviderProps) {
   const authState = useAuthState();
   const { hasNoAuthInputs, trackComponent } = useAuthFallbackState();
-  const needFallbackUi = !authState.isAuthenticated && hasNoAuthInputs;
+
+  const needFallbackUi =
+    showFallbackAuthForm && !authState.isAuthenticated && hasNoAuthInputs;
 
   return (
     <AuthStateContext.Provider value={authState}>
