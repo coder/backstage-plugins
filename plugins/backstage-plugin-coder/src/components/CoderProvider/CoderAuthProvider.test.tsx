@@ -136,7 +136,7 @@ describe(`${CoderAuthProvider.name}`, () => {
       expect(authFallbackTrigger).not.toBeInTheDocument();
     });
 
-    it('Will display an auth fallback input when there are no Coder components to be tracked and does not consider users of', async () => {
+    it('Will display an auth fallback input when there are no components on screen that use Coder plugin logic', async () => {
       renderAuthProvider();
       const authFallbackTrigger = await screen.findByRole('button', {
         name: fallbackTriggerMatcher,
@@ -145,12 +145,14 @@ describe(`${CoderAuthProvider.name}`, () => {
       expect(authFallbackTrigger).toBeInTheDocument();
     });
 
-    it('Will never display the auth fallback if there are components being tracked', () => {
+    it('Will never display the auth fallback if there are tracked Coder components that let you submit auth info in other ways', async () => {
       renderAuthProvider(<MockTrackedComponent />);
+
       const authFallbackTrigger = screen.queryByRole('button', {
         name: fallbackTriggerMatcher,
       });
 
+      await screen.findByText(/No\.\.\./);
       expect(authFallbackTrigger).not.toBeInTheDocument();
     });
 
@@ -185,6 +187,7 @@ describe(`${CoderAuthProvider.name}`, () => {
 
       await user.click(submitButton);
       expect(authForm).not.toBeInTheDocument();
+      expect(authFallbackTrigger).not.toBeInTheDocument();
     });
   });
 });
