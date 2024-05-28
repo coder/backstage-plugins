@@ -1,10 +1,18 @@
 import React from 'react';
 import { act, renderHook, waitFor } from '@testing-library/react';
-import { type QueryKey, type UseQueryResult } from '@tanstack/react-query';
-import { type UseCoderQueryOptions, useCoderQuery } from './reactQueryWrappers';
+import type {
+  QueryClient,
+  QueryKey,
+  UseQueryResult,
+} from '@tanstack/react-query';
 import {
+  type UseCoderQueryOptions,
+  useCoderQuery,
+  CoderQueryFunction,
+} from './reactQueryWrappers';
+import {
+  type CoderAuth,
   CoderProvider,
-  CoderAuth,
   useEndUserCoderAuth,
 } from '../components/CoderProvider';
 import {
@@ -18,6 +26,7 @@ import {
 } from '../testHelpers/setup';
 import { TestApiProvider, wrapInTestApp } from '@backstage/test-utils';
 import { CODER_QUERY_KEY_PREFIX } from '../plugin';
+import { mockWorkspacesList } from '../testHelpers/mockCoderPluginData';
 
 type RenderUseQueryOptions<
   TQueryFnData = unknown,
@@ -26,6 +35,7 @@ type RenderUseQueryOptions<
   TQueryKey extends QueryKey = QueryKey,
 > = Readonly<{
   authenticateOnMount?: boolean;
+  queryClient?: QueryClient;
   queryOptions: UseCoderQueryOptions<TQueryFnData, TError, TData, TQueryKey>;
 }>;
 
@@ -35,7 +45,11 @@ async function renderCoderQuery<
   TData = TQueryFnData,
   TQueryKey extends QueryKey = QueryKey,
 >(options: RenderUseQueryOptions<TQueryFnData, TError, TData, TQueryKey>) {
-  const { queryOptions, authenticateOnMount = true } = options;
+  const {
+    queryOptions,
+    authenticateOnMount = true,
+    queryClient = getMockQueryClient(),
+  } = options;
 
   let latestRegisterNewToken!: CoderAuth['registerNewToken'];
   let latestEjectToken!: CoderAuth['ejectToken'];
@@ -58,7 +72,7 @@ async function renderCoderQuery<
             <CoderProvider
               showFallbackAuthForm
               appConfig={mockAppConfig}
-              queryClient={getMockQueryClient()}
+              queryClient={queryClient}
             >
               {children}
               <AuthEscapeHatch />
@@ -109,8 +123,8 @@ describe(`${useCoderQuery.name}`, () => {
       });
 
       expect(result.current.isLoading).toBe(true);
-
       registerMockToken();
+
       await waitFor(() => {
         expect(result.current.isLoading).toBe(false);
         expect(result.current.isSuccess).toBe(true);
@@ -121,50 +135,80 @@ describe(`${useCoderQuery.name}`, () => {
       await waitFor(() => expect(result.current.isLoading).toBe(true));
     });
 
-    it("Automatically prefixes queryKey with the global Coder query key prefix if it doesn't already exist", async () => {
+    it("Automatically prefixes queryKey with the global Coder query key prefix if it isn't already there", async () => {
       // Have to escape out the key because useQuery doesn't expose any way to
       // access the key after it's been processed into a query result object
       let processedQueryKey: QueryKey | undefined = undefined;
+
+      const queryFnWithEscape: CoderQueryFunction = ({ queryKey }) => {
+        processedQueryKey = queryKey;
+        return Promise.resolve(mockWorkspacesList);
+      };
 
       // Verify that key is updated if the prefix isn't already there
       const { unmount } = await renderCoderQuery({
         queryOptions: {
           queryKey: ['blah'],
-          queryFn: ({ queryKey }) => {
-            processedQueryKey = queryKey;
-            return Promise.resolve('Working as expected!');
-          },
+          queryFn: queryFnWithEscape,
         },
       });
 
       await waitFor(() => {
-        expect(processedQueryKey).toEqual([CODER_QUERY_KEY_PREFIX, 'blah']);
+        expect(processedQueryKey).toEqual<QueryKey>([
+          CODER_QUERY_KEY_PREFIX,
+          'blah',
+        ]);
       });
 
+      // Unmounting shouldn't really be necessary, but it helps guarantee that
+      // there's never any risks of states messing with each other
       unmount();
 
       // Verify that the key is unchanged if the prefix is already present
       await renderCoderQuery({
         queryOptions: {
           queryKey: [CODER_QUERY_KEY_PREFIX, 'nah'],
-          queryFn: ({ queryKey }) => {
-            processedQueryKey = queryKey;
-            return Promise.resolve('Working as expected!');
-          },
+          queryFn: queryFnWithEscape,
         },
       });
 
       await waitFor(() => {
-        expect(processedQueryKey).toEqual([CODER_QUERY_KEY_PREFIX, 'nah']);
+        expect(processedQueryKey).toEqual<QueryKey>([
+          CODER_QUERY_KEY_PREFIX,
+          'nah',
+        ]);
       });
     });
 
-    it('Does not disable retries while the user is authenticated', async () => {
-      expect.hasAssertions();
-    });
-
     it('Disables everything when the user unlinks their access token', async () => {
-      expect.hasAssertions();
+      const { result, ejectToken } = await renderCoderQuery({
+        queryOptions: {
+          queryKey: ['workspaces'],
+          queryFn: () => Promise.resolve(mockWorkspacesList),
+        },
+      });
+
+      await waitFor(() => {
+        expect(result.current).toEqual(
+          expect.objectContaining<Partial<UseQueryResult>>({
+            isSuccess: true,
+            isPaused: false,
+            data: mockWorkspacesList,
+          }),
+        );
+      });
+
+      ejectToken();
+
+      await waitFor(() => {
+        expect(result.current).toEqual(
+          expect.objectContaining<Partial<UseQueryResult>>({
+            isLoading: true,
+            isPaused: false,
+            data: undefined,
+          }),
+        );
+      });
     });
 
     /**
@@ -196,7 +240,7 @@ describe(`${useCoderQuery.name}`, () => {
       await waitFor(() => expect(queryFn).toHaveBeenCalled());
       ejectToken();
 
-      queryFn.mockReset();
+      queryFn.mockRestore();
       act(() => reject(new Error("Don't feel like giving you data today")));
       expect(queryFn).not.toHaveBeenCalled();
     });
