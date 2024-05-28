@@ -71,7 +71,7 @@ export function useCoderQuery<
       queryOptions.queryKey ?? queryClient.defaultQueryOptions().queryKey;
 
     if (baseKey === undefined) {
-      throw new Error('No Query Key provided to useCoderQuery');
+      throw new Error('No queryKey value provided to useCoderQuery');
     }
 
     patchedQueryKey = [

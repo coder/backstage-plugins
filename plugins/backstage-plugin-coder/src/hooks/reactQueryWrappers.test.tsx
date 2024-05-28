@@ -66,7 +66,7 @@ function renderMockQueryComponent(options: RenderMockQueryComponentOptions) {
 }
 
 describe(`${useCoderQuery.name}`, () => {
-  it('Does not let requests go through until the user is authenticated', async () => {
+  it('Does not enable requests until the user is authenticated', async () => {
     const MockUserComponent = () => {
       const query = useCoderQuery({
         queryKey: ['workspaces'],
@@ -85,7 +85,7 @@ describe(`${useCoderQuery.name}`, () => {
           {query.data !== undefined && (
             <ul>
               {query.data.map(workspace => (
-                <li key={workspace.id}>Blah</li>
+                <li key={workspace.id}>{workspace.name}</li>
               ))}
             </ul>
           )}
@@ -93,7 +93,7 @@ describe(`${useCoderQuery.name}`, () => {
       );
     };
 
-    renderMockQueryComponent({
+    const { injectMockToken } = renderMockQueryComponent({
       children: <MockUserComponent />,
     });
 
