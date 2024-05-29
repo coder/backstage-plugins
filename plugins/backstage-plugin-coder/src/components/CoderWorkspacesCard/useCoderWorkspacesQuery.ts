@@ -14,7 +14,7 @@ export function useCoderWorkspacesQuery({
   workspacesConfig,
 }: QueryInput) {
   const auth = useInternalCoderAuth();
-  const { sdk } = useCoderSdk();
+  const sdk = useCoderSdk();
   const hasRepoData = workspacesConfig && workspacesConfig.repoUrl;
 
   const queryOptions = hasRepoData
