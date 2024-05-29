@@ -12,26 +12,8 @@
  */
 import { useApi } from '@backstage/core-plugin-api';
 import { coderClientApiRef, type BackstageCoderSdk } from '../api/CoderClient';
-import { useEndUserCoderAuth } from '../components/CoderProvider';
 
-type UseCoderSdkResult = Readonly<{
-  sdk: BackstageCoderSdk;
-  backstageUtils: Readonly<{
-    unlinkCoderAccount: () => void;
-  }>;
-}>;
-
-export function useCoderSdk(): UseCoderSdkResult {
-  const { ejectToken } = useEndUserCoderAuth();
+export function useCoderSdk(): BackstageCoderSdk {
   const { sdk } = useApi(coderClientApiRef);
-
-  return {
-    sdk,
-    backstageUtils: {
-      // Hoping that as we support more auth methods, this function gets beefed
-      // up to be an all-in-one function for removing any and all auth info.
-      // Simply doing a pass-through for now
-      unlinkCoderAccount: ejectToken,
-    },
-  };
+  return sdk;
 }

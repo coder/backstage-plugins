@@ -57,7 +57,7 @@ export function useCoderQuery<
 ): UseQueryResult<TData, TError> {
   const queryClient = useQueryClient();
   const { isAuthenticated } = useEndUserCoderAuth();
-  const { sdk } = useCoderSdk();
+  const sdk = useCoderSdk();
 
   let patchedQueryKey = queryOptions.queryKey;
   if (
