@@ -42,14 +42,16 @@ that set up.
 ### The main SDK hooks
 
 There are three hooks that you want to consider when interacting with SDK
-functionality:
+functionality. These can be broken down into two main categories:
+
+#### Primitive hooks
 
 - `useCoderSdk`
 - `useCoderAuth`
-- `useCoderQuery`
 
-All three hooks must be called from within a `CoderProvider` or else they will
-throw an error.
+#### Convenience hooks
+
+- `useCoderQuery`
 
 ## Accessing the SDK from your own custom React components
 
@@ -64,13 +66,14 @@ There are two main ways of accessing the Coder SDK:
 exposes a mix of different REST API methods for interacting with your Coder
 deployment's resources.
 
-The hook exposes two main properties – `sdk` and `backstageUtilities`. `sdk` contains the set of all API methods, while `backstageUtilities` provides some
-general-purpose helpers for building more sophisticated UIs.
+Calling the hook will give you an object with all available API methods. As
+these methods are all async, **none** of them are suitable for use in render
+logic. They must be called from within effects or event handlers.
 
 ```tsx
 // Illustrative example - this exact code is a very bad idea in production!
 function ExampleComponent() {
-  const { sdk } = useCoderSdk();
+  const sdk = useCoderSdk();
 
   return (
     <button
@@ -93,10 +96,10 @@ function ExampleComponent() {
 }
 ```
 
-#### The `sdk` property
+#### The SDK object
 
-`sdk` contains all available API methods. All methods follow the format
-`<verb>` + `<resource name>`. `sdk` has these verbs:
+The SDK object contains all available API methods. All methods follow the format
+`<verb>` + `<resource name>`. The SDK has these verbs:
 
 - `get`
 - `post`
@@ -109,16 +112,6 @@ Depending on the Coder resource, there may be different API methods that work wi
 
 Note that all of these functions will throw an error if the user is not
 authenticated.
-
-#### The `backstageUtilities` property
-
-This property contains general-purpose methods that you might want to use
-alongside the Coder SDK.
-
-Right now, the property contains the following methods:
-
-- `unlinkCoderAccount` - Logs out the current user
-- `registerSessionToken` - Loads a new Coder session token into the SDK
 
 ### Accessing the SDK through `useCoderQuery`
 
@@ -142,8 +135,14 @@ authenticated. The Coder plugin provides a few different ways of letting the
 user authenticate with Coder:
 
 - The official Coder components
-- The fallback auth UI
-- The `useCoderSdk` hook's `registerSessionToken` method
+- The `CoderProvider` component's fallback auth UI
+- The `useCoderAuth` hook
+
+### Authenticating via official Coder components
+
+### Authenticating via the fallback auth UI
+
+### Authenticating via `useCoderAuth`
 
 ## Performing queries
 
