@@ -86,6 +86,7 @@ describe(`${CoderProvider.name}`, () => {
             <CoderProvider
               appConfig={mockAppConfig}
               queryClient={getMockQueryClient()}
+              fallbackAuthUiMode="dynamic"
             >
               {children}
             </CoderProvider>

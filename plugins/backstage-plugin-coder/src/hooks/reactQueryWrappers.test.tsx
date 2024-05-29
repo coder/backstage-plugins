@@ -70,7 +70,7 @@ async function renderCoderQuery<
         const mainMarkup = (
           <TestApiProvider apis={getMockApiList()}>
             <CoderProvider
-              showFallbackAuthForm
+              fallbackAuthUiMode="dynamic"
               appConfig={mockAppConfig}
               queryClient={queryClient}
             >
