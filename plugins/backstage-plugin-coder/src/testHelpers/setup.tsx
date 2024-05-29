@@ -113,7 +113,7 @@ export function getMockQueryClient(config?: QueryClientConfig): QueryClient {
 }
 
 type MockAuthProps = Readonly<
-  CoderProviderProps & {
+  Omit<CoderProviderProps, 'fallbackAuthUiMode'> & {
     auth?: CoderAuth;
 
     /**
