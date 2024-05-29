@@ -39,10 +39,122 @@ your Backstage deployment. If you have not,
 [please see the main README](../../README.md#setup) for instructions on getting
 that set up.
 
+### The main SDK hooks
+
+There are three hooks that you want to consider when interacting with SDK
+functionality:
+
+- `useCoderSdk`
+- `useCoderAuth`
+- `useCoderQuery`
+
+All three hooks must be called from within a `CoderProvider` or else they will
+throw an error.
+
 ## Accessing the SDK from your own custom React components
 
-## Authenticating
+There are two main ways of accessing the Coder SDK:
+
+- `useCoderSdk`
+- `useCoderQuery`
+
+### Accessing the SDK through `useCoderSdk`
+
+`useCoderSdk` is a lower-level "primitive" for accessing the Coder SDK. It
+exposes a mix of different REST API methods for interacting with your Coder
+deployment's resources.
+
+The hook exposes two main properties – `sdk` and `backstageUtilities`. `sdk` contains the set of all API methods, while `backstageUtilities` provides some
+general-purpose helpers for building more sophisticated UIs.
+
+```tsx
+// Illustrative example - this exact code is a very bad idea in production!
+function ExampleComponent() {
+  const { sdk } = useCoderSdk();
+
+  return (
+    <button
+      onClick={async () => {
+        // The SDK can be called from any event handler or effect logic
+        const newWorkspace = await sdk.createWorkspace(
+          'organizationId',
+          'userId',
+          {
+            // Properties for making new workspace go here
+          },
+        );
+
+        console.log(newWorkspace);
+      }}
+    >
+      Create new workspace
+    </button>
+  );
+}
+```
+
+#### The `sdk` property
+
+`sdk` contains all available API methods. All methods follow the format
+`<verb>` + `<resource name>`. `sdk` has these verbs:
+
+- `get`
+- `post`
+- `put`
+- `patch`
+- `upsert`
+- `delete`
+
+Depending on the Coder resource, there may be different API methods that work with a single resource vs all resources (e.g., `sdk.getWorkspace` vs `sdk.getWorkspaces`).
+
+Note that all of these functions will throw an error if the user is not
+authenticated.
+
+#### The `backstageUtilities` property
+
+This property contains general-purpose methods that you might want to use
+alongside the Coder SDK.
+
+Right now, the property contains the following methods:
+
+- `unlinkCoderAccount` - Logs out the current user
+- `registerSessionToken` - Loads a new Coder session token into the SDK
+
+### Accessing the SDK through `useCoderQuery`
+
+The nuances of how `useCoderQuery` works are covered later in this guide, but
+for convenience, the hook can access the SDK directly from its `queryFn`
+function:
+
+```tsx
+const workspacesQuery = useCoderQuery({
+  queryKey: ['workspaces'],
+
+  // Access the SDK without needing to import or call useCoderSdk
+  queryFn: ({ sdk }) => sdk.getWorkspaces({ q: 'owner:me' }),
+});
+```
+
+## Authentication
+
+All API methods from the SDK will throw an error if the user is not
+authenticated. The Coder plugin provides a few different ways of letting the
+user authenticate with Coder:
+
+- The official Coder components
+- The fallback auth UI
+- The `useCoderSdk` hook's `registerSessionToken` method
 
 ## Performing queries
 
+### Problems with `useEffect`
+
+### Problems with `useAsync`
+
 ## Performing mutations
+
+## Sharing data between different queries and mutations
+
+## Additional reading
+
+## Example components
