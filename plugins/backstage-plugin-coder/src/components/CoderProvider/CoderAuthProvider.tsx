@@ -608,7 +608,7 @@ export const dummyTrackComponent: TrackComponent = () => {
   };
 };
 
-export type FallbackAuthInputBehavior = 'always' | 'never' | 'dynamic';
+export type FallbackAuthInputBehavior = 'restrained' | 'assertive' | 'hidden';
 export type CoderAuthProviderProps = Readonly<
   PropsWithChildren<{
     fallbackAuthUiMode: FallbackAuthInputBehavior;
@@ -629,23 +629,23 @@ type AuthProvider = FC<
 // meaning less performance overhead and fewer re-renders from something the
 // user isn't even using
 const fallbackProviders = {
-  never: ({ children }) => (
+  hidden: ({ children }) => (
     <AuthTrackingContext.Provider value={dummyTrackComponent}>
       {children}
     </AuthTrackingContext.Provider>
   ),
 
-  always: ({ children }) => (
+  assertive: ({ children, isAuthenticated }) => (
     // Don't need the live version of the tracker function if we're always
     // going to be showing the fallback auth input no matter what
     <AuthTrackingContext.Provider value={dummyTrackComponent}>
       {children}
-      <FallbackAuthUi />
+      {!isAuthenticated && <FallbackAuthUi />}
     </AuthTrackingContext.Provider>
   ),
 
   // Have to give function a name to satisfy ES Lint rules of hooks
-  dynamic: function DynamicFallback({ children, isAuthenticated }) {
+  restrained: function DynamicFallback({ children, isAuthenticated }) {
     const { hasNoAuthInputs, trackComponent } = useAuthFallbackState();
     const needFallbackUi = !isAuthenticated && hasNoAuthInputs;
 
@@ -667,7 +667,7 @@ const fallbackProviders = {
 
 export function CoderAuthProvider({
   children,
-  fallbackAuthUiMode = 'dynamic',
+  fallbackAuthUiMode = 'restrained',
 }: CoderAuthProviderProps) {
   const authState = useAuthState();
   const AuthFallbackProvider = fallbackProviders[fallbackAuthUiMode];

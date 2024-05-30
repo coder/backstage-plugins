@@ -45,14 +45,14 @@ const defaultClient = new QueryClient({
 export const CoderProvider = ({
   children,
   appConfig,
-  fallbackAuthUiMode: showFallbackAuthUi = 'dynamic',
+  fallbackAuthUiMode = 'restrained',
   queryClient = defaultClient,
 }: CoderProviderProps) => {
   return (
     <CoderErrorBoundary>
       <QueryClientProvider client={queryClient}>
         <CoderAppConfigProvider appConfig={appConfig}>
-          <CoderAuthProvider fallbackAuthUiMode={showFallbackAuthUi}>
+          <CoderAuthProvider fallbackAuthUiMode={fallbackAuthUiMode}>
             {children}
           </CoderAuthProvider>
         </CoderAppConfigProvider>
