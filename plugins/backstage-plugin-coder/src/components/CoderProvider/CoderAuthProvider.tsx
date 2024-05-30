@@ -1,4 +1,5 @@
 import React, {
+  type FC,
   type PropsWithChildren,
   createContext,
   useCallback,
@@ -614,30 +615,68 @@ export type CoderAuthProviderProps = Readonly<
   }>
 >;
 
+type AuthProvider = FC<
+  Readonly<
+    PropsWithChildren<{
+      isAuthenticated: boolean;
+    }>
+  >
+>;
+
+// Matches each behavior for the fallback auth UI to a specific provider. This
+// is screwy code, but by doing this, we ensure that if the user chooses not to
+// have dynamic a auth fallback UI, their app will have far less tracking logic,
+// meaning less performance overhead and fewer re-renders from something the
+// user isn't even using
+const fallbackProviders = {
+  never: ({ children }) => (
+    <AuthTrackingContext.Provider value={dummyTrackComponent}>
+      {children}
+    </AuthTrackingContext.Provider>
+  ),
+
+  always: ({ children }) => (
+    // Don't need the live version of the tracker function if we're always
+    // going to be showing the fallback auth input no matter what
+    <AuthTrackingContext.Provider value={dummyTrackComponent}>
+      {children}
+      <FallbackAuthUi />
+    </AuthTrackingContext.Provider>
+  ),
+
+  // Have to give function a name to satisfy ES Lint rules of hooks
+  dynamic: function DynamicFallback({ children, isAuthenticated }) {
+    const { hasNoAuthInputs, trackComponent } = useAuthFallbackState();
+    const needFallbackUi = !isAuthenticated && hasNoAuthInputs;
+
+    return (
+      <>
+        <AuthTrackingContext.Provider value={trackComponent}>
+          {children}
+        </AuthTrackingContext.Provider>
+
+        {needFallbackUi && (
+          <AuthTrackingContext.Provider value={dummyTrackComponent}>
+            <FallbackAuthUi />
+          </AuthTrackingContext.Provider>
+        )}
+      </>
+    );
+  },
+} as const satisfies Record<FallbackAuthInputBehavior, AuthProvider>;
+
 export function CoderAuthProvider({
   children,
   fallbackAuthUiMode = 'dynamic',
 }: CoderAuthProviderProps) {
   const authState = useAuthState();
-  const { hasNoAuthInputs, trackComponent } = useAuthFallbackState();
-
-  const needFallbackUi =
-    fallbackAuthUiMode === 'always' ||
-    (fallbackAuthUiMode === 'dynamic' &&
-      !authState.isAuthenticated &&
-      hasNoAuthInputs);
+  const AuthFallbackProvider = fallbackProviders[fallbackAuthUiMode];
 
   return (
     <AuthStateContext.Provider value={authState}>
-      <AuthTrackingContext.Provider value={trackComponent}>
+      <AuthFallbackProvider isAuthenticated={authState.isAuthenticated}>
         {children}
-      </AuthTrackingContext.Provider>
-
-      {needFallbackUi && (
-        <AuthTrackingContext.Provider value={dummyTrackComponent}>
-          <FallbackAuthUi />
-        </AuthTrackingContext.Provider>
-      )}
+      </AuthFallbackProvider>
     </AuthStateContext.Provider>
   );
 }
