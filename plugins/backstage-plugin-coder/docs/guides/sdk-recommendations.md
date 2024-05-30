@@ -15,11 +15,14 @@ The Coder SDK for Backstage makes it easy for Backstage admins to bring the enti
 This guide covers the following:
 
 - Accessing the SDK from your own custom React components
+  - Accessing the SDK via `useCoderSdk`
+  - Accessing the SDK via `useCoderQuery`
 - Authenticating
   - The fallback auth UI
 - Performing queries
   - Recommendations for caching data
   - How the Coder plugin caches data
+  - The `useCoderQuery` custom hook
   - Cautions against other common UI caching strategies
 - Performing mutations
 
@@ -62,13 +65,13 @@ function ExampleComponent() {
 
   // The SDK can be called from any effect
   useEffect(() => {
-    const syncInitialWorkspaces = async () => {
+    const getInitialWorkspaces = async () => {
       const workspacesResponse = await sdk.getWorkspaces({ q: 'owner:me' });
       const workspaces = workspacesResponse.workspaces;
       setWorkspaces(workspaces);
     };
 
-    void syncInitialWorkspaces();
+    void getInitialWorkspaces();
 
     // The SDK maintains a stable memory reference; there is no harm in
     // including it as part of your dependency arrays. In this case, the
@@ -144,6 +147,8 @@ All API methods from the SDK will throw an error if the user is not authenticate
 - The `CoderProvider` component's fallback auth UI
 - The `useCoderAuth` hook
 
+All three solutions, directly or indirectly, involve the `CoderAuth` type. More information can be found under the `useCoderAuth` section.
+
 ### Authenticating via official Coder components
 
 Every official Coder component (such as `CoderWorkspacesCard`) exported through the plugin is guaranteed to have some mechanism for supplying auth information. This is typically done via a UI form.
@@ -162,6 +167,7 @@ Every official Coder component (such as `CoderWorkspacesCard`) exported through 
 - Not every Coder component makes sense for every page
 - No easy mechanism for ensuring that your custom components don't run until the user authenticates via the official Coder components
 - Components only work with a small sub-section of the total API, and won't be able to satisfy true power users
+- Must be mounted within a `CoderProvider` component
 
 ### Authenticating via the fallback auth UI
 
@@ -169,13 +175,52 @@ When you include the `CoderProvider` component in your Backstage deployment, you
 
 <!-- [Include screenshot/video of fallback auth input here] -->
 
-The fallback auth UI will never be visible while the user is authenticated. However, if the user is not authenticated, then the value of `fallbackAuthUiMode` will affect what appears on screen:
+The fallback auth UI will never be visible while the user is authenticated. However, if the user is **not** authenticated, then the value of `fallbackAuthUiMode` will affect what appears on screen:
 
 - `restrained` (default) - The fallback auth UI will not appear if there are official Coder components on screen.
-- `hidden` - The fallback auth is **never** visible on the page. If you do not have any Coder components, you will need to include `useCoderAuth` in your custom components to authenticate your users.
+- `hidden` - The fallback auth is **never** visible on the page. If no official Coder components are on screen, you will need to import `useCoderAuth` into your custom components to authenticate your users.
 - `assertive` - The fallback auth UI is always visible when the user is not authenticated, regardless of whether there are any official Coder components on screen.
 
+#### Pros
+
+- Helps guarantee that the user always has a way of supplying auth information
+- Multiple ways of setting the behavior for the fallback. If you don't want to display it at all times, you can disable it
+- Automatic integration with official Coder components. The auth fallback UI can detect Coder components without you needing to rewrite any code.
+- All auth UI logic has been tested and audited for accessibility at the same standards as the other Coder components
+
+#### Cons
+
+- Even with three options for setting behavior, fallback auth input may not be visible exactly when you want it to be
+- The `restrained` behavior is only effective on pages where you can place official Coder components. If you are not on one of these pages, the fallback auth UI will always be visible until the user authenticates.
+- Fewer options for customizing the styling
+
 ### Authenticating via `useCoderAuth`
+
+The `useCoderAuth` hook provides state and functions for updating Coder authentication state within your Backstage deployment. When called, it gives you back a `CoderAuth` object
+
+```tsx
+// This is a simplified version of the type; the real type is set up as a
+// discriminated union to increase type safety and ergonomics further
+type CoderAuth = Readonly<{
+  status: CoderAuthStatus; // Union of strings
+  token: string | undefined;
+  error: unknown;
+
+  isAuthenticated: boolean;
+  registerNewToken: (newToken: string) => void;
+  ejectToken: () => void;
+}>;
+```
+
+#### Pros
+
+- Gives you the finest level of control over all auth concerns
+- Easy to import into any component
+
+#### Cons
+
+- Zero UI logic out of the box; you have to make all components yourself
+- Must be called within a `CoderProvider` component
 
 ## Caching API data for UIs
 
