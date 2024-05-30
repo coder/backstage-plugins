@@ -43,7 +43,13 @@ export type UseCoderQueryOptions<
   TError = unknown,
   TData = TQueryFnData,
   TQueryKey extends QueryKey = QueryKey,
-> = Omit<UseQueryOptions<TQueryFnData, TError, TData, TQueryKey>, 'queryFn'> & {
+> = Omit<
+  UseQueryOptions<TQueryFnData, TError, TData, TQueryKey>,
+  // queryFn omitted so that a custom version can be patched in; all other
+  // properties omitted because they are officially deprecated in React Query v4
+  // and outright removed in v5. Want better future-proofing
+  'queryFn' | 'isDataEqual' | 'onError' | 'onSuccess' | 'onSettled'
+> & {
   queryFn: CoderQueryFunction<TQueryFnData, TQueryKey>;
 };
 
