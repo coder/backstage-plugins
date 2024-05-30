@@ -56,25 +56,49 @@ Calling the hook will give you an object with all available API methods. As thes
 ```tsx
 // Illustrative example - this exact code is a very bad idea in production!
 function ExampleComponent() {
+  // The workspace type is exported via the plugin
+  const [workspaces, setWorkspaces] = useState<readonly Workspace[]>([]);
   const sdk = useCoderSdk();
 
-  return (
-    <button
-      onClick={async () => {
-        // The SDK can be called from any event handler or effect
-        const newWorkspace = await sdk.createWorkspace(
-          'organizationId',
-          'userId',
-          {
-            // Properties for making new workspace go here
-          },
-        );
+  // The SDK can be called from any effect
+  useEffect(() => {
+    const syncInitialWorkspaces = async () => {
+      const workspacesResponse = await sdk.getWorkspaces({ q: 'owner:me' });
+      const workspaces = workspacesResponse.workspaces;
+      setWorkspaces(workspaces);
+    };
 
-        console.log(newWorkspace);
-      }}
-    >
-      Create new workspace
-    </button>
+    void syncInitialWorkspaces();
+
+    // The SDK maintains a stable memory reference; there is no harm in
+    // including it as part of your dependency arrays
+  }, [sdk]);
+
+  return (
+    <>
+      <button
+        // The SDK can also be called from any event handler
+        onClick={async () => {
+          const newWorkspace = await sdk.createWorkspace(
+            'organizationId',
+            'userId',
+            {
+              // Properties for making new workspace go here
+            },
+          );
+
+          setWorkspaces([...workspaces, newWorkspace]);
+        }}
+      >
+        Create new workspace
+      </button>
+
+      <ul>
+        {workspaces.map(workspace => (
+          <li key={workspace.id}>{workspace.name}</li>
+        ))}
+      </ul>
+    </>
   );
 }
 ```
