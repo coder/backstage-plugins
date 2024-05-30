@@ -4,7 +4,7 @@ This document walks you through using the Coder SDK from within Backstage.
 
 ## Disclaimer
 
-As of May 2024, Coder does not have a fully public, versioned SDK published on a package manager like NPM. Coder does intend to release a true JavaScript/TypeScript SDK, but until that is released, the SDK exposed through Backstage can be best thought of as a "preview"/"testbed" SDK. At present, this SDK is also used in production for [the official Coder VS Code extension](https://github.com/coder/vscode-coder).
+As of May 2024, Coder does not have a fully public, versioned SDK published on a package manager like NPM. Coder does intend to release a true JavaScript/TypeScript SDK, but until that is released, the version exposed through Backstage can be best thought of as a "preview"/"testbed" SDK. It is also used in production for [the official Coder VS Code extension](https://github.com/coder/vscode-coder).
 
 If you encounter any issues while using the Backstage version of the SDK, please don't hesitate to open an issue. We would be happy to get any issues fixed, but expect some growing pains as we collect user feedback.
 
