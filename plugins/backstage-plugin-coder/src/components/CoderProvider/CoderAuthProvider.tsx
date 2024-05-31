@@ -137,22 +137,22 @@ function useAuthState(): CoderAuth {
     return () => window.clearTimeout(distrustTimeoutId);
   }, [authState.status]);
 
+  const isAuthenticated = validAuthStatuses.includes(authState.status);
+
   // Sets up subscription to spy on potentially-expired tokens. Can't do this
   // outside React because we let the user connect their own queryClient
   const queryClient = useQueryClient();
   useEffect(() => {
     // Pseudo-mutex; makes sure that if we get a bunch of errors, only one
     // revalidation will be processed at a time
-    let isRevalidatingToken = false;
+    let isRevalidating = false;
 
     const revalidateTokenOnError = async (event: QueryCacheNotifyEvent) => {
-      const queryKey = event.query.queryKey;
       const queryError = event.query.state.error;
 
       const shouldRevalidate =
-        !isRevalidatingToken &&
-        Array.isArray(queryKey) &&
-        queryKey[0] === CODER_QUERY_KEY_PREFIX &&
+        isAuthenticated &&
+        !isRevalidating &&
         BackstageHttpError.isInstance(queryError) &&
         queryError.status === 401;
 
@@ -160,15 +160,15 @@ function useAuthState(): CoderAuth {
         return;
       }
 
-      isRevalidatingToken = true;
+      isRevalidating = true;
       await queryClient.refetchQueries({ queryKey: sharedAuthQueryKey });
-      isRevalidatingToken = false;
+      isRevalidating = false;
     };
 
     const queryCache = queryClient.getQueryCache();
     const unsubscribe = queryCache.subscribe(revalidateTokenOnError);
     return unsubscribe;
-  }, [queryClient]);
+  }, [queryClient, isAuthenticated]);
 
   const registerNewToken = useCallback((newToken: string) => {
     if (newToken !== '') {
@@ -184,7 +184,7 @@ function useAuthState(): CoderAuth {
 
   return {
     ...authState,
-    isAuthenticated: validAuthStatuses.includes(authState.status),
+    isAuthenticated,
     registerNewToken,
     ejectToken,
   };
