@@ -32,20 +32,23 @@ This guide covers the following:
 
 This guide assumes that you have already added the `CoderProvider` component to your Backstage deployment. If you have not, [please see the main README](../../README.md#setup) for instructions on getting that set up.
 
-### The main SDK hooks
+## Quick-start
 
-There are three hooks that you want to consider when interacting with SDK functionality. These can be broken down into two main categories:
+### The main hooks to use when working with the SDK
+
+There are about six main hooks that you want to consider when using the Coder SDK.These can be broken down into two main categories:
 
 #### Primitive hooks
 
-- `useCoderSdk`
-- `useCoderAuth`
+- `useCoderSdk` - Gives you the Coder SDK instance
+- `useCoderAuth` - Exposes properties and methods for examining/updating Coder auth state
+- `useQuery` (via Tanstack Query library) - Declarative querying
+- `useMutation` (via Tanstack Query library) - Imperative mutations
+- `useQueryClient` (via Tanstack Query library) - Lets you coordinate queries and mutations within the same query cache
 
 #### Convenience hooks
 
-- `useCoderQuery`
-
-## Quick-start
+- `useCoderQuery` (wrapper over `useQuery`)
 
 ## Accessing the SDK from your own custom React components
 
