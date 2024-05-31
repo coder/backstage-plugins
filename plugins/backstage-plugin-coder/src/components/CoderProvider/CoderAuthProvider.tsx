@@ -146,9 +146,13 @@ function useAuthState(): CoderAuth {
     let isRevalidatingToken = false;
 
     const revalidateTokenOnError = async (event: QueryCacheNotifyEvent) => {
+      const queryKey = event.query.queryKey;
       const queryError = event.query.state.error;
+
       const shouldRevalidate =
         !isRevalidatingToken &&
+        Array.isArray(queryKey) &&
+        queryKey[0] === CODER_QUERY_KEY_PREFIX &&
         BackstageHttpError.isInstance(queryError) &&
         queryError.status === 401;
 
