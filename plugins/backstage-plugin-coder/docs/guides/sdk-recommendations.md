@@ -178,7 +178,7 @@ Every official Coder component (such as `CoderWorkspacesCard`) exported through 
 When you include the `CoderProvider` component in your Backstage deployment, you have the option to set the value of `fallbackAuthUiMode`. This value affects how `CoderProvider` will inject a fallback auth input into the Backstage deployment's HTML. This means that, even if you don't use any Coder components, or are on a page that can't use them, users will always have some way of supplying auth information.
 
 ```tsx
-<CoderProvider fallbackAuthUiMode="assertive">
+<CoderProvider appConfig={youCustomAppConfig} fallbackAuthUiMode="assertive">
   <RestOfYourComponentsThatUseTheCoderApis />
 </CoderProvider>
 ```
@@ -286,6 +286,53 @@ While the [`useAsync` hook](https://github.com/streamich/react-use/blob/master/s
 #### New problems
 
 - Even though `useAsync`'s API uses dependency arrays, by default, it is not eligible for the exhaustive deps ES Lint rule. This means that unless you update your ESLint rules, you have no safety nets for making sure that your effect logic runs the correct number of times. There are no protections against accidental typos.
+
+## Bring your own Query Client
+
+By default, `CoderProvider` manages and maintains its own `QueryClient` instance for managing all ongoing queries and mutations. This client is isolated from any other code, and especially if you are only using official Coder components, probably doesn't need to be touched.
+
+However, let's say you're using React Query for other purposes and would like all Coder requests to go through your query client instance instead. In that case, you can feed that instance into `CoderProvider`, and it will handle all requests through it instead
+
+```tsx
+<CoderProvider
+  appConfig={yourCustomAppConfig}
+  queryClient={yourCustomQueryClient}
+>
+  <YourCustomComponents />
+</CoderProvider>
+```
+
+### Warning
+
+Be sure to provide a custom query client if you put any custom components inside `CoderProvider`. Because of React Context rules, any calls to Tanstack APIs (including the `useCoderQuery` convenience wrapper) will go through the default `CoderProvider` query client, rather than your custom client.
+
+```tsx
+const customQueryClient = new QueryClient();
+
+function YourCustomComponent() {
+  const client = useQueryClient();
+  console.log(client);
+
+  return <p>Here's my content!</p>;
+}
+
+<QueryClient client={yourCustomQueryClient}>
+  {/* When mounted here, component receives customQueryClient */}
+  <YourCustomComponent />
+
+  {/*
+   * Forgot to thread customQueryClient into CoderProvider. All children will
+   * receive the default query client that CoderProvider maintains
+   */}
+  <CoderProvider>
+    {/*
+     * Exact same component definition, but the location completely changes the
+     * client that gets accessed
+     */}
+    <YourCustomComponent />
+  </CoderProvider>
+</QueryClient>;
+```
 
 ## Sharing data between different queries and mutations
 
