@@ -613,13 +613,7 @@ export const dummyTrackComponent: TrackComponent = () => {
 };
 
 export type FallbackAuthInputBehavior = 'restrained' | 'assertive' | 'hidden';
-export type CoderAuthProviderProps = Readonly<
-  PropsWithChildren<{
-    fallbackAuthUiMode: FallbackAuthInputBehavior;
-  }>
->;
-
-type AuthProvider = FC<
+type AuthFallbackProvider = FC<
   Readonly<
     PropsWithChildren<{
       isAuthenticated: boolean;
@@ -648,8 +642,8 @@ const fallbackProviders = {
     </AuthTrackingContext.Provider>
   ),
 
-  // Have to give function a name to satisfy ES Lint rules of hooks
-  restrained: function DynamicFallback({ children, isAuthenticated }) {
+  // Have to give function a name to satisfy ES Lint (rules of hooks)
+  restrained: function Restrained({ children, isAuthenticated }) {
     const { hasNoAuthInputs, trackComponent } = useAuthFallbackState();
     const needFallbackUi = !isAuthenticated && hasNoAuthInputs;
 
@@ -667,7 +661,13 @@ const fallbackProviders = {
       </>
     );
   },
-} as const satisfies Record<FallbackAuthInputBehavior, AuthProvider>;
+} as const satisfies Record<FallbackAuthInputBehavior, AuthFallbackProvider>;
+
+export type CoderAuthProviderProps = Readonly<
+  PropsWithChildren<{
+    fallbackAuthUiMode?: FallbackAuthInputBehavior;
+  }>
+>;
 
 export function CoderAuthProvider({
   children,
