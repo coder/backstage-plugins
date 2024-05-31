@@ -246,9 +246,9 @@ At present, the Coder plugin provides a convenience wrapper for connecting `useQ
 
 We are also considering making a `useMutation` wrapper called `useCoderMutation`. If you have any thoughts or requests on how it should behave, please open an issue!
 
-## Why React Query?
+## Why Tanstack Query (aka React Query)?
 
-ui.dev has a phenomenal [article](https://ui.dev/why-react-query) and [video](https://www.youtube.com/watch?v=OrliU0e09io) series that breaks things down more exhaustively, but in short, React Query:
+ui.dev has a phenomenal [article](https://ui.dev/why-react-query) and [video](https://www.youtube.com/watch?v=OrliU0e09io) series that breaks things down more exhaustively, but in short, Tanstack Query:
 
 - Simplifies how API data is shared throughout an application
 - Manages race conditions, canceling requests, and revalidating requests
@@ -291,7 +291,7 @@ While the [`useAsync` hook](https://github.com/streamich/react-use/blob/master/s
 
 By default, `CoderProvider` manages and maintains its own `QueryClient` instance for managing all ongoing queries and mutations. This client is isolated from any other code, and especially if you are only using official Coder components, probably doesn't need to be touched.
 
-However, let's say you're using React Query for other purposes and would like all Coder requests to go through your query client instance instead. In that case, you can feed that instance into `CoderProvider`, and it will handle all requests through it instead
+However, let's say you're using Tanstack Query for other purposes and would like all Coder requests to go through your query client instance instead. In that case, you can feed that instance into `CoderProvider`, and it will handle all requests through it instead
 
 ```tsx
 <CoderProvider
@@ -338,7 +338,7 @@ function YourCustomComponent() {
 
 Internally, the official components for the Coder plugin use one shared query key prefix value (`CODER_QUERY_KEY_PREFIX`) for every single query and mutation. This ensures that all Coder-based queries share a common root, and can be easily vacated from the query cache in response to certain events like the user unlinking their Coder account (basically "logging out").
 
-This same prefix is exported to users of the plugin. When using the Coder SDK with React Query, it is **strongly, strongly** recommended that you use this same query prefix. It lets custom components and Coder components share the same underlying data (reducing the total number of requests). But the plugin is also set up to monitor queries with this prefix, so it can automate cache management and has more ways of detecting expired auth tokens.
+This same prefix is exported to users of the plugin. When using the Coder SDK with Tanstack Query, it is **strongly, strongly** recommended that you use this same query prefix. It lets custom components and Coder components share the same underlying data (reducing the total number of requests). But the plugin is also set up to monitor queries with this prefix, so it can automate cache management and has more ways of detecting expired auth tokens.
 
 ## Performing queries
 
@@ -470,9 +470,9 @@ function WorkspacesList() {
 
 #### Pros
 
-- Reduces the total number of imports needed to get query logic set up, and pre-configures values to be more fool-proof. The Coder SDK is automatically patched into React Query's `queryFn` function context.
+- Reduces the total number of imports needed to get query logic set up, and pre-configures values to be more fool-proof. The Coder SDK is automatically patched into Tanstack Query's `queryFn` function context.
 - Ensures that all Coder-based queries share the same query prefix, and are correctly evicted when the user unlinks their Coder account
-- Automatically prohibits some deprecated properties from React Query v4 (using one of them is treated as a type error). This means guaranteed forwards-compatibility with React Query v5
+- Automatically prohibits some deprecated properties from Tanstack Query v4 (using one of them is treated as a type error). This means guaranteed forwards-compatibility with Tanstack Query v5
 
 #### Cons
 
@@ -482,3 +482,73 @@ function WorkspacesList() {
 - `queryKey` is slightly more confusing, because a new value is implicitly appended to the beginning of the array
 
 ## Performing mutations
+
+We do not currently offer any convenience wrappers over `useMutation`. The only way to perform them is directly through the Tanstack API.
+
+However, not much changes when using it together with `useCoderQuery`:
+
+```tsx
+type Props = Readonly<{
+  workspaceId: string;
+}>;
+
+function ExampleComponent({ workspaceId }: Props) {
+  // Unfortunately, the SDK does still need to be brought in for mutations.
+  // One of useCoderQuery's perks (automatic SDK injection via queryFn) goes
+  // away slightly.
+  const sdk = useCoderSdk();
+
+  // Same goes for Coder auth; needs to be brought in manually for mutations
+  const { isAuthenticated } = useCoderAuth();
+
+  // useCoderQuery still automatically handles wiring up auth logic to all
+  // relevant query option properties and auto-prefixes the query key
+  const workspaceQuery = useCoderQuery({
+    queryKey: ['workspace', workspaceId],
+
+    // How you access the SDK doesn't matter at this point because there's
+    // already an SDK in scope
+    queryFn: () => sdk.getWorkspace(workspaceId),
+  });
+
+  const queryClient = useQueryClient();
+  const deleteWorkspaceMutation = useMutation({
+    mutationFn: () => {
+      // useMutation does not expose an enabled property. You can fail fast by throwing when the user isn't authenticated
+      if (!isAuthenticated) {
+        throw new Error('Unable to complete request - not authenticated');
+      }
+
+      // Even if you forget to fail fast, the SDK method will throw eventually
+      // because the Coder deployment will respond with an error status
+      return sdk.deleteWorkspace(workspaceId);
+    },
+
+    // Need to make sure that the cache is invalidated after the workspace is
+    // definitely deleted
+    onSuccess: () => {
+      queryClient.invalidateQueries({
+        queryKey: ['workspace', workspaceId],
+      });
+    },
+  });
+
+  return (
+    <>
+      {deleteWorkspaceMutation.isSuccess && (
+        <p>Workspace deleted successfully</p>
+      )}
+
+      {workspaceQuery.data !== undefined && (
+        <div>
+          <h2>{workspaceQuery.data.name}</h2>
+          <p>
+            Workspace is {workspaceQuery.data.health.healthy ? '' : 'not '}{' '}
+            healthy.
+          </p>
+        </div>
+      )}
+    </>
+  );
+}
+```
