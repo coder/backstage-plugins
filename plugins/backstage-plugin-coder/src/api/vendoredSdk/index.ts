@@ -18,7 +18,12 @@ type PropertyToHide =
   | 'setHost'
   | 'getAvailableExperiments'
   | 'login'
-  | 'logout';
+  | 'logout'
+  | 'convertToOAUTH'
+  | 'waitForBuild'
+  | 'addMember'
+  | 'removeMember'
+  | 'getWorkspaceParameters';
 
 // Wanted to have a CoderSdk class (mainly re-exporting the Api class as itself
 // with the extra properties omitted). But because classes are wonky and exist
