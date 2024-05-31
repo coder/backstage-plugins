@@ -43,6 +43,8 @@ There are three hooks that you want to consider when interacting with SDK functi
 
 - `useCoderQuery`
 
+## Quick-start
+
 ## Accessing the SDK from your own custom React components
 
 There are two main ways of accessing the Coder SDK:
@@ -226,15 +228,23 @@ type CoderAuth = Readonly<{
 
 All core logic in the Coder plugin uses [Tanstack Query v4](https://tanstack.com/query/v4). As it is already a dependency for the Coder plugin, it is highly recommended that you also use the library when building out your own components.
 
-The three main hooks that you will likely use with the SDK are:
+The three main hooks from the library that you will likely use with the SDK are:
 
 - `useQuery`
 - `useMutation`
 - `useQueryClient`
 
-At present, the Coder plugin provides a convenience wrapper for connecting `useQuery` to the Coder SDK and to Coder auth state. This is the `useCoderQuery` hook – if a component should only care about making queries and doesn't need to interact directly with auth state, this is a great option.
+At present, the Coder plugin provides a convenience wrapper for connecting `useQuery` to the Coder SDK and to Coder auth state. This is the `useCoderQuery` hook – this is a great option if a component should only care about making queries and doesn't need to interact directly with auth state.
 
-We also plan to create `useMutation` wrapper called `useCoderMutation`.
+We are also considering making a `useMutation` wrapper called `useCoderMutation`. If you have any thoughts or requests on how it should behave, please open an issue!
+
+## Why React Query?
+
+ui.dev has a phenomenal [article](https://ui.dev/why-react-query) and [video](https://www.youtube.com/watch?v=OrliU0e09io) series that breaks things down more exhaustively, but in short, React Query:
+
+- Simplifies how API data is shared throughout an application
+- Manages race conditions, canceling requests, and revalidating requests
+- Provides a shared API for both queries and mutations
 
 ### Problems with fetching via `useEffect`
 
@@ -269,8 +279,69 @@ While the [`useAsync` hook](https://github.com/streamich/react-use/blob/master/s
 
 - Even though `useAsync`'s API uses dependency arrays, by default, it is not eligible for the exhaustive deps ES Lint rule. This means that unless you update your ESLint rules, you have no safety nets for making sure that your effect logic runs the correct number of times. There are no protections against accidental typos.
 
+## Sharing data between different queries and mutations
+
+Internally, the official components for the Coder plugin use one shared query key prefix value (`CODER_QUERY_KEY_PREFIX`) for every single query and mutation. This ensures that all Coder-based queries share a common root, and can be easily vacated from the query cache in response to certain events like the user unlinking their Coder account (basically "logging out").
+
+This same prefix is exported to users of the plugin. When using the Coder SDK with React Query, it is **strongly, strongly** recommended that you use this same query prefix. It lets custom components and Coder components share the same underlying data (reducing the total number of requests). But the plugin is also set up to monitor queries with this prefix, so it can automate cache management and has more ways of detecting expired auth tokens.
+
 ## Performing queries
 
-## Performing mutations
+You have two main options for performing queries:
 
-## Sharing data between different queries and mutations
+- `useQuery`
+- `useCoderQuery`
+
+### `useQuery`
+
+#### Example
+
+#### Pros
+
+- Gives you the most direct control over caching data using a declarative API
+- Fine-tuned to a mirror sheen – plays well with all React rendering behavior out of the box.
+
+#### Cons
+
+- Requires an additional import for `useCoderSdk` at a minimum, and usually requires an import for `useCoderAuth`
+- The process of wiring up auth to all properties in the hook can be confusing. The Coder SDK throws when it makes a request that isn't authenticated, but you probably want to disable those requests altogether.
+- While the `queryKey` property is less confusing overall, it is basically a `useEffect` dependency array. Dependency arrays can be confusing and hard to wire up correctly
+
+### `useCoderQuery`
+
+`useCoderQuery` is a convenience wrapper over `useQuery`, and can basically be thought of as a pre-wired combo of `useQuery`, `useCoderAuth`, and `useCoderSdk`.
+
+#### Example
+
+```tsx
+// Without useCoderQuery
+const { sdk } = useCoderSdk();
+const { isAuthenticated } = useCoderAuth();
+const query = useQuery({
+  queryKey: [CODER_QUERY_KEY_PREFIX, 'workspaces'],
+  queryFn: () => sdk.getWorkspaces({ q: 'owner:me' }),
+  enabled: isAuthenticated,
+});
+
+// This is fully equivalent and has additional properties get updated based
+// on auth status
+const query2 = useCoderQuery({
+  queryKey: ['workspaces'],
+  queryFn: ({ sdk }) => sdk.getWorkspaces({ q: 'owner:me' }),
+});
+```
+
+#### Pros
+
+- Reduces the total number of imports needed to get query logic set up, and pre-configures values to be more fool-proof. The Coder SDK is automatically patched into React Query's `queryFn` function context.
+- Ensures that all Coder-based queries share the same query prefix, and are correctly evicted when the user unlinks their Coder account
+- Automatically prohibits some deprecated properties from React Query v4 (using one of them is treated as a type error). This means guaranteed forwards-compatibility with React Query v5
+
+#### Cons
+
+- Introduces extra overhead to ensure that queries are fully locked down when the user is not authenticated – even if they're not needed for every use case
+- Doesn't offer quite as much fine-grained control compared to `useQuery`
+- Does not simplify process of connecting Coder queries and mutations, because a `useCoderMutation` hook does not exist (yet)
+- `queryKey` is slightly more confusing, because a new value is implicitly appended to the beginning of the array
+
+## Performing mutations
