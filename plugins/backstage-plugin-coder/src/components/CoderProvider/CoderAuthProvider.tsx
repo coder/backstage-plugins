@@ -145,14 +145,14 @@ function useAuthState(): CoderAuth {
   useEffect(() => {
     // Pseudo-mutex; makes sure that if we get a bunch of errors, only one
     // revalidation will be processed at a time
-    let canRevalidate = true;
+    let isRevalidating = false;
 
     const revalidateTokenOnError = async (event: QueryCacheNotifyEvent) => {
       const queryError = event.query.state.error;
 
       const shouldRevalidate =
         isAuthenticated &&
-        !canRevalidate &&
+        !isRevalidating &&
         BackstageHttpError.isInstance(queryError) &&
         queryError.status === 401;
 
@@ -160,18 +160,14 @@ function useAuthState(): CoderAuth {
         return;
       }
 
-      canRevalidate = false;
+      isRevalidating = true;
       await queryClient.refetchQueries({ queryKey: sharedAuthQueryKey });
-      canRevalidate = true;
+      isRevalidating = false;
     };
 
     const queryCache = queryClient.getQueryCache();
     const unsubscribe = queryCache.subscribe(revalidateTokenOnError);
-
-    return () => {
-      canRevalidate = false;
-      unsubscribe();
-    };
+    return unsubscribe;
   }, [queryClient, isAuthenticated]);
 
   const registerNewToken = useCallback((newToken: string) => {
