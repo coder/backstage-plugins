@@ -298,6 +298,57 @@ You have two main options for performing queries:
 
 #### Example
 
+```tsx
+function WorkspacesList() {
+  // Pretend that useDebouncedValue exists and exposes a version of searchFilter
+  // that updates on a delay
+  const [searchFilter, setSearchFilter] = useState('owner:me');
+  const debouncedSearchFilter = useDebouncedValue({
+    value: searchFilter,
+    debounceDelayMs: 500,
+  });
+
+  const { isAuthenticated } = useCoderAuth();
+  const sdk = useCoderSdk();
+
+  // The type of query.data is automatically inferred to be of type
+  // (undefined | Workspace[]) based on the return type of queryFn
+  const query = useQuery({
+    queryKey: [CODER_QUERY_KEY_PREFIX, 'workspaces', debouncedSearchFilter],
+    queryFn: () => sdk.getWorkspaces({ q: debouncedSearchFilter }),
+    enabled: isAuthenticated,
+  });
+
+  return (
+    <>
+      <label>
+        Search your deployment's workspaces
+        <input
+          type="input"
+          value={searchFilter}
+          onChange={event => setSearchFilter(event.target.value)}
+        />
+      </label>
+
+      {query.error instanceof Error && (
+        <p>Encountered the following error: {query.error.message}</p>
+      )}
+
+      {query.isLoading && <p>Loading&hellip;</p>}
+
+      <ul>
+        {query.data?.map(workspace => (
+          <CustomWorkspaceListItemComponent
+            key={workspace.id}
+            workspace={workspace}
+          />
+        ))}
+      </ul>
+    </>
+  );
+}
+```
+
 #### Pros
 
 - Gives you the most direct control over caching data using a declarative API
@@ -316,21 +367,50 @@ You have two main options for performing queries:
 #### Example
 
 ```tsx
-// Without useCoderQuery
-const { sdk } = useCoderSdk();
-const { isAuthenticated } = useCoderAuth();
-const query = useQuery({
-  queryKey: [CODER_QUERY_KEY_PREFIX, 'workspaces'],
-  queryFn: () => sdk.getWorkspaces({ q: 'owner:me' }),
-  enabled: isAuthenticated,
-});
+function WorkspacesList() {
+  // Pretend that we have the same useDebouncedValue from the useQuery example
+  // above
+  const [searchFilter, setSearchFilter] = useState('owner:me');
+  const debouncedSearchFilter = useDebouncedValue({
+    value: searchFilter,
+    debounceDelayMs: 500,
+  });
 
-// This is fully equivalent and has additional properties get updated based
-// on auth status
-const query2 = useCoderQuery({
-  queryKey: ['workspaces'],
-  queryFn: ({ sdk }) => sdk.getWorkspaces({ q: 'owner:me' }),
-});
+  // The type of query.data is automatically inferred to be of type
+  // (undefined | Workspace[]) based on the return type of queryFn
+  const query = useCoderQuery({
+    queryKey: ['workspaces', debouncedSearchFilter],
+    queryFn: ({ sdk }) => sdk.getWorkspaces({ q: debouncedSearchFilter }),
+  });
+
+  return (
+    <>
+      <label>
+        Search your deployment's workspaces
+        <input
+          type="input"
+          value={searchFilter}
+          onChange={event => setSearchFilter(event.target.value)}
+        />
+      </label>
+
+      {query.error instanceof Error && (
+        <p>Encountered the following error: {query.error.message}</p>
+      )}
+
+      {query.isLoading && <p>Loading&hellip;</p>}
+
+      <ul>
+        {query.data?.map(workspace => (
+          <CustomWorkspaceListItemComponent
+            key={workspace.id}
+            workspace={workspace}
+          />
+        ))}
+      </ul>
+    </>
+  );
+}
 ```
 
 #### Pros
