@@ -160,7 +160,7 @@ All three solutions, directly or indirectly, involve the `CoderAuth` type. More 
 
 Every official Coder component (such as `CoderWorkspacesCard`) exported through the plugin is guaranteed to have some mechanism for supplying auth information. This is typically done via a UI form.
 
-<!-- [Include screenshot/video of auth input here] -->
+<-- [Include screenshot/video of auth input here] -->
 
 #### Pros
 
@@ -186,7 +186,7 @@ When you include the `CoderProvider` component in your Backstage deployment, you
 </CoderProvider>
 ```
 
-<!-- [Include screenshot/video of fallback auth input here] -->
+<-- [Include screenshot/video of fallback auth input here] -->
 
 The fallback auth UI will never be visible while the user is authenticated. However, if the user is **not** authenticated, then the value of `fallbackAuthUiMode` will affect what appears on screen:
 
