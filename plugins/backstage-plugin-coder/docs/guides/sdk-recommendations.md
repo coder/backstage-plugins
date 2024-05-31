@@ -111,7 +111,7 @@ function ExampleComponent() {
 }
 ```
 
-#### The SDK object
+### The SDK object
 
 The SDK object contains all available API methods. All methods follow the format `<verb>` + `<resource name>`. The SDK has these verbs:
 
@@ -126,7 +126,7 @@ Depending on the Coder resource, there may be different API methods that work wi
 
 Note that all of these functions will throw an error if the user is not authenticated.
 
-#### Error behavior
+### Error behavior
 
 All SDK functions will throw in the event of an error. You will need to provide additional error handling to expose errors as values within the UI. (Tanstack Query does this automatically for you.)
 
@@ -176,6 +176,12 @@ Every official Coder component (such as `CoderWorkspacesCard`) exported through 
 ### Authenticating via the fallback auth UI
 
 When you include the `CoderProvider` component in your Backstage deployment, you have the option to set the value of `fallbackAuthUiMode`. This value affects how `CoderProvider` will inject a fallback auth input into the Backstage deployment's HTML. This means that, even if you don't use any Coder components, or are on a page that can't use them, users will always have some way of supplying auth information.
+
+```tsx
+<CoderProvider fallbackAuthUiMode="assertive">
+  <RestOfYourComponentsThatUseTheCoderApis />
+</CoderProvider>
+```
 
 <!-- [Include screenshot/video of fallback auth input here] -->
 
@@ -296,6 +302,8 @@ You have two main options for performing queries:
 
 ### `useQuery`
 
+`useQuery` offers the most flexible options overall, and can be a great solution when you don't mind wiring things up manually.
+
 #### Example
 
 ```tsx
@@ -376,8 +384,8 @@ function WorkspacesList() {
     debounceDelayMs: 500,
   });
 
-  // The type of query.data is automatically inferred to be of type
-  // (undefined | Workspace[]) based on the return type of queryFn
+  // Like with useQuery, the type of query.data is automatically inferred to be
+  // of type (undefined | Workspace[]) based on the return type of queryFn
   const query = useCoderQuery({
     queryKey: ['workspaces', debouncedSearchFilter],
     queryFn: ({ sdk }) => sdk.getWorkspaces({ q: debouncedSearchFilter }),
