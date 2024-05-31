@@ -13,8 +13,8 @@ export function useCoderWorkspacesQuery({
   coderQuery,
   workspacesConfig,
 }: QueryInput) {
+  const sdk = useCoderSdk();
   const auth = useInternalCoderAuth();
-  const { sdk } = useCoderSdk();
   const hasRepoData = workspacesConfig && workspacesConfig.repoUrl;
 
   const queryOptions = hasRepoData
