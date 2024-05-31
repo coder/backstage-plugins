@@ -12,6 +12,8 @@ If you encounter any issues while using the Backstage version of the SDK, please
 
 The Coder SDK for Backstage makes it easy for Backstage admins to bring the entire Coder API into Spotify's Backstage platform. While the Coder Backstage plugin does ship with a collection of ready-made components, those can't meet every user's needs, and so, why not give you access to the full set of building blocks, so you can build a solution tailored to your specific use case?
 
+### Table of contents
+
 This guide covers the following:
 
 - Accessing the SDK from your own custom React components
