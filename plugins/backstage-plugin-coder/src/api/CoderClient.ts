@@ -100,7 +100,7 @@ export class CoderClient implements CoderClientApi {
     this.cleanupController = new AbortController();
     this.trackedEjectionIds = new Set();
 
-    this.sdk = this.getBackstageCoderSdk();
+    this.sdk = this.createBackstageCoderSdk();
     this.addBaseRequestInterceptors();
   }
 
@@ -181,7 +181,7 @@ export class CoderClient implements CoderClientApi {
     this.addRequestInterceptor(baseRequestInterceptor, baseErrorInterceptor);
   }
 
-  private getBackstageCoderSdk(): BackstageCoderSdk {
+  private createBackstageCoderSdk(): BackstageCoderSdk {
     const baseSdk = makeCoderSdk();
 
     const getWorkspaces: (typeof baseSdk)['getWorkspaces'] = async request => {

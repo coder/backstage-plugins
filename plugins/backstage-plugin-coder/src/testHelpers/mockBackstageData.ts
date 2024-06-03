@@ -75,7 +75,7 @@ export const mockBackstageUrlRoot = 'http://localhost:7007';
  * the final result is.
  */
 export const mockBackstageApiEndpointWithoutSdkPath =
-  `${mockBackstageUrlRoot}${defaultUrlPrefixes.proxyPrefix}${CODER_PROXY_PREFIX}${defaultUrlPrefixes.apiRoutePrefix}` as const;
+  `${mockBackstageUrlRoot}${defaultUrlPrefixes.proxyPrefix}${CODER_PROXY_PREFIX}` as const;
 
 /**
  * The API endpoint to use with the mock server during testing. Adds additional
@@ -94,7 +94,7 @@ export const mockBackstageApiEndpoint =
  * the final result is.
  */
 export const mockBackstageAssetsEndpoint =
-  `${mockBackstageUrlRoot}${defaultUrlPrefixes.proxyPrefix}${CODER_PROXY_PREFIX}${defaultUrlPrefixes.assetsRoutePrefix}` as const;
+  `${mockBackstageUrlRoot}${defaultUrlPrefixes.proxyPrefix}${CODER_PROXY_PREFIX}` as const;
 
 export const mockBearerToken = 'This-is-an-opaque-value-by-design';
 export const mockCoderAuthToken = 'ZG0HRy2gGN-mXljc1s5FqtE8WUJ4sUc5X';
