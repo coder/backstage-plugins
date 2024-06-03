@@ -1,19 +1,19 @@
-import globalAxios, {
+import {
   AxiosError,
-  type AxiosInstance,
   type InternalAxiosRequestConfig as RequestConfig,
 } from 'axios';
 import { type IdentityApi, createApiRef } from '@backstage/core-plugin-api';
-import {
-  type Workspace,
-  CODER_API_REF_ID_PREFIX,
-  WorkspacesRequest,
-  WorkspacesResponse,
-  User,
-} from '../typesConstants';
+import { CODER_API_REF_ID_PREFIX } from '../typesConstants';
 import type { UrlSync } from './UrlSync';
 import type { CoderWorkspacesConfig } from '../hooks/useCoderWorkspacesConfig';
-import { CoderSdk } from './MockCoderSdk';
+import {
+  type CoderSdk,
+  type User,
+  type Workspace,
+  type WorkspacesRequest,
+  type WorkspacesResponse,
+  makeCoderSdk,
+} from './vendoredSdk';
 
 export const CODER_AUTH_HEADER_KEY = 'Coder-Session-Token';
 const DEFAULT_REQUEST_TIMEOUT_MS = 20_000;
@@ -39,11 +39,6 @@ type CoderClientApi = Readonly<{
    * Return value indicates whether the token is valid.
    */
   syncToken: (newToken: string) => Promise<boolean>;
-
-  /**
-   * Cleans up a client instance, removing its links to all external systems.
-   */
-  cleanupClient: () => void;
 }>;
 
 const sharedCleanupAbortReason = new DOMException(
@@ -59,19 +54,30 @@ export const disabledClientError = new Error(
 );
 
 type ConstructorInputs = Readonly<{
+  /**
+   * initialToken is strictly for testing, and is basically limited to making it
+   * easier to test API logic.
+   *
+   * If trying to test UI logic that depends on CoderClient, it's probably
+   * better to interact with CoderClient indirectly through the auth components,
+   * so that React state is aware of everything.
+   */
   initialToken?: string;
-  requestTimeoutMs?: number;
 
+  requestTimeoutMs?: number;
   apis: Readonly<{
     urlSync: UrlSync;
     identityApi: IdentityApi;
   }>;
 }>;
 
+type RequestInterceptor = (
+  config: RequestConfig,
+) => RequestConfig | Promise<RequestConfig>;
+
 export class CoderClient implements CoderClientApi {
   private readonly urlSync: UrlSync;
   private readonly identityApi: IdentityApi;
-  private readonly axios: AxiosInstance;
 
   private readonly requestTimeoutMs: number;
   private readonly cleanupController: AbortController;
@@ -82,33 +88,28 @@ export class CoderClient implements CoderClientApi {
 
   constructor(inputs: ConstructorInputs) {
     const {
-      apis,
       initialToken,
+      apis: { urlSync, identityApi },
       requestTimeoutMs = DEFAULT_REQUEST_TIMEOUT_MS,
     } = inputs;
-    const { urlSync, identityApi } = apis;
 
     this.urlSync = urlSync;
     this.identityApi = identityApi;
-    this.axios = globalAxios.create();
-
     this.loadedSessionToken = initialToken;
     this.requestTimeoutMs = requestTimeoutMs;
-
     this.cleanupController = new AbortController();
     this.trackedEjectionIds = new Set();
 
-    this.sdk = this.getBackstageCoderSdk(this.axios);
+    this.sdk = this.createBackstageCoderSdk();
     this.addBaseRequestInterceptors();
   }
 
   private addRequestInterceptor(
-    requestInterceptor: (
-      config: RequestConfig,
-    ) => RequestConfig | Promise<RequestConfig>,
+    requestInterceptor: RequestInterceptor,
     errorInterceptor?: (error: unknown) => unknown,
   ): number {
-    const ejectionId = this.axios.interceptors.request.use(
+    const axios = this.sdk.getAxiosInstance();
+    const ejectionId = axios.interceptors.request.use(
       requestInterceptor,
       errorInterceptor,
     );
@@ -120,7 +121,8 @@ export class CoderClient implements CoderClientApi {
   private removeRequestInterceptorById(ejectionId: number): boolean {
     // Even if we somehow pass in an ID that hasn't been associated with the
     // Axios instance, that's a noop. No harm in calling method no matter what
-    this.axios.interceptors.request.eject(ejectionId);
+    const axios = this.sdk.getAxiosInstance();
+    axios.interceptors.request.eject(ejectionId);
 
     if (!this.trackedEjectionIds.has(ejectionId)) {
       return false;
@@ -179,10 +181,8 @@ export class CoderClient implements CoderClientApi {
     this.addRequestInterceptor(baseRequestInterceptor, baseErrorInterceptor);
   }
 
-  private getBackstageCoderSdk(
-    axiosInstance: AxiosInstance,
-  ): BackstageCoderSdk {
-    const baseSdk = new CoderSdk(axiosInstance);
+  private createBackstageCoderSdk(): BackstageCoderSdk {
+    const baseSdk = makeCoderSdk();
 
     const getWorkspaces: (typeof baseSdk)['getWorkspaces'] = async request => {
       const workspacesRes = await baseSdk.getWorkspaces(request);
@@ -334,23 +334,6 @@ export class CoderClient implements CoderClientApi {
       // returned a value or thrown an error
       this.removeRequestInterceptorById(validationId);
     }
-  };
-
-  cleanupClient = (): void => {
-    this.trackedEjectionIds.forEach(id => {
-      this.axios.interceptors.request.eject(id);
-    });
-
-    this.trackedEjectionIds.clear();
-    this.cleanupController.abort(sharedCleanupAbortReason);
-    this.loadedSessionToken = undefined;
-
-    // Not using this.addRequestInterceptor, because we don't want to track this
-    // interceptor at all. It should never be ejected once the client has been
-    // disabled
-    this.axios.interceptors.request.use(() => {
-      throw disabledClientError;
-    });
   };
 }
 

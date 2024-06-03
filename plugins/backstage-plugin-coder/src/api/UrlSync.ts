@@ -42,14 +42,10 @@ const PROXY_URL_KEY_FOR_DISCOVERY_API = 'proxy';
 
 type UrlPrefixes = Readonly<{
   proxyPrefix: string;
-  apiRoutePrefix: string;
-  assetsRoutePrefix: string;
 }>;
 
 export const defaultUrlPrefixes = {
   proxyPrefix: `/api/proxy`,
-  apiRoutePrefix: '/api/v2',
-  assetsRoutePrefix: '', // Deliberately left as empty string
 } as const satisfies UrlPrefixes;
 
 export type UrlSyncSnapshot = Readonly<{
@@ -104,12 +100,10 @@ export class UrlSync implements UrlSyncApi {
   }
 
   private prepareNewSnapshot(newProxyUrl: string): UrlSyncSnapshot {
-    const { assetsRoutePrefix, apiRoutePrefix } = this.urlPrefixes;
-
     return {
       baseUrl: newProxyUrl.replace(proxyRouteReplacer, ''),
-      assetsRoute: `${newProxyUrl}${CODER_PROXY_PREFIX}${assetsRoutePrefix}`,
-      apiRoute: `${newProxyUrl}${CODER_PROXY_PREFIX}${apiRoutePrefix}`,
+      assetsRoute: `${newProxyUrl}${CODER_PROXY_PREFIX}`,
+      apiRoute: `${newProxyUrl}${CODER_PROXY_PREFIX}`,
     };
   }
 

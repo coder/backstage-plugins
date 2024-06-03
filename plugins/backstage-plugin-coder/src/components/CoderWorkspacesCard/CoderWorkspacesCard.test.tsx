@@ -10,7 +10,7 @@ import {
   mockWorkspaceNoParameters,
   mockWorkspaceWithMatch2,
   mockWorkspacesList,
-} from '../../testHelpers/mockCoderAppData';
+} from '../../testHelpers/mockCoderPluginData';
 import { type CoderAuthStatus } from '../CoderProvider';
 import { CoderWorkspacesCard } from './CoderWorkspacesCard';
 import userEvent from '@testing-library/user-event';

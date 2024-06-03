@@ -1,9 +1,13 @@
 import React from 'react';
 import { screen } from '@testing-library/react';
 import { renderInCoderEnvironment } from '../../testHelpers/setup';
-import { mockWorkspaceWithMatch } from '../../testHelpers/mockCoderAppData';
-import type { Workspace } from '../../typesConstants';
+import { mockWorkspaceWithMatch } from '../../testHelpers/mockCoderPluginData';
+import type { Workspace } from '../../api/vendoredSdk';
 import { WorkspacesListItem } from './WorkspacesListItem';
+import {
+  MockWorkspaceAgent,
+  MockWorkspaceResource,
+} from '../../testHelpers/coderEntities';
 
 type RenderInput = Readonly<{
   isOnline?: boolean;
@@ -19,9 +23,11 @@ async function renderListItem(inputs?: RenderInput) {
       status: isOnline ? 'running' : 'stopped',
       resources: [
         {
+          ...MockWorkspaceResource,
           id: '1',
           agents: [
             {
+              ...MockWorkspaceAgent,
               id: '2',
               status: isOnline ? 'connected' : 'disconnected',
             },

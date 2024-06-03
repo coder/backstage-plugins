@@ -67,13 +67,25 @@ export const rawRepoUrl = `${cleanedRepoUrl}/tree/main/`;
 export const mockBackstageUrlRoot = 'http://localhost:7007';
 
 /**
- * The API endpoint to use with the mock server during testing.
+ * A version of the mock API endpoint that doesn't have the Coder API versioning
+ * prefix. Mainly used for tests that need to assert that the core API URL is
+ * formatted correctly, before the CoderSdk adds anything else to the end
+ *
+ * The string literal expression is complicated, but hover over it to see what
+ * the final result is.
+ */
+export const mockBackstageApiEndpointWithoutSdkPath =
+  `${mockBackstageUrlRoot}${defaultUrlPrefixes.proxyPrefix}${CODER_PROXY_PREFIX}` as const;
+
+/**
+ * The API endpoint to use with the mock server during testing. Adds additional
+ * path information that will normally be added via the Coder SDK.
  *
  * The string literal expression is complicated, but hover over it to see what
  * the final result is.
  */
 export const mockBackstageApiEndpoint =
-  `${mockBackstageUrlRoot}${defaultUrlPrefixes.proxyPrefix}${CODER_PROXY_PREFIX}${defaultUrlPrefixes.apiRoutePrefix}` as const;
+  `${mockBackstageApiEndpointWithoutSdkPath}/api/v2` as const;
 
 /**
  * The assets endpoint to use during testing.
@@ -82,7 +94,7 @@ export const mockBackstageApiEndpoint =
  * the final result is.
  */
 export const mockBackstageAssetsEndpoint =
-  `${mockBackstageUrlRoot}${defaultUrlPrefixes.proxyPrefix}${CODER_PROXY_PREFIX}${defaultUrlPrefixes.assetsRoutePrefix}` as const;
+  `${mockBackstageUrlRoot}${defaultUrlPrefixes.proxyPrefix}${CODER_PROXY_PREFIX}` as const;
 
 export const mockBearerToken = 'This-is-an-opaque-value-by-design';
 export const mockCoderAuthToken = 'ZG0HRy2gGN-mXljc1s5FqtE8WUJ4sUc5X';

@@ -39,7 +39,7 @@ class ErrorBoundaryCore extends Component<
 
   render() {
     const { children, fallbackUi } = this.props;
-    return this.state.hasError ? fallbackUi : children;
+    return <>{this.state.hasError ? fallbackUi : children}</>;
   }
 }
 

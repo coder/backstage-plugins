@@ -15,7 +15,7 @@ import {
   useCoderWorkspacesConfig,
   type CoderWorkspacesConfig,
 } from '../../hooks/useCoderWorkspacesConfig';
-import type { Workspace } from '../../typesConstants';
+import type { Workspace } from '../../api/vendoredSdk';
 import { useCoderWorkspacesQuery } from '../../hooks/useCoderWorkspacesQuery';
 import { CoderAuthFormCardWrapper } from '../CoderAuthFormCardWrapper';
 

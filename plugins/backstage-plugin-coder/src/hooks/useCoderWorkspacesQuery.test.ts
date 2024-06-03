@@ -6,7 +6,7 @@ import { mockCoderWorkspacesConfig } from '../testHelpers/mockBackstageData';
 import {
   mockWorkspaceNoParameters,
   mockWorkspacesList,
-} from '../testHelpers/mockCoderAppData';
+} from '../testHelpers/mockCoderPluginData';
 
 beforeAll(() => {
   jest.useFakeTimers();

@@ -11,19 +11,18 @@ import { setupServer } from 'msw/node';
 /* eslint-enable @backstage/no-undeclared-imports */
 
 import {
+  mockUserWithProxyUrls,
   mockWorkspacesList,
   mockWorkspacesListForRepoSearch,
-} from './mockCoderAppData';
+} from './mockCoderPluginData';
 import {
-  mockBackstageAssetsEndpoint,
   mockBearerToken,
   mockCoderAuthToken,
   mockCoderWorkspacesConfig,
   mockBackstageApiEndpoint as root,
 } from './mockBackstageData';
-import type { WorkspacesResponse } from '../typesConstants';
 import { CODER_AUTH_HEADER_KEY } from '../api/CoderClient';
-import { User } from '../typesConstants';
+import type { User, WorkspacesResponse } from '../api/vendoredSdk';
 
 type RestResolver<TBody extends DefaultBodyType = any> = ResponseResolver<
   RestRequest<TBody>,
@@ -83,7 +82,6 @@ export function wrappedGet<TBody extends DefaultBodyType = any>(
 export const mockServerEndpoints = {
   workspaces: `${root}/workspaces`,
   authenticatedUser: `${root}/users/me`,
-  workspaceBuildParameters: `${root}/workspacebuilds/:workspaceBuildId/parameters`,
 } as const satisfies Record<string, string>;
 
 const mainTestHandlers: readonly RestHandler[] = [
@@ -93,7 +91,7 @@ const mainTestHandlers: readonly RestHandler[] = [
       `param:"\\w+?=${repoUrl.replace('/', '\\/')}"`,
     );
 
-    const queryText = String(req.url.searchParams.get('q'));
+    const queryText = String(req.url.searchParams.get('q') ?? '');
     const requestContainsRepoInfo = paramMatcherRe.test(queryText);
 
     const baseWorkspaces = requestContainsRepoInfo
@@ -129,14 +127,7 @@ const mainTestHandlers: readonly RestHandler[] = [
 
   // This is the dummy request used to verify a user's auth status
   wrappedGet(mockServerEndpoints.authenticatedUser, (_, res, ctx) => {
-    return res(
-      ctx.status(200),
-      ctx.json<User>({
-        id: '1',
-        avatar_url: `${mockBackstageAssetsEndpoint}/blueberry.png`,
-        username: 'blueberry',
-      }),
-    );
+    return res(ctx.status(200), ctx.json<User>(mockUserWithProxyUrls));
   }),
 ];
 
