@@ -46,12 +46,15 @@ export const CoderProvider = ({
   children,
   appConfig,
   queryClient = defaultClient,
+  fallbackAuthUiMode = 'restrained',
 }: CoderProviderProps) => {
   return (
     <CoderErrorBoundary>
       <QueryClientProvider client={queryClient}>
         <CoderAppConfigProvider appConfig={appConfig}>
-          <CoderAuthProvider>{children}</CoderAuthProvider>
+          <CoderAuthProvider fallbackAuthUiMode={fallbackAuthUiMode}>
+            {children}
+          </CoderAuthProvider>
         </CoderAppConfigProvider>
       </QueryClientProvider>
     </CoderErrorBoundary>

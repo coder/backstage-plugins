@@ -1,12 +1,11 @@
 import { waitFor } from '@testing-library/react';
 import { useCoderWorkspacesQuery } from './useCoderWorkspacesQuery';
-
-import { renderHookAsCoderEntity } from '../testHelpers/setup';
-import { mockCoderWorkspacesConfig } from '../testHelpers/mockBackstageData';
+import { renderHookAsCoderEntity } from '../../testHelpers/setup';
+import { mockCoderWorkspacesConfig } from '../../testHelpers/mockBackstageData';
 import {
   mockWorkspaceNoParameters,
   mockWorkspacesList,
-} from '../testHelpers/mockCoderPluginData';
+} from '../../testHelpers/mockCoderPluginData';
 
 beforeAll(() => {
   jest.useFakeTimers();

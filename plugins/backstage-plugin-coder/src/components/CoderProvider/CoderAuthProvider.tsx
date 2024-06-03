@@ -1,4 +1,5 @@
 import React, {
+  type FC,
   type PropsWithChildren,
   createContext,
   useCallback,
@@ -136,10 +137,16 @@ function useAuthState(): CoderAuth {
     return () => window.clearTimeout(distrustTimeoutId);
   }, [authState.status]);
 
+  const isAuthenticated = validAuthStatuses.includes(authState.status);
+
   // Sets up subscription to spy on potentially-expired tokens. Can't do this
   // outside React because we let the user connect their own queryClient
   const queryClient = useQueryClient();
   useEffect(() => {
+    if (!isAuthenticated) {
+      return undefined;
+    }
+
     // Pseudo-mutex; makes sure that if we get a bunch of errors, only one
     // revalidation will be processed at a time
     let isRevalidatingToken = false;
@@ -163,7 +170,7 @@ function useAuthState(): CoderAuth {
     const queryCache = queryClient.getQueryCache();
     const unsubscribe = queryCache.subscribe(revalidateTokenOnError);
     return unsubscribe;
-  }, [queryClient]);
+  }, [queryClient, isAuthenticated]);
 
   const registerNewToken = useCallback((newToken: string) => {
     if (newToken !== '') {
@@ -179,7 +186,7 @@ function useAuthState(): CoderAuth {
 
   return {
     ...authState,
-    isAuthenticated: validAuthStatuses.includes(authState.status),
+    isAuthenticated,
     registerNewToken,
     ejectToken,
   };
@@ -607,24 +614,75 @@ export const dummyTrackComponent: TrackComponent = () => {
   };
 };
 
+export type FallbackAuthInputBehavior = 'restrained' | 'assertive' | 'hidden';
+type AuthFallbackProvider = FC<
+  Readonly<
+    PropsWithChildren<{
+      isAuthenticated: boolean;
+    }>
+  >
+>;
+
+// Matches each behavior for the fallback auth UI to a specific provider. This
+// is screwy code, but by doing this, we ensure that if the user chooses not to
+// have a dynamic auth fallback UI, their app will have far less tracking logic,
+// meaning less performance overhead and fewer re-renders from something the
+// user isn't even using
+const fallbackProviders = {
+  hidden: ({ children }) => (
+    <AuthTrackingContext.Provider value={dummyTrackComponent}>
+      {children}
+    </AuthTrackingContext.Provider>
+  ),
+
+  assertive: ({ children, isAuthenticated }) => (
+    // Don't need the live version of the tracker function if we're always
+    // going to be showing the fallback auth input no matter what
+    <AuthTrackingContext.Provider value={dummyTrackComponent}>
+      {children}
+      {!isAuthenticated && <FallbackAuthUi />}
+    </AuthTrackingContext.Provider>
+  ),
+
+  // Have to give function a name to satisfy ES Lint (rules of hooks)
+  restrained: function Restrained({ children, isAuthenticated }) {
+    const { hasNoAuthInputs, trackComponent } = useAuthFallbackState();
+    const needFallbackUi = !isAuthenticated && hasNoAuthInputs;
+
+    return (
+      <>
+        <AuthTrackingContext.Provider value={trackComponent}>
+          {children}
+        </AuthTrackingContext.Provider>
+
+        {needFallbackUi && (
+          <AuthTrackingContext.Provider value={dummyTrackComponent}>
+            <FallbackAuthUi />
+          </AuthTrackingContext.Provider>
+        )}
+      </>
+    );
+  },
+} as const satisfies Record<FallbackAuthInputBehavior, AuthFallbackProvider>;
+
+export type CoderAuthProviderProps = Readonly<
+  PropsWithChildren<{
+    fallbackAuthUiMode?: FallbackAuthInputBehavior;
+  }>
+>;
+
 export function CoderAuthProvider({
   children,
-}: Readonly<PropsWithChildren<unknown>>) {
+  fallbackAuthUiMode = 'restrained',
+}: CoderAuthProviderProps) {
   const authState = useAuthState();
-  const { hasNoAuthInputs, trackComponent } = useAuthFallbackState();
-  const needFallbackUi = !authState.isAuthenticated && hasNoAuthInputs;
+  const AuthFallbackProvider = fallbackProviders[fallbackAuthUiMode];
 
   return (
     <AuthStateContext.Provider value={authState}>
-      <AuthTrackingContext.Provider value={trackComponent}>
+      <AuthFallbackProvider isAuthenticated={authState.isAuthenticated}>
         {children}
-      </AuthTrackingContext.Provider>
-
-      {needFallbackUi && (
-        <AuthTrackingContext.Provider value={dummyTrackComponent}>
-          <FallbackAuthUi />
-        </AuthTrackingContext.Provider>
-      )}
+      </AuthFallbackProvider>
     </AuthStateContext.Provider>
   );
 }
