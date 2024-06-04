@@ -106,7 +106,7 @@ export function getMockQueryClient(): QueryClient {
 }
 
 type MockAuthProps = Readonly<
-  CoderProviderProps & {
+  Omit<CoderProviderProps, 'fallbackAuthUiMode'> & {
     auth?: CoderAuth;
 
     /**
@@ -220,4 +220,25 @@ export async function renderInCoderEnvironment({
 
   await waitFor(() => expect(loadingIndicator).not.toBeInTheDocument());
   return renderOutput;
+}
+
+type InvertedPromiseResult<TData = unknown, TError = Error> = Readonly<{
+  promise: Promise<TData>;
+  resolve: (value: TData) => void;
+  reject: (errorReason: TError) => void;
+}>;
+
+export function createInvertedPromise<
+  TData = unknown,
+  TError = Error,
+>(): InvertedPromiseResult<TData, TError> {
+  let resolve!: (value: TData) => void;
+  let reject!: (error: TError) => void;
+
+  const promise = new Promise<TData>((innerResolve, innerReject) => {
+    resolve = innerResolve;
+    reject = innerReject;
+  });
+
+  return { promise, resolve, reject };
 }

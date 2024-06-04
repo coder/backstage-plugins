@@ -4,7 +4,10 @@ import type { CoderWorkspacesConfig } from '../hooks/useCoderWorkspacesConfig';
 import type { BackstageCoderSdk } from './CoderClient';
 import type { CoderAuth } from '../components/CoderProvider';
 
-export const CODER_QUERY_KEY_PREFIX = 'coder-backstage-plugin';
+// Making the type more broad to hide some implementation details from the end
+// user; the prefix should be treated as an opaque string we can change whenever
+// we want
+export const CODER_QUERY_KEY_PREFIX = 'coder-backstage-plugin' as string;
 
 // Defined here and not in CoderAuthProvider.ts to avoid circular dependency
 // issues

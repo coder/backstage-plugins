@@ -192,6 +192,12 @@ export { useWorkspacesCardContext } from './components/CoderWorkspacesCard/Root'
 export { useCoderWorkspacesConfig } from './hooks/useCoderWorkspacesConfig';
 export { useCoderSdk } from './hooks/useCoderSdk';
 export { useEndUserCoderAuth as useCoderAuth } from './components/CoderProvider/CoderAuthProvider';
+export { useCoderQuery } from './hooks/reactQueryWrappers';
+
+/**
+ * General constants
+ */
+export { CODER_QUERY_KEY_PREFIX } from './api/queryOptions';
 
 /**
  * All custom types
