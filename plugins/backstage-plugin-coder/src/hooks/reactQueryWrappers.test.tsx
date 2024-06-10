@@ -70,7 +70,7 @@ async function renderCoderQuery<
         const mainMarkup = (
           <TestApiProvider apis={getMockApiList()}>
             <CoderProvider
-              fallbackAuthUiMode="dynamic"
+              fallbackAuthUiMode="restrained"
               appConfig={mockAppConfig}
               queryClient={queryClient}
             >
@@ -117,7 +117,7 @@ describe(`${useCoderQuery.name}`, () => {
         authenticateOnMount: false,
         queryOptions: {
           queryKey: ['workspaces'],
-          queryFn: ({ sdk }) => sdk.getWorkspaces({ q: 'owner:me' }),
+          queryFn: ({ api }) => api.getWorkspaces({ q: 'owner:me' }),
           select: response => response.workspaces,
         },
       });

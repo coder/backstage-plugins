@@ -29,8 +29,8 @@ type PropertyToHide =
 // with the extra properties omitted). But because classes are wonky and exist
 // as both runtime values and types, it didn't seem possible, even with things
 // like class declarations. Making a new function is good enough for now, though
-export type CoderSdk = Omit<Api, PropertyToHide>;
-export function makeCoderSdk(): CoderSdk {
+export type CoderApi = Omit<Api, PropertyToHide>;
+export function createCoderApi(): CoderApi {
   const api = new Api();
-  return api as CoderSdk;
+  return api as CoderApi;
 }

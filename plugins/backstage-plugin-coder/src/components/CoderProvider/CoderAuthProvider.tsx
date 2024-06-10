@@ -24,7 +24,7 @@ import {
   CODER_QUERY_KEY_PREFIX,
   sharedAuthQueryKey,
 } from '../../api/queryOptions';
-import { coderClientApiRef } from '../../api/CoderClient';
+import { coderClientWrapperApiRef } from '../../api/CoderClient';
 import { CoderLogo } from '../CoderLogo';
 import { CoderAuthFormDialog } from '../CoderAuthFormDialog';
 
@@ -91,7 +91,7 @@ function useAuthState(): CoderAuth {
   const [readonlyInitialAuthToken] = useState(authToken);
   const [isInsideGracePeriod, setIsInsideGracePeriod] = useState(true);
 
-  const coderClient = useApi(coderClientApiRef);
+  const coderClient = useApi(coderClientWrapperApiRef);
   const queryIsEnabled = authToken !== '';
 
   const authValidityQuery = useQuery<boolean>({
@@ -273,7 +273,7 @@ export function useInternalCoderAuth(): CoderAuth {
 /**
  * Exposes Coder auth state to the rest of the UI.
  */
-// This hook should only be used by end users trying to use the Coder SDK inside
+// This hook should only be used by end users trying to use the Coder API inside
 // Backstage. The hook is renamed on final export to avoid confusion
 export function useEndUserCoderAuth(): CoderAuth {
   const authContextValue = useContext(AuthStateContext);

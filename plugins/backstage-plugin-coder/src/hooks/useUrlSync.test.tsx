@@ -8,11 +8,11 @@ import {
   mockBackstageAssetsEndpoint,
   mockBackstageUrlRoot,
   getMockConfigApi,
-  mockBackstageApiEndpointWithoutSdkPath,
+  mockBackstageApiEndpointWithoutVersionSuffix,
 } from '../testHelpers/mockBackstageData';
 
 function renderUseUrlSync() {
-  let proxyEndpoint: string = mockBackstageApiEndpointWithoutSdkPath;
+  let proxyEndpoint: string = mockBackstageApiEndpointWithoutVersionSuffix;
   const mockDiscoveryApi: DiscoveryApi = {
     getBaseUrl: async () => proxyEndpoint,
   };
@@ -53,7 +53,7 @@ describe(`${useUrlSync.name}`, () => {
           state: {
             baseUrl: mockBackstageUrlRoot,
             assetsRoute: mockBackstageAssetsEndpoint,
-            apiRoute: mockBackstageApiEndpointWithoutSdkPath,
+            apiRoute: mockBackstageApiEndpointWithoutVersionSuffix,
           },
         }),
       );

@@ -27,7 +27,10 @@ import {
   renderHookAsCoderEntity,
 } from '../../testHelpers/setup';
 import { UrlSync, urlSyncApiRef } from '../../api/UrlSync';
-import { CoderClient, coderClientApiRef } from '../../api/CoderClient';
+import {
+  CoderClientWrapper,
+  coderClientWrapperApiRef,
+} from '../../api/CoderClient';
 
 describe(`${CoderProvider.name}`, () => {
   describe('AppConfig', () => {
@@ -66,7 +69,7 @@ describe(`${CoderProvider.name}`, () => {
         apis: { discoveryApi, configApi },
       });
 
-      const coderClientApi = new CoderClient({
+      const coderClientApi = new CoderClientWrapper({
         apis: { urlSync, identityApi },
       });
 
@@ -80,13 +83,13 @@ describe(`${CoderProvider.name}`, () => {
               [discoveryApiRef, discoveryApi],
 
               [urlSyncApiRef, urlSync],
-              [coderClientApiRef, coderClientApi],
+              [coderClientWrapperApiRef, coderClientApi],
             ]}
           >
             <CoderProvider
               appConfig={mockAppConfig}
               queryClient={getMockQueryClient()}
-              fallbackAuthUiMode="dynamic"
+              fallbackAuthUiMode="restrained"
             >
               {children}
             </CoderProvider>
