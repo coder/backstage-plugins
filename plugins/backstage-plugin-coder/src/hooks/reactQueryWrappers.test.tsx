@@ -117,7 +117,7 @@ describe(`${useCoderQuery.name}`, () => {
         authenticateOnMount: false,
         queryOptions: {
           queryKey: ['workspaces'],
-          queryFn: ({ api }) => api.getWorkspaces({ q: 'owner:me' }),
+          queryFn: ({ coderApi: api }) => api.getWorkspaces({ q: 'owner:me' }),
           select: response => response.workspaces,
         },
       });
