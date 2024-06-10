@@ -30,7 +30,7 @@ import type { BackstageCoderApi } from '../api/CoderClient';
 
 export type CoderQueryFunctionContext<TQueryKey extends QueryKey = QueryKey> =
   QueryFunctionContext<TQueryKey> & {
-    api: BackstageCoderApi;
+    coderApi: BackstageCoderApi;
   };
 
 export type CoderQueryFunction<
@@ -63,7 +63,7 @@ export function useCoderQuery<
 ): UseQueryResult<TData, TError> {
   const queryClient = useQueryClient();
   const { isAuthenticated } = useEndUserCoderAuth();
-  const api = useCoderApi();
+  const coderApi = useCoderApi();
 
   let patchedQueryKey = queryOptions.queryKey;
   if (
@@ -98,7 +98,7 @@ export function useCoderQuery<
         throw new Error('Cannot complete request - user is not authenticated');
       }
 
-      return queryOptions.queryFn({ ...context, api: api });
+      return queryOptions.queryFn({ ...context, coderApi });
     },
 
     refetchInterval: (data, query) => {

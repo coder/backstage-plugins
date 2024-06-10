@@ -209,3 +209,4 @@ export { CODER_QUERY_KEY_PREFIX } from './api/queryOptions';
  * All custom types
  */
 export type { CoderAppConfig } from './components/CoderProvider';
+export type * from './api/vendoredSdk/api/typesGenerated';
