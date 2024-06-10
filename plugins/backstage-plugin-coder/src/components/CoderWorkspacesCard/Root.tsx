@@ -18,7 +18,6 @@ import {
 import type { Workspace } from '../../api/vendoredSdk';
 import { useCoderWorkspacesQuery } from './useCoderWorkspacesQuery';
 import { CoderAuthFormCardWrapper } from '../CoderAuthFormCardWrapper';
-import { useCoderQuery } from '../../plugin';
 
 export type WorkspacesQuery = UseQueryResult<readonly Workspace[]>;
 
