@@ -9,9 +9,10 @@ All documentation reflects version `v0.2.1` of the plugin. Note that breaking AP
 ### Guides
 
 - [Using the Coder API from Backstage](./guides/coder-api.md)
+  - [Advanced use cases for the Coder API](./guides//coder-api-advanced.md)
 
 ### API reference
 
-- [Components](./components.md)
-- [Custom React hooks](./hooks.md)
-- [Important types](./types.md)
+- [Components](./api-reference/components.md)
+- [Custom React hooks](./api-reference/hooks.md)
+- [Important types](./api-reference/types.md)
