@@ -4,19 +4,41 @@
 
 The Coder plugin makes it easy to bring the entire Coder API into your Backstage deployment.
 
+Note: this covers the main expected use cases with the plugin. For more information and options on customizing your Backstage deployment further, see our [Advanced API guide](./coder-api-advanced.md).
+
 ### Before you begin
 
 Please ensure that you have the Coder plugin fully installed before proceeding. You can find instructions for getting up and running in [our main README](../../README.md).
 
-### Software architecture
+### Important hooks for using the Coder API
 
-All Coder plugin logic is centered around the `useCoderApi` custom hook. Calling this exposes an object with all Coder API methods, but does not provide any caching. For this, we recommend using React Query/Tanstack Query. The plugin already has a dependency on v4 of the plugin, and even provides a `useCoderQuery` convenience hook to make querying with the API even easier.
+There are a few React hooks that are needed to interact with the Coder API. These can be split into three categories: React Query hooks, core plugin hooks, and convenience hooks.
 
-## Main recommendations for accessing the API
+#### React Query hooks
 
-1. If querying data, prefer `useCoderQuery`. It automatically wires up all auth logic to React Query, and lets you access the Coder API via its query function. `useQuery` is also a good escape hatch if `useCoderQuery` doesn't meet your needs, but it requires more work to wire up correctly.
-2. If mutating data, you will need to call `useMutation`, `useQueryClient`, and `useCoderApi` in tandem\*.
-3. We recommend not manually setting the auth fallback updating the
+The Coder plugin uses React Query/TanStack Query for all of its data caching. We recommend that you use it for your own data caching, because of the sheer amount of headaches it can spare you.
+
+There are three main hooks that you will likely need:
+
+- `useQuery` - Query and cache data
+- `useMutation` - Perform mutations on an API resource
+- `useQueryClient` - Coordinate queries and mutations
+
+#### Core plugin hooks
+
+These are hooks that provide direct access to various parts of the Coder API.
+
+- `useCoderApi` - Exposes an object with all available Coder API methods
+- `useCoderAuth` - Provides methods and state values for interacting with your current Coder auth session
+
+#### Convenience hooks
+
+- `useCoderQuery` - Simplifies wiring up `useQuery`, `useCoderApi`, and `useCoderAuth`
+
+## Recommendations for accessing the API
+
+1. If querying data, prefer `useCoderQuery`. It automatically wires up all auth logic to React Query (which includes pausing queries if the user is not authenticated). It also lets you access the Coder API via its query function. `useQuery` is also a good escape hatch if `useCoderQuery` doesn't meet your needs, but it requires more work to wire up correctly.
+2. If mutating data, you will need to call `useMutation`, `useQueryClient`, and `useCoderApi` in tandem\*. The plugin exposes a `CODER_QUERY_KEY_PREFIX` constant that you can use to group all Coder queries together.
 
 We highly recommend **not** fetching with `useState` + `useEffect`, or with `useAsync`. Both face performance issues when trying to share state. See [ui.dev](https://www.ui.dev/)'s wonderful [_The Story of React Query_ video](https://www.youtube.com/watch?v=OrliU0e09io) for more info on some of the problems they face.
 
@@ -24,17 +46,27 @@ We highly recommend **not** fetching with `useState` + `useEffect`, or with `use
 
 ### Comparing query caching strategies
 
-|                                                                        | `useState` + `useEffect` | `useAsync` | `useQuery` | `useCoderQuery` |
-| ---------------------------------------------------------------------- | ------------------------ | ---------- | ---------- | --------------- |
-| Automatically handles race conditions                                  | 🚫                       | ✅         | ✅         | ✅              |
-| Can retain state after component unmounts                              | 🚫                       | 🚫         | ✅         | ✅              |
-| Easy, on-command query invalidation                                    | 🚫                       | 🚫         | ✅         | ✅              |
-| Automatic retry logic when a query fails                               | 🚫                       | 🚫         | ✅         | ✅              |
-| Less need to fight dependency arrays                                   | 🚫                       | 🚫         | ✅         | ✅              |
-| Easy to share state for sibling components                             | 🚫                       | 🚫         | ✅         | ✅              |
-| Pre-wired to Coder auth logic                                          | 🚫                       | 🚫         | 🚫         | ✅              |
-| Can consume Coder API directly from query function                     | 🚫                       | 🚫         | 🚫         | ✅              |
-| Automatically prefixes Coder query keys to group Coder-related queries | 🚫                       | 🚫         | 🚫         | ✅              |
+|                                                                    | `useState` + `useEffect` | `useAsync` | `useQuery` | `useCoderQuery` |
+| ------------------------------------------------------------------ | ------------------------ | ---------- | ---------- | --------------- |
+| Automatically handles race conditions                              | 🚫                       | ✅         | ✅         | ✅              |
+| Can retain state after component unmounts                          | 🚫                       | 🚫         | ✅         | ✅              |
+| Easy, on-command query invalidation                                | 🚫                       | 🚫         | ✅         | ✅              |
+| Automatic retry logic when a query fails                           | 🚫                       | 🚫         | ✅         | ✅              |
+| Less need to fight dependency arrays                               | 🚫                       | 🚫         | ✅         | ✅              |
+| Easy to share state for sibling components                         | 🚫                       | 🚫         | ✅         | ✅              |
+| Pre-wired to Coder auth logic                                      | 🚫                       | 🚫         | 🚫         | ✅              |
+| Can consume Coder API directly from query function                 | 🚫                       | 🚫         | 🚫         | ✅              |
+| Automatically groups Coder-related queries by prefixing query keys | 🚫                       | 🚫         | 🚫         | ✅              |
+
+## Authentication
+
+All API calls to **any** of the Coder API functions will fail if you have not authenticated yet. Authentication can be handled via any of the official Coder components that can be imported via the plugin. However, if there are no Coder components on the screen, the `CoderProvider` component will automatically\* inject a fallback auth button for letting the user add their auth info.
+
+<-- Add video of auth flow with fallback button -->
+
+Once the user has been authenticated, all Coder API functions will become available. When the user unlinks their auth token (effectively logging out), all queries that start with `CODER_QUERY_KEY_PREFIX` will automatically be vacated.
+
+\* This behavior can be disabled. Please see our [advanced API guide](./coder-api-advanced.md) for more information.
 
 ## Component examples
 
