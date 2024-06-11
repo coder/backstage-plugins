@@ -199,12 +199,6 @@ export { useCoderQuery } from './hooks/reactQueryWrappers';
 // Deliberately renamed so that end users don't have to be aware that there are
 // two different versions of the auth hook
 export { useEndUserCoderAuth as useCoderAuth } from './components/CoderProvider/CoderAuthProvider';
-export { useCoderQuery } from './hooks/reactQueryWrappers';
-
-/**
- * General constants
- */
-export { CODER_QUERY_KEY_PREFIX } from './api/queryOptions';
 
 /**
  * General constants
