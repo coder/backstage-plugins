@@ -47,6 +47,7 @@ export const CoderProvider = ({
   appConfig,
   fallbackAuthUiMode = 'restrained',
   queryClient = defaultClient,
+  fallbackAuthUiMode = 'restrained',
 }: CoderProviderProps) => {
   return (
     <CoderErrorBoundary>

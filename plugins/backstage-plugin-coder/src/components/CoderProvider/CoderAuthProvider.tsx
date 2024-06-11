@@ -143,6 +143,10 @@ function useAuthState(): CoderAuth {
   // outside React because we let the user connect their own queryClient
   const queryClient = useQueryClient();
   useEffect(() => {
+    if (!isAuthenticated) {
+      return undefined;
+    }
+
     // Pseudo-mutex; makes sure that if we get a bunch of errors, only one
     // revalidation will be processed at a time
     let isRevalidating = false;
