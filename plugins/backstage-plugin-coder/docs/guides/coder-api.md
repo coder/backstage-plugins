@@ -2,7 +2,7 @@
 
 ## Overview
 
-The Coder plugin makes it easy to bring the entire Coder API into your Backstage deployment.
+The Coder plugin makes it easy to bring the entire Coder API into your Backstage deployment. This guide covers how to get it set up so that you can start accessing Coder from Backstage.
 
 Note: this covers the main expected use cases with the plugin. For more information and options on customizing your Backstage deployment further, see our [Advanced API guide](./coder-api-advanced.md).
 
@@ -16,7 +16,7 @@ There are a few React hooks that are needed to interact with the Coder API. Thes
 
 #### React Query hooks
 
-The Coder plugin uses React Query/TanStack Query for all of its data caching. We recommend that you use it for your own data caching, because of the sheer amount of headaches it can spare you.
+The Coder plugin uses [React Query/TanStack Query v4](https://tanstack.com/query/v4/docs/framework/react/overview) for all of its data caching. We recommend that you use it for your own data caching, because of the sheer amount of headaches it can spare you.
 
 There are three main hooks that you will likely need:
 
@@ -28,8 +28,8 @@ There are three main hooks that you will likely need:
 
 These are hooks that provide direct access to various parts of the Coder API.
 
-- `useCoderApi` - Exposes an object with all available Coder API methods
-- `useCoderAuth` - Provides methods and state values for interacting with your current Coder auth session
+- `useCoderApi` - Exposes an object with all available Coder API methods. For the most part, there is no exposed state on this object; you can consider it a "function bucket".
+- `useCoderAuth` - Provides methods and state values for interacting with your current Coder auth session from within Backstage.
 
 #### Convenience hooks
 
@@ -64,15 +64,82 @@ All API calls to **any** of the Coder API functions will fail if you have not au
 
 <-- Add video of auth flow with fallback button -->
 
-Once the user has been authenticated, all Coder API functions will become available. When the user unlinks their auth token (effectively logging out), all queries that start with `CODER_QUERY_KEY_PREFIX` will automatically be vacated.
+Once the user has been authenticated, all Coder API functions will become available. When the user unlinks their auth token (effectively logging out), all cached queries that start with `CODER_QUERY_KEY_PREFIX` will automatically be vacated.
 
 \* This behavior can be disabled. Please see our [advanced API guide](./coder-api-advanced.md) for more information.
+
+## Connecting a custom query client to the Coder plugin
+
+By default, the Coder plugin uses and manages its own query client. This works perfectly well if you aren't using React Query for any other purposes, but if you are using it throughout your Backstage deployment, it can cause issues around redundant state (e.g., not all cached data being vacated when the user logs out).
+
+To prevent this, you will need to do two things:
+
+1. Pass in your custom React Query query client into the `CoderProvider` component
+2. "Group" your queries with the Coder query key prefix
+
+### Passing in a custom query client
+
+The `CoderProvider` component accepts an optional `queryClient` prop. When provided, the Coder plugin will use this client for **all** queries (those made by the built-in Coder components, or any custom components that you put inside `CoderProvider`).
+
+```tsx
+const customQueryClient = new QueryClient();
+
+<CoderProvider queryClient={customQueryClient}>
+  <YourCustomComponentsThatNeedAccessToTheCoderPlugin />
+</CoderProvider>;
+```
+
+### Grouping queries with the Coder query key prefix
+
+The plugin exposes a `CODER_QUERY_KEY_PREFIX` constant that you can use to group all Coder queries together for `useQuery` and `useQueryClient`. All queries made by official Coder components put this as the first value of their query key. The `useCoderQuery` convenience hook also automatically injects this constant at the beginning of all query keys (even if not explicitly added).
+
+```tsx
+// Starting all query keys with the constant "groups" them together
+const coderApi = useCoderApi();
+const workspacesQuery = useQuery({
+  queryKey: [CODER_QUERY_KEY_PREFIX, 'workspaces'],
+  queryFn: () =>
+    coderApi.getWorkspaces({
+      limit: 10,
+    }),
+});
+
+const workspacesQuery2 = useCoderQuery({
+  // The query key will automatically have CODER_QUERY_KEY_PREFIX added to the
+  // beginning
+  queryKey: ['workspaces'],
+  queryFn: ({ coderApi }) =>
+    coderApi.getWorkspaces({
+      limit: 10,
+    }),
+});
+
+// All grouped queries can be invalidated at once from the query client
+const queryClient = useQueryClient();
+const invalidateAllCoderQueries = () => {
+  queryClient.invalidateQuery({
+    queryKey: [CODER_QUERY_KEY_PREFIX],
+  });
+};
+
+// When the user unlinks their session token, all queries grouped under
+// CODER_QUERY_KEY_PREFIX are vacated from the active query cache
+function LogOutButton() {
+  const { ejectToken } = useCoderAuth();
+
+  return (
+    <button type="button" onClick={ejectToken}>
+      Unlink Coder account
+    </button>
+  );
+}
+```
 
 ## Component examples
 
 Here are some full code examples showcasing patterns you can bring into your own codebase.
 
-Note: To keep the examples brief, none of them contain any CSS styling.
+Note: To keep the examples simple, none of them contain any CSS styling or MUI components.
 
 ### Displaying recent audit logs
 
