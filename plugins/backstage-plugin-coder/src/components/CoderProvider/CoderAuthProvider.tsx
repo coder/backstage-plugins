@@ -67,7 +67,7 @@ export type CoderAuth = Readonly<
   AuthState & {
     isAuthenticated: boolean;
     registerNewToken: (newToken: string) => void;
-    ejectToken: () => void;
+    unlinkToken: () => void;
   }
 >;
 
@@ -176,7 +176,7 @@ function useAuthState(): CoderAuth {
     }
   }, []);
 
-  const ejectToken = useCallback(() => {
+  const unlinkToken = useCallback(() => {
     setAuthToken('');
     window.localStorage.removeItem(TOKEN_STORAGE_KEY);
     queryClient.removeQueries({ queryKey: [CODER_QUERY_KEY_PREFIX] });
@@ -186,7 +186,7 @@ function useAuthState(): CoderAuth {
     ...authState,
     isAuthenticated,
     registerNewToken,
-    ejectToken,
+    unlinkToken,
   };
 }
 

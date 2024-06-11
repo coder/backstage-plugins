@@ -102,7 +102,7 @@ export const ExtraActionsButton = ({
   const hookId = useId();
   const [loadedAnchor, setLoadedAnchor] = useState<HTMLButtonElement>();
   const refreshWorkspaces = useRefreshWorkspaces();
-  const { ejectToken } = useInternalCoderAuth();
+  const { unlinkToken } = useInternalCoderAuth();
   const styles = useStyles();
 
   const closeMenu = () => setLoadedAnchor(undefined);
@@ -178,7 +178,7 @@ export const ExtraActionsButton = ({
 
         <MenuItem
           onClick={() => {
-            ejectToken();
+            unlinkToken();
             closeMenu();
           }}
         >

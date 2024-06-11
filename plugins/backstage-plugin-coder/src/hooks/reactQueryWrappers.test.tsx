@@ -52,11 +52,11 @@ async function renderCoderQuery<
   } = options;
 
   let latestRegisterNewToken!: CoderAuth['registerNewToken'];
-  let latestEjectToken!: CoderAuth['ejectToken'];
+  let latestUnlinkToken!: CoderAuth['unlinkToken'];
   const AuthEscapeHatch = () => {
     const auth = useEndUserCoderAuth();
     latestRegisterNewToken = auth.registerNewToken;
-    latestEjectToken = auth.ejectToken;
+    latestUnlinkToken = auth.unlinkToken;
 
     return null;
   };
@@ -91,15 +91,15 @@ async function renderCoderQuery<
     return act(() => latestRegisterNewToken(mockCoderAuthToken));
   };
 
-  const ejectToken = () => {
-    return act(() => latestEjectToken());
+  const unlinkToken = () => {
+    return act(() => latestUnlinkToken());
   };
 
   if (authenticateOnMount) {
     registerMockToken();
   }
 
-  return { ...renderOutput, registerMockToken, ejectToken };
+  return { ...renderOutput, registerMockToken, unlinkToken };
 }
 
 describe(`${useCoderQuery.name}`, () => {
@@ -113,14 +113,17 @@ describe(`${useCoderQuery.name}`, () => {
    */
   describe('Hook functionality', () => {
     it('Disables requests while user is not authenticated', async () => {
-      const { result, registerMockToken, ejectToken } = await renderCoderQuery({
-        authenticateOnMount: false,
-        queryOptions: {
-          queryKey: ['workspaces'],
-          queryFn: ({ coderApi: api }) => api.getWorkspaces({ q: 'owner:me' }),
-          select: response => response.workspaces,
+      const { result, registerMockToken, unlinkToken } = await renderCoderQuery(
+        {
+          authenticateOnMount: false,
+          queryOptions: {
+            queryKey: ['workspaces'],
+            queryFn: ({ coderApi: api }) =>
+              api.getWorkspaces({ q: 'owner:me' }),
+            select: response => response.workspaces,
+          },
         },
-      });
+      );
 
       expect(result.current.isLoading).toBe(true);
       registerMockToken();
@@ -131,7 +134,7 @@ describe(`${useCoderQuery.name}`, () => {
         expect(result.current.data?.length).toBeGreaterThan(0);
       });
 
-      ejectToken();
+      unlinkToken();
       await waitFor(() => expect(result.current.isLoading).toBe(true));
     });
 
@@ -181,7 +184,7 @@ describe(`${useCoderQuery.name}`, () => {
     });
 
     it('Disables everything when the user unlinks their access token', async () => {
-      const { result, ejectToken } = await renderCoderQuery({
+      const { result, unlinkToken } = await renderCoderQuery({
         queryOptions: {
           queryKey: ['workspaces'],
           queryFn: () => Promise.resolve(mockWorkspacesList),
@@ -198,7 +201,7 @@ describe(`${useCoderQuery.name}`, () => {
         );
       });
 
-      ejectToken();
+      unlinkToken();
 
       await waitFor(() => {
         expect(result.current).toEqual(
@@ -226,7 +229,7 @@ describe(`${useCoderQuery.name}`, () => {
       const { promise, reject } = createInvertedPromise();
       const queryFn = jest.fn(() => promise);
 
-      const { ejectToken } = await renderCoderQuery({
+      const { unlinkToken } = await renderCoderQuery({
         queryOptions: {
           queryFn,
           queryKey: ['blah'],
@@ -238,7 +241,7 @@ describe(`${useCoderQuery.name}`, () => {
       });
 
       await waitFor(() => expect(queryFn).toHaveBeenCalled());
-      ejectToken();
+      unlinkToken();
 
       queryFn.mockRestore();
       act(() => reject(new Error("Don't feel like giving you data today")));

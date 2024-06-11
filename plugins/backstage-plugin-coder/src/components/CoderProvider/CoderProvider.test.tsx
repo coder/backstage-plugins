@@ -98,7 +98,7 @@ describe(`${CoderProvider.name}`, () => {
       });
     };
 
-    it('Should let the user eject their auth token', async () => {
+    it('Should let the user unlink their auth token', async () => {
       const { result } = renderUseCoderAuth();
       act(() => result.current.registerNewToken(mockCoderAuthToken));
 
@@ -112,7 +112,7 @@ describe(`${CoderProvider.name}`, () => {
         );
       });
 
-      act(() => result.current.ejectToken());
+      act(() => result.current.unlinkToken());
 
       expect(result.current).toEqual(
         expect.objectContaining<Partial<CoderAuth>>({

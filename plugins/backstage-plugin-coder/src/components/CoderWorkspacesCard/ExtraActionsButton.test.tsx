@@ -29,8 +29,11 @@ type RenderInputs = Readonly<{
 }>;
 
 async function renderButton({ buttonText }: RenderInputs) {
-  const ejectToken = jest.fn();
-  const auth: CoderAuth = { ...mockAuthStates.authenticated, ejectToken };
+  const unlinkToken = jest.fn();
+  const auth: CoderAuth = {
+    ...mockAuthStates.authenticated,
+    unlinkToken: unlinkToken,
+  };
 
   /**
    * Pretty sure there has to be a more elegant and fault-tolerant way of
@@ -58,7 +61,7 @@ async function renderButton({ buttonText }: RenderInputs) {
   return {
     ...renderOutput,
     button: screen.getByRole('button', { name: new RegExp(buttonText) }),
-    unlinkCoderAccount: ejectToken,
+    unlinkCoderAccount: unlinkToken,
     refreshWorkspaces: refetch,
   };
 }

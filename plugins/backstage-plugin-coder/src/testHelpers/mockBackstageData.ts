@@ -176,7 +176,7 @@ const authedState = {
   error: undefined,
   isAuthenticated: true,
   registerNewToken: jest.fn(),
-  ejectToken: jest.fn(),
+  unlinkToken: jest.fn(),
 } as const satisfies Partial<CoderAuth>;
 
 const notAuthedState = {
@@ -184,7 +184,7 @@ const notAuthedState = {
   error: undefined,
   isAuthenticated: false,
   registerNewToken: jest.fn(),
-  ejectToken: jest.fn(),
+  unlinkToken: jest.fn(),
 } as const satisfies Partial<CoderAuth>;
 
 export const mockAuthStates = {

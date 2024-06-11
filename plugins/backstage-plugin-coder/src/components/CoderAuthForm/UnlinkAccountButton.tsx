@@ -19,7 +19,7 @@ export function UnlinkAccountButton({
   ...delegatedProps
 }: Props) {
   const styles = useStyles();
-  const { ejectToken } = useInternalCoderAuth();
+  const { unlinkToken } = useInternalCoderAuth();
 
   return (
     <LinkButton
@@ -31,7 +31,7 @@ export function UnlinkAccountButton({
       variant="contained"
       className={`${styles.root} ${className}`}
       onClick={event => {
-        ejectToken();
+        unlinkToken();
         onClick?.(event);
       }}
       {...delegatedProps}
