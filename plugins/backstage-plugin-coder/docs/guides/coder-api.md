@@ -125,10 +125,10 @@ const invalidateAllCoderQueries = () => {
 // When the user unlinks their session token, all queries grouped under
 // CODER_QUERY_KEY_PREFIX are vacated from the active query cache
 function LogOutButton() {
-  const { ejectToken } = useCoderAuth();
+  const { unlinkToken } = useCoderAuth();
 
   return (
-    <button type="button" onClick={ejectToken}>
+    <button type="button" onClick={unlinkToken}>
       Unlink Coder account
     </button>
   );
