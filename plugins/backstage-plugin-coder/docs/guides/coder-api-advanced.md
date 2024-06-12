@@ -41,29 +41,32 @@ const yourCustomQueryClient = new QueryClient();
 
 <CoderProvider queryClient={yourCustomQueryClient}>
   <YourCustomComponents />
-</CoderProvider>
+</CoderProvider>;
 
 // Ensure that all queries have the correct query key prefix
-import { useQuery } from "@tanstack/react-react-query";
-import { CODER_QUERY_KEY_PREFIX, useCoderQuery} from "@coder/backstage-plugin-coder";
+import { useQuery } from '@tanstack/react-react-query';
+import {
+  CODER_QUERY_KEY_PREFIX,
+  useCoderQuery,
+} from '@coder/backstage-plugin-coder';
 
-function CustomComponent () {
+function CustomComponent() {
   const query1 = useQuery({
-    queryKey: [CODER_QUERY_KEY_PREFIX, "workspaces"]
-    queryFn () => {
+    queryKey: [CODER_QUERY_KEY_PREFIX, 'workspaces'],
+    queryFn: () => {
       // Get workspaces here
-    }
+    },
   });
 
   // useCoderQuery automatically prefixes all query keys with
   // CODER_QUERY_KEY_PREFIX if it's not already the first value of the array
   const query2 = useCoderQuery({
-    queryKey: ["workspaces"],
-    queryFn () => {
+    queryKey: ['workspaces'],
+    queryFn: () => {
       // Get workspaces here
-    }
-  })
+    },
+  });
 
-  return <div></div>
+  return <div>Main component content</div>;
 }
 ```
