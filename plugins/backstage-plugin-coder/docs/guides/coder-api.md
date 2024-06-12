@@ -68,15 +68,6 @@ Once the user has been authenticated, all Coder API functions will become availa
 
 \* This behavior can be disabled. Please see our [advanced API guide](./coder-api-advanced.md) for more information.
 
-## Connecting a custom query client to the Coder plugin
-
-By default, the Coder plugin uses and manages its own query client. This works perfectly well if you aren't using React Query for any other purposes, but if you are using it throughout your Backstage deployment, it can cause issues around redundant state (e.g., not all cached data being vacated when the user logs out).
-
-To prevent this, you will need to do two things:
-
-1. Pass in your custom React Query query client into the `CoderProvider` component
-2. "Group" your queries with the Coder query key prefix
-
 ### Passing in a custom query client
 
 The `CoderProvider` component accepts an optional `queryClient` prop. When provided, the Coder plugin will use this client for **all** queries (those made by the built-in Coder components, or any custom components that you put inside `CoderProvider`).
