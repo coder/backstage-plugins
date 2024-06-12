@@ -16,19 +16,47 @@ The Coder plugin exposes three (soon to be four) main hooks for accessing Coder 
 
 - `useCoderApi` - Exposes an object with all available Coder API methods. For the most part, there is no exposed state on this object; you can consider it a "function bucket".
 - `useCoderAuth` - Provides methods and state values for interacting with your current Coder auth session from within Backstage.
-- `useCoderQuery` - Makes it simple to query data from the Coder API and share it throughout your application
-- `useCoderMutation` (coming soon) - Makes it simple to mutate data via the Coder API
+- `useCoderQuery` - Makes it simple to query data from the Coder API and share it throughout your application. Can access the Coder API without needing you to call `useCoderApi`.
+- `useCoderMutation` (coming soon) - Makes it simple to mutate data via the Coder API. Can access the Coder API without needing you to call `useCoderApi`.
 
-Internally, the Coder plugin uses [React Query/TanStack Query v4](https://tanstack.com/query/v4/docs/framework/react/overview). In fact, `useCoderQuery` and `useCoderMutation` are simply wrappers over `useQuery` and `useMutation`. If you ever need to coordinate queries and mutations, you can use `useQueryClient` from React Query.
+Internally, the Coder plugin uses [React Query/TanStack Query v4](https://tanstack.com/query/v4/docs/framework/react/overview). In fact, `useCoderQuery` and `useCoderMutation` are simply wrappers over `useQuery` and `useMutation`. Both simplify the process of wiring up the hooks' various properties to the Coder auth, while exposing a more convenient way of accessing the Coder API object.
+
+If you ever need to coordinate queries and mutations, you can use `useQueryClient` from React Query - no custom plugin-specific hook needed.
+
+### Grouping queries with the Coder query key prefix
+
+The plugin exposes a `CODER_QUERY_KEY_PREFIX` constant that you can use to group all Coder queries together for `useCoderQuery` and `useQueryClient` (and `useQuery` if you need to escape out). All queries made by official Coder components put this as the first value of their query key. The `useCoderQuery` convenience hook also automatically injects this constant at the beginning of all query keys (if it isn't already there).
+
+```tsx
+// All grouped queries can be invalidated at once from the query client
+const queryClient = useQueryClient();
+const invalidateAllCoderQueries = () => {
+  queryClient.invalidateQuery({
+    queryKey: [CODER_QUERY_KEY_PREFIX],
+  });
+};
+
+// When the user unlinks their session token, all queries grouped under
+// CODER_QUERY_KEY_PREFIX are vacated from the active query cache
+function LogOutButton() {
+  const { unlinkToken } = useCoderAuth();
+
+  return (
+    <button type="button" onClick={unlinkToken}>
+      Unlink Coder account
+    </button>
+  );
+}
+```
 
 ## Recommendations for accessing the API
 
-1. If querying data, prefer `useCoderQuery`. It automatically wires up all auth logic to React Query (which includes pausing queries if the user is not authenticated). It also lets you access the Coder API via its query function. `useQuery` is also a good escape hatch if `useCoderQuery` doesn't meet your needs, but it requires more work to wire up correctly.
+1. If querying data, prefer `useCoderQuery`. It automatically wires up all auth logic to React Query (which includes pausing queries if the user is not authenticated). It also lets you access the Coder API via its query function. `useQuery` works as an escape hatch if `useCoderQuery` doesn't meet your needs, but it requires more work to wire up correctly.
 2. If mutating data, you will need to call `useMutation`, `useQueryClient`, and `useCoderApi` in tandem\*. The plugin exposes a `CODER_QUERY_KEY_PREFIX` constant that you can use to group all Coder queries together.
 
 We highly recommend **not** fetching with `useState` + `useEffect`, or with `useAsync`. Both face performance issues when trying to share state. See [ui.dev](https://www.ui.dev/)'s wonderful [_The Story of React Query_ video](https://www.youtube.com/watch?v=OrliU0e09io) for more info on some of the problems they face.
 
-\* A `useCoderMutation` hook is in the works to simplify wiring these up.
+\* `useCoderMutation` can be used once it is available.
 
 ### Comparing query caching strategies
 
@@ -53,44 +81,6 @@ All API calls to **any** of the Coder API functions will fail if you have not au
 Once the user has been authenticated, all Coder API functions will become available. When the user unlinks their auth token (effectively logging out), all cached queries that start with `CODER_QUERY_KEY_PREFIX` will automatically be vacated.
 
 \* This behavior can be disabled. Please see our [advanced API guide](./coder-api-advanced.md) for more information.
-
-### Passing in a custom query client
-
-The `CoderProvider` component accepts an optional `queryClient` prop. When provided, the Coder plugin will use this client for **all** queries (those made by the built-in Coder components, or any custom components that you put inside `CoderProvider`).
-
-```tsx
-const customQueryClient = new QueryClient();
-
-<CoderProvider queryClient={customQueryClient}>
-  <YourCustomComponentsThatNeedAccessToTheCoderPlugin />
-</CoderProvider>;
-```
-
-### Grouping queries with the Coder query key prefix
-
-The plugin exposes a `CODER_QUERY_KEY_PREFIX` constant that you can use to group all Coder queries together for `useCoderQuery`, `useQuery` and `useQueryClient`. All queries made by official Coder components put this as the first value of their query key. The `useCoderQuery` convenience hook also automatically injects this constant at the beginning of all query keys (even if not explicitly added).
-
-```tsx
-// All grouped queries can be invalidated at once from the query client
-const queryClient = useQueryClient();
-const invalidateAllCoderQueries = () => {
-  queryClient.invalidateQuery({
-    queryKey: [CODER_QUERY_KEY_PREFIX],
-  });
-};
-
-// When the user unlinks their session token, all queries grouped under
-// CODER_QUERY_KEY_PREFIX are vacated from the active query cache
-function LogOutButton() {
-  const { unlinkToken } = useCoderAuth();
-
-  return (
-    <button type="button" onClick={unlinkToken}>
-      Unlink Coder account
-    </button>
-  );
-}
-```
 
 ## Component examples
 
