@@ -46,17 +46,17 @@ We highly recommend **not** fetching with `useState` + `useEffect`, or with `use
 
 ### Comparing query caching strategies
 
-|                                                                    | `useState` + `useEffect` | `useAsync` | `useQuery` | `useCoderQuery` |
-| ------------------------------------------------------------------ | ------------------------ | ---------- | ---------- | --------------- |
-| Automatically handles race conditions                              | 🚫                       | ✅         | ✅         | ✅              |
-| Can retain state after component unmounts                          | 🚫                       | 🚫         | ✅         | ✅              |
-| Easy, on-command query invalidation                                | 🚫                       | 🚫         | ✅         | ✅              |
-| Automatic retry logic when a query fails                           | 🚫                       | 🚫         | ✅         | ✅              |
-| Less need to fight dependency arrays                               | 🚫                       | 🚫         | ✅         | ✅              |
-| Easy to share state for sibling components                         | 🚫                       | 🚫         | ✅         | ✅              |
-| Pre-wired to Coder auth logic                                      | 🚫                       | 🚫         | 🚫         | ✅              |
-| Can consume Coder API directly from query function                 | 🚫                       | 🚫         | 🚫         | ✅              |
-| Automatically groups Coder-related queries by prefixing query keys | 🚫                       | 🚫         | 🚫         | ✅              |
+|                                                                    | `useAsync` | `useQuery` | `useCoderQuery` |
+| ------------------------------------------------------------------ | ---------- | ---------- | --------------- |
+| Automatically handles race conditions                              | ✅         | ✅         | ✅              |
+| Can retain state after component unmounts                          | 🚫         | ✅         | ✅              |
+| Easy, on-command query invalidation                                | 🚫         | ✅         | ✅              |
+| Automatic retry logic when a query fails                           | 🚫         | ✅         | ✅              |
+| Less need to fight dependency arrays                               | 🚫         | ✅         | ✅              |
+| Easy to share state for sibling components                         | 🚫         | ✅         | ✅              |
+| Pre-wired to Coder auth logic                                      | 🚫         | 🚫         | ✅              |
+| Can consume Coder API directly from query function                 | 🚫         | 🚫         | ✅              |
+| Automatically groups Coder-related queries by prefixing query keys | 🚫         | 🚫         | ✅              |
 
 ## Authentication
 
