@@ -12,28 +12,14 @@ Please ensure that you have the Coder plugin fully installed before proceeding. 
 
 ### Important hooks for using the Coder API
 
-There are a few React hooks that are needed to interact with the Coder API. These can be split into three categories: React Query hooks, core plugin hooks, and convenience hooks.
-
-#### React Query hooks
-
-The Coder plugin uses [React Query/TanStack Query v4](https://tanstack.com/query/v4/docs/framework/react/overview) for all of its data caching. We recommend that you use it for your own data caching, because of the sheer amount of headaches it can spare you.
-
-There are three main hooks that you will likely need:
-
-- `useQuery` - Query and cache data
-- `useMutation` - Perform mutations on an API resource
-- `useQueryClient` - Coordinate queries and mutations
-
-#### Core plugin hooks
-
-These are hooks that provide direct access to various parts of the Coder API.
+The Coder plugin exposes three (soon to be four) main hooks for accessing Coder plugin state and making queries/mutations
 
 - `useCoderApi` - Exposes an object with all available Coder API methods. For the most part, there is no exposed state on this object; you can consider it a "function bucket".
 - `useCoderAuth` - Provides methods and state values for interacting with your current Coder auth session from within Backstage.
+- `useCoderQuery` - Makes it simple to query data from the Coder API and share it throughout your application
+- `useCoderMutation` (coming soon) - Makes it simple to mutate data via the Coder API
 
-#### Convenience hooks
-
-- `useCoderQuery` - Simplifies wiring up `useQuery`, `useCoderApi`, and `useCoderAuth`
+Internally, the Coder plugin uses [React Query/TanStack Query v4](https://tanstack.com/query/v4/docs/framework/react/overview). In fact, `useCoderQuery` and `useCoderMutation` are simply wrappers over `useQuery` and `useMutation`. If you ever need to coordinate queries and mutations, you can use `useQueryClient` from React Query.
 
 ## Recommendations for accessing the API
 
