@@ -82,29 +82,9 @@ const customQueryClient = new QueryClient();
 
 ### Grouping queries with the Coder query key prefix
 
-The plugin exposes a `CODER_QUERY_KEY_PREFIX` constant that you can use to group all Coder queries together for `useQuery` and `useQueryClient`. All queries made by official Coder components put this as the first value of their query key. The `useCoderQuery` convenience hook also automatically injects this constant at the beginning of all query keys (even if not explicitly added).
+The plugin exposes a `CODER_QUERY_KEY_PREFIX` constant that you can use to group all Coder queries together for `useCoderQuery`, `useQuery` and `useQueryClient`. All queries made by official Coder components put this as the first value of their query key. The `useCoderQuery` convenience hook also automatically injects this constant at the beginning of all query keys (even if not explicitly added).
 
 ```tsx
-// Starting all query keys with the constant "groups" them together
-const coderApi = useCoderApi();
-const workspacesQuery = useQuery({
-  queryKey: [CODER_QUERY_KEY_PREFIX, 'workspaces'],
-  queryFn: () =>
-    coderApi.getWorkspaces({
-      limit: 10,
-    }),
-});
-
-const workspacesQuery2 = useCoderQuery({
-  // The query key will automatically have CODER_QUERY_KEY_PREFIX added to the
-  // beginning
-  queryKey: ['workspaces'],
-  queryFn: ({ coderApi }) =>
-    coderApi.getWorkspaces({
-      limit: 10,
-    }),
-});
-
 // All grouped queries can be invalidated at once from the query client
 const queryClient = useQueryClient();
 const invalidateAllCoderQueries = () => {
