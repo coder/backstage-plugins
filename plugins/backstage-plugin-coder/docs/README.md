@@ -1,10 +1,10 @@
-# Plugin API Reference – Coder for Backstage
+# Documentation Directory – `backstage-plugin-coder` v0.3.0
 
-The Coder plugin for Backstage does follow semantic versioning.
+This document lists core information for the Backstage Coder plugin. It is intended for users who have already set up the plugin and are looking to take it further.
 
-For users who need more information about how to extend and modify the Coder plugin. For general setup, please see our main [README](../README.md).
+For general setup, please see our [main README](../README.md).
 
-## Documentation directory
+## Documentation listing
 
 ### Guides
 
@@ -16,3 +16,7 @@ For users who need more information about how to extend and modify the Coder plu
 - [Components](./api-reference/components.md)
 - [Custom React hooks](./api-reference/hooks.md)
 - [Important types](./api-reference/types.md)
+
+## Notes about semantic versioning
+
+We fully intend to follow semantic versioning with the Coder plugin for Backstage. Expect some pain points as we figure out the right abstractions needed to hit version 1, but we will try to minimize breaking changes as much as possible as the library gets ironed out.
