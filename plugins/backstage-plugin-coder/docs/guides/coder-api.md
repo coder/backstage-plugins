@@ -71,7 +71,18 @@ The bottom of this document has examples of both queries and mutations.
 
 ### Grouping queries with the Coder query key prefix
 
-The plugin exposes a `CODER_QUERY_KEY_PREFIX` constant that you can use to group all Coder queries together for `useCoderQuery` and `useQueryClient` (and `useQuery` if you need to escape out). All queries made by official Coder components put this as the first value of their query key. The `useCoderQuery` convenience hook also automatically injects this constant at the beginning of all query keys (if it isn't already there).
+The plugin exposes a `CODER_QUERY_KEY_PREFIX` constant that you can use to group all Coder queries. `useCoderQuery` automatically injects this value into all its `queryKey` arrays. However, if you need to escape out with `useQuery`, you can import the constant and manually include it as the first value of your query key.
+
+```tsx
+const customQuery = useQuery({
+  queryKey: [CODER_QUERY_KEY_PREFIX, 'workspaces'],
+  queryFn: () => {
+    // Your custom API logic
+  },
+});
+```
+
+In addition, all official Coder plugin components use this prefix internally.
 
 ```tsx
 // All grouped queries can be invalidated at once from the query client
@@ -98,11 +109,11 @@ function LogOutButton() {
 ## Recommendations for accessing the API
 
 1. If querying data, prefer `useCoderQuery`. It automatically wires up all auth logic to React Query (which includes pausing queries if the user is not authenticated). It also lets you access the Coder API via its query function. `useQuery` works as an escape hatch if `useCoderQuery` doesn't meet your needs, but it requires more work to wire up correctly.
-2. If mutating data, you will need to call `useMutation`, `useQueryClient`, and `useCoderApi` in tandem\*. The plugin exposes a `CODER_QUERY_KEY_PREFIX` constant that you can use to group all Coder queries together.
+2. If mutating data, you will need to call `useMutation`, `useQueryClient`, and `useCoderApi` in tandem\*.
 
 We highly recommend **not** fetching with `useState` + `useEffect`, or with `useAsync`. Both face performance issues when trying to share state. See [ui.dev](https://www.ui.dev/)'s wonderful [_The Story of React Query_ video](https://www.youtube.com/watch?v=OrliU0e09io) for more info on some of the problems they face.
 
-\* `useCoderMutation` can be used once it is available.
+\* `useCoderMutation` can be used instead of all three once that hook is available.
 
 ### Comparing query caching strategies
 
