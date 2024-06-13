@@ -73,15 +73,6 @@ The bottom of this document has examples of both queries and mutations.
 
 The plugin exposes a `CODER_QUERY_KEY_PREFIX` constant that you can use to group all Coder queries. `useCoderQuery` automatically injects this value into all its `queryKey` arrays. However, if you need to escape out with `useQuery`, you can import the constant and manually include it as the first value of your query key.
 
-```tsx
-const customQuery = useQuery({
-  queryKey: [CODER_QUERY_KEY_PREFIX, 'workspaces'],
-  queryFn: () => {
-    // Your custom API logic
-  },
-});
-```
-
 In addition, all official Coder plugin components use this prefix internally.
 
 ```tsx
@@ -92,6 +83,14 @@ const invalidateAllCoderQueries = () => {
     queryKey: [CODER_QUERY_KEY_PREFIX],
   });
 };
+
+// The prefix is only needed when NOT using useCoderQuery
+const customQuery = useQuery({
+  queryKey: [CODER_QUERY_KEY_PREFIX, 'workspaces'],
+  queryFn: () => {
+    // Your custom API logic
+  },
+});
 
 // When the user unlinks their session token, all queries grouped under
 // CODER_QUERY_KEY_PREFIX are vacated from the active query cache
