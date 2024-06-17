@@ -9,7 +9,7 @@ By default, `CoderProvider` is configured to display a fallback auth UI componen
 1. The user is not authenticated
 2. There are no official Coder components are being rendered to the screen.
 
-<-- Add image of fallback -->
+<img src="../../screenshots/auth-fallback.png" alt="The Coder auth fallback UI" />
 
 All official Coder plugin components are configured to let the user add auth information if the user isn't already authenticated, so the fallback component only displays when there would be no other way to add the information.
 
