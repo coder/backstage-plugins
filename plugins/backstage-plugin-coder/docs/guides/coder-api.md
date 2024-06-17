@@ -132,7 +132,7 @@ We highly recommend **not** fetching with `useState` + `useEffect`, or with `use
 
 All API calls to **any** of the Coder API functions will fail if you have not authenticated yet. Authentication can be handled via any of the official Coder components that can be imported via the plugin. However, if there are no Coder components on the screen, the `CoderProvider` component will automatically\* inject a fallback auth button for letting the user add their auth info.
 
-<-- Add video of auth flow with fallback button -->
+https://github.com/coder/backstage-plugins/assets/28937484/0ece4410-36fc-4b32-9223-66f35953eeab
 
 Once the user has been authenticated, all Coder API functions will become available. When the user unlinks their auth token (effectively logging out), all cached queries that start with `CODER_QUERY_KEY_PREFIX` will automatically be vacated.
 
