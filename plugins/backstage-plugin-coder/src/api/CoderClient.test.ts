@@ -1,4 +1,4 @@
-import { CODER_AUTH_HEADER_KEY, CoderClient } from './CoderClient';
+import { CODER_AUTH_HEADER_KEY, CoderClientWrapper } from './CoderClient';
 import type { IdentityApi } from '@backstage/core-plugin-api';
 import { UrlSync } from './UrlSync';
 import { rest } from 'msw';
@@ -34,10 +34,10 @@ function getConstructorApis(): ConstructorApis {
   return { urlSync, identityApi };
 }
 
-describe(`${CoderClient.name}`, () => {
+describe(`${CoderClientWrapper.name}`, () => {
   describe('syncToken functionality', () => {
     it('Will load the provided token into the client if it is valid', async () => {
-      const client = new CoderClient({ apis: getConstructorApis() });
+      const client = new CoderClientWrapper({ apis: getConstructorApis() });
 
       const syncResult = await client.syncToken(mockCoderAuthToken);
       expect(syncResult).toBe(true);
@@ -50,12 +50,12 @@ describe(`${CoderClient.name}`, () => {
         }),
       );
 
-      await client.sdk.getAuthenticatedUser();
+      await client.api.getAuthenticatedUser();
       expect(serverToken).toBe(mockCoderAuthToken);
     });
 
     it('Will NOT load the provided token into the client if it is invalid', async () => {
-      const client = new CoderClient({ apis: getConstructorApis() });
+      const client = new CoderClientWrapper({ apis: getConstructorApis() });
 
       const syncResult = await client.syncToken('Definitely not valid');
       expect(syncResult).toBe(false);
@@ -68,12 +68,12 @@ describe(`${CoderClient.name}`, () => {
         }),
       );
 
-      await client.sdk.getAuthenticatedUser();
+      await client.api.getAuthenticatedUser();
       expect(serverToken).toBe(null);
     });
 
     it('Will propagate any other error types to the caller', async () => {
-      const client = new CoderClient({
+      const client = new CoderClientWrapper({
         // Setting the timeout to 0 will make requests instantly fail from the
         // next microtask queue tick
         requestTimeoutMs: 0,
@@ -96,13 +96,13 @@ describe(`${CoderClient.name}`, () => {
     });
   });
 
-  // Eventually the Coder SDK is going to get too big to test every single
+  // Eventually the Coder API is going to get too big to test every single
   // function. Focus tests on the functionality specifically being patched in
   // for Backstage
-  describe('Coder SDK', () => {
+  describe('Coder API', () => {
     it('Will remap all workspace icon URLs to use the proxy URL if necessary', async () => {
       const apis = getConstructorApis();
-      const client = new CoderClient({
+      const client = new CoderClientWrapper({
         apis,
         initialToken: mockCoderAuthToken,
       });
@@ -126,7 +126,7 @@ describe(`${CoderClient.name}`, () => {
         }),
       );
 
-      const { workspaces } = await client.sdk.getWorkspaces({
+      const { workspaces } = await client.api.getWorkspaces({
         q: 'owner:me',
         limit: 0,
       });
@@ -142,12 +142,12 @@ describe(`${CoderClient.name}`, () => {
     });
 
     it('Lets the user search for workspaces by repo URL', async () => {
-      const client = new CoderClient({
+      const client = new CoderClientWrapper({
         initialToken: mockCoderAuthToken,
         apis: getConstructorApis(),
       });
 
-      const { workspaces } = await client.sdk.getWorkspacesByRepo(
+      const { workspaces } = await client.api.getWorkspacesByRepo(
         { q: 'owner:me' },
         mockCoderWorkspacesConfig,
       );

@@ -1894,7 +1894,7 @@ function getConfiguredAxiosInstance(): AxiosInstance {
   } else {
     // Do not write error logs if we are in a FE unit test.
     if (process.env.JEST_WORKER_ID === undefined) {
-      // eslint-disable-next-line no-console -- Function should never run in vendored version of SDK
+      // eslint-disable-next-line no-console -- Function should never run in vendored version of API
       console.error('CSRF token not found');
     }
   }

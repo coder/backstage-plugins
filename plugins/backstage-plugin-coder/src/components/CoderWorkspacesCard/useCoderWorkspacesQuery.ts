@@ -1,7 +1,7 @@
 import { useQuery } from '@tanstack/react-query';
 import { workspaces, workspacesByRepo } from '../../api/queryOptions';
 import type { CoderWorkspacesConfig } from '../../hooks/useCoderWorkspacesConfig';
-import { useCoderSdk } from '../../hooks/useCoderSdk';
+import { useCoderApi } from '../../hooks/useCoderApi';
 import { useInternalCoderAuth } from '../../components/CoderProvider';
 
 type QueryInput = Readonly<{
@@ -13,13 +13,13 @@ export function useCoderWorkspacesQuery({
   coderQuery,
   workspacesConfig,
 }: QueryInput) {
-  const sdk = useCoderSdk();
+  const api = useCoderApi();
   const auth = useInternalCoderAuth();
   const hasRepoData = workspacesConfig && workspacesConfig.repoUrl;
 
   const queryOptions = hasRepoData
-    ? workspacesByRepo({ auth, sdk, coderQuery, workspacesConfig })
-    : workspaces({ auth, sdk, coderQuery });
+    ? workspacesByRepo({ auth, api, coderQuery, workspacesConfig })
+    : workspaces({ auth, api, coderQuery });
 
   return useQuery(queryOptions);
 }

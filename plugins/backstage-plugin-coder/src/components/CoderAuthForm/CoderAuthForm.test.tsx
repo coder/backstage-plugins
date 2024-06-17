@@ -16,12 +16,12 @@ type RenderInputs = Readonly<{
 }>;
 
 async function renderAuthWrapper({ authStatus }: RenderInputs) {
-  const ejectToken = jest.fn();
+  const unlinkToken = jest.fn();
   const registerNewToken = jest.fn();
 
   const auth: CoderAuth = {
     ...mockAuthStates[authStatus],
-    ejectToken,
+    unlinkToken,
     registerNewToken,
   };
 
@@ -40,7 +40,7 @@ async function renderAuthWrapper({ authStatus }: RenderInputs) {
     </CoderProviderWithMockAuth>,
   );
 
-  return { ...renderOutput, ejectToken, registerNewToken };
+  return { ...renderOutput, unlinkToken, registerNewToken };
 }
 
 describe(`${CoderAuthForm.name}`, () => {
@@ -70,18 +70,18 @@ describe(`${CoderAuthForm.name}`, () => {
       }
     });
 
-    it('Lets the user eject the current token', async () => {
-      const { ejectToken } = await renderAuthWrapper({
+    it('Lets the user unlink the current token', async () => {
+      const { unlinkToken } = await renderAuthWrapper({
         authStatus: 'distrusted',
       });
 
       const user = userEvent.setup();
-      const ejectButton = await screen.findByRole('button', {
+      const unlinkButton = await screen.findByRole('button', {
         name: /Unlink Coder account/,
       });
 
-      await user.click(ejectButton);
-      expect(ejectToken).toHaveBeenCalled();
+      await user.click(unlinkButton);
+      expect(unlinkToken).toHaveBeenCalled();
     });
   });
 

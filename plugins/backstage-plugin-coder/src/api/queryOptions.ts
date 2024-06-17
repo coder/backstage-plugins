@@ -1,7 +1,7 @@
 import type { UseQueryOptions } from '@tanstack/react-query';
 import type { Workspace, WorkspacesRequest } from './vendoredSdk';
 import type { CoderWorkspacesConfig } from '../hooks/useCoderWorkspacesConfig';
-import type { BackstageCoderSdk } from './CoderClient';
+import type { BackstageCoderApi } from './CoderClient';
 import type { CoderAuth } from '../components/CoderProvider';
 
 // Making the type more broad to hide some implementation details from the end
@@ -47,13 +47,13 @@ function getSharedWorkspacesQueryKey(coderQuery: string) {
 
 type WorkspacesFetchInputs = Readonly<{
   auth: CoderAuth;
-  sdk: BackstageCoderSdk;
+  api: BackstageCoderApi;
   coderQuery: string;
 }>;
 
 export function workspaces({
   auth,
-  sdk,
+  api,
   coderQuery,
 }: WorkspacesFetchInputs): UseQueryOptions<readonly Workspace[]> {
   const enabled = auth.isAuthenticated;
@@ -64,7 +64,7 @@ export function workspaces({
     keepPreviousData: enabled && coderQuery !== '',
     refetchInterval: getCoderWorkspacesRefetchInterval,
     queryFn: async () => {
-      const res = await sdk.getWorkspaces({
+      const res = await api.getWorkspaces({
         q: coderQuery,
         limit: 0,
       });
@@ -82,7 +82,7 @@ type WorkspacesByRepoFetchInputs = Readonly<
 
 export function workspacesByRepo({
   coderQuery,
-  sdk,
+  api,
   auth,
   workspacesConfig,
 }: WorkspacesByRepoFetchInputs): UseQueryOptions<readonly Workspace[]> {
@@ -98,7 +98,7 @@ export function workspacesByRepo({
     refetchInterval: getCoderWorkspacesRefetchInterval,
     queryFn: async () => {
       const request: WorkspacesRequest = { q: coderQuery, limit: 0 };
-      const res = await sdk.getWorkspacesByRepo(request, workspacesConfig);
+      const res = await api.getWorkspacesByRepo(request, workspacesConfig);
       return res.workspaces;
     },
   };

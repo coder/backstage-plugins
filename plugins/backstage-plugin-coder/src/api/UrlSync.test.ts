@@ -5,7 +5,7 @@ import {
   getMockDiscoveryApi,
   mockBackstageAssetsEndpoint,
   mockBackstageUrlRoot,
-  mockBackstageApiEndpointWithoutSdkPath,
+  mockBackstageApiEndpointWithoutVersionSuffix,
 } from '../testHelpers/mockBackstageData';
 
 // Tests have to assume that DiscoveryApi and ConfigApi will always be in sync,
@@ -23,7 +23,7 @@ describe(`${UrlSync.name}`, () => {
     const cachedUrls = urlSync.getCachedUrls();
     expect(cachedUrls).toEqual<UrlSyncSnapshot>({
       baseUrl: mockBackstageUrlRoot,
-      apiRoute: mockBackstageApiEndpointWithoutSdkPath,
+      apiRoute: mockBackstageApiEndpointWithoutVersionSuffix,
       assetsRoute: mockBackstageAssetsEndpoint,
     });
   });

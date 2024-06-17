@@ -45,8 +45,8 @@ const defaultClient = new QueryClient({
 export const CoderProvider = ({
   children,
   appConfig,
-  queryClient = defaultClient,
   fallbackAuthUiMode = 'restrained',
+  queryClient = defaultClient,
 }: CoderProviderProps) => {
   return (
     <CoderErrorBoundary>

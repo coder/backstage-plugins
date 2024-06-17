@@ -27,7 +27,10 @@ import {
   renderHookAsCoderEntity,
 } from '../../testHelpers/setup';
 import { UrlSync, urlSyncApiRef } from '../../api/UrlSync';
-import { CoderClient, coderClientApiRef } from '../../api/CoderClient';
+import {
+  CoderClientWrapper,
+  coderClientWrapperApiRef,
+} from '../../api/CoderClient';
 
 describe(`${CoderProvider.name}`, () => {
   describe('AppConfig', () => {
@@ -66,7 +69,7 @@ describe(`${CoderProvider.name}`, () => {
         apis: { discoveryApi, configApi },
       });
 
-      const coderClientApi = new CoderClient({
+      const coderClientApi = new CoderClientWrapper({
         apis: { urlSync, identityApi },
       });
 
@@ -80,7 +83,7 @@ describe(`${CoderProvider.name}`, () => {
               [discoveryApiRef, discoveryApi],
 
               [urlSyncApiRef, urlSync],
-              [coderClientApiRef, coderClientApi],
+              [coderClientWrapperApiRef, coderClientApi],
             ]}
           >
             <CoderProvider
@@ -95,7 +98,7 @@ describe(`${CoderProvider.name}`, () => {
       });
     };
 
-    it('Should let the user eject their auth token', async () => {
+    it('Should let the user unlink their auth token', async () => {
       const { result } = renderUseCoderAuth();
       act(() => result.current.registerNewToken(mockCoderAuthToken));
 
@@ -109,7 +112,7 @@ describe(`${CoderProvider.name}`, () => {
         );
       });
 
-      act(() => result.current.ejectToken());
+      act(() => result.current.unlinkToken());
 
       expect(result.current).toEqual(
         expect.objectContaining<Partial<CoderAuth>>({

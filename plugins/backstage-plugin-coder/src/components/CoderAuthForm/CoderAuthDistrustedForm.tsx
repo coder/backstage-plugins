@@ -36,7 +36,7 @@ export const CoderAuthDistrustedForm = () => {
         <CoderLogo className={styles.coderLogo} />
         <p>
           Unable to verify token authenticity. Please check your internet
-          connection, or try ejecting the token.
+          connection, or try unlinking the token.
         </p>
       </div>
 

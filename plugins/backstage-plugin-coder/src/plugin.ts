@@ -8,7 +8,10 @@ import {
 } from '@backstage/core-plugin-api';
 import { rootRouteRef } from './routes';
 import { UrlSync, urlSyncApiRef } from './api/UrlSync';
-import { CoderClient, coderClientApiRef } from './api/CoderClient';
+import {
+  CoderClientWrapper,
+  coderClientWrapperApiRef,
+} from './api/CoderClient';
 
 export const coderPlugin = createPlugin({
   id: 'coder',
@@ -27,13 +30,13 @@ export const coderPlugin = createPlugin({
       },
     }),
     createApiFactory({
-      api: coderClientApiRef,
+      api: coderClientWrapperApiRef,
       deps: {
         urlSync: urlSyncApiRef,
         identityApi: identityApiRef,
       },
       factory: ({ urlSync, identityApi }) => {
-        return new CoderClient({
+        return new CoderClientWrapper({
           apis: { urlSync, identityApi },
         });
       },
@@ -190,9 +193,12 @@ export { useWorkspacesCardContext } from './components/CoderWorkspacesCard/Root'
  * General custom hooks that can be used in various places.
  */
 export { useCoderWorkspacesConfig } from './hooks/useCoderWorkspacesConfig';
-export { useCoderSdk } from './hooks/useCoderSdk';
-export { useEndUserCoderAuth as useCoderAuth } from './components/CoderProvider/CoderAuthProvider';
+export { useCoderApi } from './hooks/useCoderApi';
 export { useCoderQuery } from './hooks/reactQueryWrappers';
+
+// Deliberately renamed so that end users don't have to be aware that there are
+// two different versions of the auth hook
+export { useEndUserCoderAuth as useCoderAuth } from './components/CoderProvider/CoderAuthProvider';
 
 /**
  * General constants
@@ -203,3 +209,4 @@ export { CODER_QUERY_KEY_PREFIX } from './api/queryOptions';
  * All custom types
  */
 export type { CoderAppConfig } from './components/CoderProvider';
+export type * from './api/vendoredSdk/api/typesGenerated';

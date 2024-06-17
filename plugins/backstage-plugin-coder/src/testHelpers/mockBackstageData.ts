@@ -33,7 +33,10 @@ import {
   defaultUrlPrefixes,
   urlSyncApiRef,
 } from '../api/UrlSync';
-import { CoderClient, coderClientApiRef } from '../api/CoderClient';
+import {
+  CoderClientWrapper,
+  coderClientWrapperApiRef,
+} from '../api/CoderClient';
 
 /**
  * This is the key that Backstage checks from the entity data to determine the
@@ -68,24 +71,24 @@ export const mockBackstageUrlRoot = 'http://localhost:7007';
 
 /**
  * A version of the mock API endpoint that doesn't have the Coder API versioning
- * prefix. Mainly used for tests that need to assert that the core API URL is
- * formatted correctly, before the CoderSdk adds anything else to the end
+ * suffix. Mainly used for tests that need to assert that the core API URL is
+ * formatted correctly, before the Coder API adds anything else to the end
  *
  * The string literal expression is complicated, but hover over it to see what
  * the final result is.
  */
-export const mockBackstageApiEndpointWithoutSdkPath =
+export const mockBackstageApiEndpointWithoutVersionSuffix =
   `${mockBackstageUrlRoot}${defaultUrlPrefixes.proxyPrefix}${CODER_PROXY_PREFIX}` as const;
 
 /**
  * The API endpoint to use with the mock server during testing. Adds additional
- * path information that will normally be added via the Coder SDK.
+ * path information that will normally be added via the Coder API.
  *
  * The string literal expression is complicated, but hover over it to see what
  * the final result is.
  */
 export const mockBackstageApiEndpoint =
-  `${mockBackstageApiEndpointWithoutSdkPath}/api/v2` as const;
+  `${mockBackstageApiEndpointWithoutVersionSuffix}/api/v2` as const;
 
 /**
  * The assets endpoint to use during testing.
@@ -173,7 +176,7 @@ const authedState = {
   error: undefined,
   isAuthenticated: true,
   registerNewToken: jest.fn(),
-  ejectToken: jest.fn(),
+  unlinkToken: jest.fn(),
 } as const satisfies Partial<CoderAuth>;
 
 const notAuthedState = {
@@ -181,7 +184,7 @@ const notAuthedState = {
   error: undefined,
   isAuthenticated: false,
   registerNewToken: jest.fn(),
-  ejectToken: jest.fn(),
+  unlinkToken: jest.fn(),
 } as const satisfies Partial<CoderAuth>;
 
 export const mockAuthStates = {
@@ -309,7 +312,7 @@ export function getMockApiList(): readonly ApiTuple[] {
     },
   });
 
-  const mockCoderClient = new CoderClient({
+  const mockCoderClient = new CoderClientWrapper({
     initialToken: mockCoderAuthToken,
     apis: {
       urlSync: mockUrlSyncApi,
@@ -327,6 +330,6 @@ export function getMockApiList(): readonly ApiTuple[] {
 
     // Custom APIs specific to the Coder plugin
     [urlSyncApiRef, mockUrlSyncApi],
-    [coderClientApiRef, mockCoderClient],
+    [coderClientWrapperApiRef, mockCoderClient],
   ];
 }

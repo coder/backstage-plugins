@@ -7,23 +7,23 @@ import { CODER_API_REF_ID_PREFIX } from '../typesConstants';
 import type { UrlSync } from './UrlSync';
 import type { CoderWorkspacesConfig } from '../hooks/useCoderWorkspacesConfig';
 import {
-  type CoderSdk,
+  type CoderApi,
   type User,
   type Workspace,
   type WorkspacesRequest,
   type WorkspacesResponse,
-  makeCoderSdk,
+  createCoderApi,
 } from './vendoredSdk';
 
 export const CODER_AUTH_HEADER_KEY = 'Coder-Session-Token';
 const DEFAULT_REQUEST_TIMEOUT_MS = 20_000;
 
 /**
- * A version of the main Coder SDK API, with additional Backstage-specific
+ * A version of the main Coder API, with additional Backstage-specific
  * methods and properties.
  */
-export type BackstageCoderSdk = Readonly<
-  CoderSdk & {
+export type BackstageCoderApi = Readonly<
+  CoderApi & {
     getWorkspacesByRepo: (
       request: WorkspacesRequest,
       config: CoderWorkspacesConfig,
@@ -31,8 +31,8 @@ export type BackstageCoderSdk = Readonly<
   }
 >;
 
-type CoderClientApi = Readonly<{
-  sdk: BackstageCoderSdk;
+type CoderClientWrapperApi = Readonly<{
+  api: BackstageCoderApi;
 
   /**
    * Validates a new token, and loads it only if it is valid.
@@ -75,7 +75,7 @@ type RequestInterceptor = (
   config: RequestConfig,
 ) => RequestConfig | Promise<RequestConfig>;
 
-export class CoderClient implements CoderClientApi {
+export class CoderClientWrapper implements CoderClientWrapperApi {
   private readonly urlSync: UrlSync;
   private readonly identityApi: IdentityApi;
 
@@ -84,7 +84,7 @@ export class CoderClient implements CoderClientApi {
   private readonly trackedEjectionIds: Set<number>;
 
   private loadedSessionToken: string | undefined;
-  readonly sdk: BackstageCoderSdk;
+  readonly api: BackstageCoderApi;
 
   constructor(inputs: ConstructorInputs) {
     const {
@@ -100,7 +100,7 @@ export class CoderClient implements CoderClientApi {
     this.cleanupController = new AbortController();
     this.trackedEjectionIds = new Set();
 
-    this.sdk = this.createBackstageCoderSdk();
+    this.api = this.createBackstageCoderApi();
     this.addBaseRequestInterceptors();
   }
 
@@ -108,7 +108,7 @@ export class CoderClient implements CoderClientApi {
     requestInterceptor: RequestInterceptor,
     errorInterceptor?: (error: unknown) => unknown,
   ): number {
-    const axios = this.sdk.getAxiosInstance();
+    const axios = this.api.getAxiosInstance();
     const ejectionId = axios.interceptors.request.use(
       requestInterceptor,
       errorInterceptor,
@@ -121,7 +121,7 @@ export class CoderClient implements CoderClientApi {
   private removeRequestInterceptorById(ejectionId: number): boolean {
     // Even if we somehow pass in an ID that hasn't been associated with the
     // Axios instance, that's a noop. No harm in calling method no matter what
-    const axios = this.sdk.getAxiosInstance();
+    const axios = this.api.getAxiosInstance();
     axios.interceptors.request.eject(ejectionId);
 
     if (!this.trackedEjectionIds.has(ejectionId)) {
@@ -181,11 +181,11 @@ export class CoderClient implements CoderClientApi {
     this.addRequestInterceptor(baseRequestInterceptor, baseErrorInterceptor);
   }
 
-  private createBackstageCoderSdk(): BackstageCoderSdk {
-    const baseSdk = makeCoderSdk();
+  private createBackstageCoderApi(): BackstageCoderApi {
+    const baseApi = createCoderApi();
 
-    const getWorkspaces: (typeof baseSdk)['getWorkspaces'] = async request => {
-      const workspacesRes = await baseSdk.getWorkspaces(request);
+    const getWorkspaces: (typeof baseApi)['getWorkspaces'] = async request => {
+      const workspacesRes = await baseApi.getWorkspaces(request);
       const remapped = await this.remapWorkspaceIconUrls(
         workspacesRes.workspaces,
       );
@@ -214,7 +214,7 @@ export class CoderClient implements CoderClientApi {
             q: appendParamToQuery(request.q, key, stringUrl),
           };
 
-          return baseSdk.getWorkspaces(patchedRequest);
+          return baseApi.getWorkspaces(patchedRequest);
         }),
       );
 
@@ -237,7 +237,7 @@ export class CoderClient implements CoderClientApi {
     };
 
     return {
-      ...baseSdk,
+      ...baseApi,
       getWorkspaces,
       getWorkspacesByRepo,
     };
@@ -312,7 +312,7 @@ export class CoderClient implements CoderClientApi {
       // Actual request type doesn't matter; just need to make some kind of
       // dummy request. Should favor requests that all users have access to and
       // that don't require request bodies
-      const dummyUser = await this.sdk.getAuthenticatedUser();
+      const dummyUser = await this.api.getAuthenticatedUser();
 
       // Most of the time, we're going to trust the types returned back from the
       // server without doing any type-checking, but because this request does
@@ -376,6 +376,6 @@ function assertValidUser(value: unknown): asserts value is User {
   }
 }
 
-export const coderClientApiRef = createApiRef<CoderClient>({
+export const coderClientWrapperApiRef = createApiRef<CoderClientWrapper>({
   id: `${CODER_API_REF_ID_PREFIX}.coder-client`,
 });

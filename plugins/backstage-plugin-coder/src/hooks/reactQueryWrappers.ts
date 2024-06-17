@@ -1,6 +1,6 @@
 /**
  * @file Defines a couple of wrappers over React Query/Tanstack Query that make
- * it easier to use the Coder SDK within UI logic.
+ * it easier to use the Coder API within UI logic.
  *
  * These hooks are designed 100% for end-users, and should not be used
  * internally. Use useEndUserCoderAuth when working with auth logic within these
@@ -25,12 +25,12 @@ import {
 import { DEFAULT_TANSTACK_QUERY_RETRY_COUNT } from '../typesConstants';
 import { useEndUserCoderAuth } from '../components/CoderProvider';
 import { CODER_QUERY_KEY_PREFIX } from '../api/queryOptions';
-import { useCoderSdk } from './useCoderSdk';
-import type { BackstageCoderSdk } from '../api/CoderClient';
+import { useCoderApi } from './useCoderApi';
+import type { BackstageCoderApi } from '../api/CoderClient';
 
 export type CoderQueryFunctionContext<TQueryKey extends QueryKey = QueryKey> =
   QueryFunctionContext<TQueryKey> & {
-    sdk: BackstageCoderSdk;
+    coderApi: BackstageCoderApi;
   };
 
 export type CoderQueryFunction<
@@ -63,7 +63,7 @@ export function useCoderQuery<
 ): UseQueryResult<TData, TError> {
   const queryClient = useQueryClient();
   const { isAuthenticated } = useEndUserCoderAuth();
-  const sdk = useCoderSdk();
+  const coderApi = useCoderApi();
 
   let patchedQueryKey = queryOptions.queryKey;
   if (
@@ -98,7 +98,7 @@ export function useCoderQuery<
         throw new Error('Cannot complete request - user is not authenticated');
       }
 
-      return queryOptions.queryFn({ ...context, sdk });
+      return queryOptions.queryFn({ ...context, coderApi });
     },
 
     refetchInterval: (data, query) => {

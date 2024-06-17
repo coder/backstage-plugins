@@ -10,7 +10,11 @@ import {
 /* eslint-enable @backstage/no-undeclared-imports */
 
 import React from 'react';
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import {
+  type QueryClientConfig,
+  QueryClient,
+  QueryClientProvider,
+} from '@tanstack/react-query';
 import { EntityProvider } from '@backstage/plugin-catalog-react';
 import {
   type CoderAuth,
@@ -93,13 +97,16 @@ export function suppressErrorBoundaryWarnings(): void {
   afterEachCleanupFunctions.push(() => augmentedConsoleError.mockClear());
 }
 
-export function getMockQueryClient(): QueryClient {
+export function getMockQueryClient(config?: QueryClientConfig): QueryClient {
   return new QueryClient({
+    ...(config ?? {}),
     defaultOptions: {
+      ...(config?.defaultOptions ?? {}),
       queries: {
         retry: false,
         refetchOnWindowFocus: false,
         networkMode: 'offlineFirst',
+        ...(config?.defaultOptions?.queries ?? {}),
       },
     },
   });

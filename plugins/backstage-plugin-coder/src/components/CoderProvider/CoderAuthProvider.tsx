@@ -24,7 +24,7 @@ import {
   CODER_QUERY_KEY_PREFIX,
   sharedAuthQueryKey,
 } from '../../api/queryOptions';
-import { coderClientApiRef } from '../../api/CoderClient';
+import { coderClientWrapperApiRef } from '../../api/CoderClient';
 import { CoderLogo } from '../CoderLogo';
 import { CoderAuthFormDialog } from '../CoderAuthFormDialog';
 
@@ -67,7 +67,7 @@ export type CoderAuth = Readonly<
   AuthState & {
     isAuthenticated: boolean;
     registerNewToken: (newToken: string) => void;
-    ejectToken: () => void;
+    unlinkToken: () => void;
   }
 >;
 
@@ -91,7 +91,7 @@ function useAuthState(): CoderAuth {
   const [readonlyInitialAuthToken] = useState(authToken);
   const [isInsideGracePeriod, setIsInsideGracePeriod] = useState(true);
 
-  const coderClient = useApi(coderClientApiRef);
+  const coderClient = useApi(coderClientWrapperApiRef);
   const queryIsEnabled = authToken !== '';
 
   const authValidityQuery = useQuery<boolean>({
@@ -149,12 +149,14 @@ function useAuthState(): CoderAuth {
 
     // Pseudo-mutex; makes sure that if we get a bunch of errors, only one
     // revalidation will be processed at a time
-    let isRevalidatingToken = false;
+    let isRevalidating = false;
 
     const revalidateTokenOnError = async (event: QueryCacheNotifyEvent) => {
       const queryError = event.query.state.error;
+
       const shouldRevalidate =
-        !isRevalidatingToken &&
+        isAuthenticated &&
+        !isRevalidating &&
         BackstageHttpError.isInstance(queryError) &&
         queryError.status === 401;
 
@@ -162,9 +164,9 @@ function useAuthState(): CoderAuth {
         return;
       }
 
-      isRevalidatingToken = true;
+      isRevalidating = true;
       await queryClient.refetchQueries({ queryKey: sharedAuthQueryKey });
-      isRevalidatingToken = false;
+      isRevalidating = false;
     };
 
     const queryCache = queryClient.getQueryCache();
@@ -178,7 +180,7 @@ function useAuthState(): CoderAuth {
     }
   }, []);
 
-  const ejectToken = useCallback(() => {
+  const unlinkToken = useCallback(() => {
     setAuthToken('');
     window.localStorage.removeItem(TOKEN_STORAGE_KEY);
     queryClient.removeQueries({ queryKey: [CODER_QUERY_KEY_PREFIX] });
@@ -188,7 +190,7 @@ function useAuthState(): CoderAuth {
     ...authState,
     isAuthenticated,
     registerNewToken,
-    ejectToken,
+    unlinkToken,
   };
 }
 
@@ -275,7 +277,7 @@ export function useInternalCoderAuth(): CoderAuth {
 /**
  * Exposes Coder auth state to the rest of the UI.
  */
-// This hook should only be used by end users trying to use the Coder SDK inside
+// This hook should only be used by end users trying to use the Coder API inside
 // Backstage. The hook is renamed on final export to avoid confusion
 export function useEndUserCoderAuth(): CoderAuth {
   const authContextValue = useContext(AuthStateContext);
@@ -625,7 +627,7 @@ type AuthFallbackProvider = FC<
 
 // Matches each behavior for the fallback auth UI to a specific provider. This
 // is screwy code, but by doing this, we ensure that if the user chooses not to
-// have a dynamic auth fallback UI, their app will have far less tracking logic,
+// have dynamic a auth fallback UI, their app will have far less tracking logic,
 // meaning less performance overhead and fewer re-renders from something the
 // user isn't even using
 const fallbackProviders = {
