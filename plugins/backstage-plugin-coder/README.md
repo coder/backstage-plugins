@@ -142,7 +142,7 @@ spec:
       region: 'us-pittsburgh'
 ```
 
-You can find more information about what properties are available (and how they're applied) in our [`catalog-info.yaml` file documentation](./docs/catalog-info.md).
+You can find more information about what properties are available (and how they're applied) in our [`catalog-info.yaml` file documentation](./docs/api-reference/catalog-info.md).
 
 ## Roadmap
 
