@@ -117,7 +117,7 @@ the Dev Container.
    );
    ```
 
-### `app-config.yaml` files
+### `catalog-info.yaml` files
 
 In addition to the above, you can define additional properties on your specific repo's `catalog-info.yaml` file.
 
