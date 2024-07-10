@@ -42,7 +42,7 @@ This defines the name of the Coder template you would like to use when creating 
 
 **Note:** This value has overlap with the `defaultTemplateName` property defined in [`CoderAppConfig`](types.md#coderappconfig). In the event that both values are present, the YAML file's `templateName` property will always be used instead.
 
-### `templateName`
+### `mode`
 
 **Type:** Optional union of `manual` or `auto`
 
