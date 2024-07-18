@@ -25,7 +25,7 @@
 host: dev.coder.com
 
 # Specify the Coder template for this repository
-template: dogfood
+template: coder
 
 # Define a name for the new workspace using variables such as {{org}}, {{repo}}, 
 # and {{ref}} to dynamically generate values. This name is crucial as it is used 
