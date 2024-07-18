@@ -1,0 +1,38 @@
+# .coder.yaml
+# This is a Coder configuration file. It tells Coder how to create a workspace 
+# for this repository. You can use variables like {{org}}, {{repo}}, and {{ref}} 
+# to dynamically generate values.
+#
+# This configuration works well with Coder's git-clone module. To use it, you 
+# can add the following to your template:
+# 
+# data "coder_parameter" "git_url" {
+#   type        = "string"
+#   name        = "Git URL"
+#   description = "The git repository URL to be cloned."
+#   default     = "<your-git-repo-url>"
+#   mutable     = true
+# }
+#
+# module "git-clone" {
+#   source   = "registry.coder.com/modules/git-clone/coder"
+#   version  = "1.0.12"
+#   agent_id = <your-agent-id>
+#   url      = data.coder_parameter.git_url.value
+# }
+
+# Replace with your Coder deployment URL
+host: dev.coder.com
+
+# Specify the Coder template for this repository
+template: dogfood
+
+# Define a name for the new workspace using variables such as {{org}}, {{repo}}, 
+# and {{ref}} to dynamically generate values. This name is crucial as it is used 
+# to identify and potentially reuse an existing workspace within Coder.
+name: {{repo}}-{{ref}}
+
+# Uncomment and use 'parameters' to override template defaults
+# parameters:
+#   - name: "Git URL"
+#     value: "https://github.com/{{org}}/{{repo}}/tree/{{ref}}"
