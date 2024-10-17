@@ -133,11 +133,11 @@ const entityWarningContent = (
 
 const coderAppConfig: CoderAppConfig = {
   deployment: {
-    accessUrl: 'https://dev.coder.com',
+    accessUrl: 'http://localhost:3005',
   },
 
   workspaces: {
-    defaultTemplateName: 'devcontainers',
+    defaultTemplateName: 'docker',
     defaultMode: 'manual',
     repoUrlParamKeys: ['custom_repo', 'repo_url'],
     params: {

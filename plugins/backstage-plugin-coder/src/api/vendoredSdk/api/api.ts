@@ -1089,9 +1089,8 @@ class ApiMethods {
   };
 
   getRoles = async (): Promise<Array<TypesGen.AssignableRoles>> => {
-    const response = await this.axios.get<TypesGen.AssignableRoles[]>(
-      `/api/v2/users/roles`,
-    );
+    const response =
+      await this.axios.get<TypesGen.AssignableRoles[]>(`/api/v2/users/roles`);
 
     return response.data;
   };
@@ -1542,9 +1541,10 @@ class ApiMethods {
   getWorkspaceProxyRegions = async (): Promise<
     TypesGen.RegionsResponse<TypesGen.Region>
   > => {
-    const response = await this.axios.get<
-      TypesGen.RegionsResponse<TypesGen.Region>
-    >(`/api/v2/regions`);
+    const response =
+      await this.axios.get<TypesGen.RegionsResponse<TypesGen.Region>>(
+        `/api/v2/regions`,
+      );
 
     return response.data;
   };
@@ -1708,9 +1708,8 @@ class ApiMethods {
     ]);
 
     const activeVersionId = template.active_version_id;
-    const templateParameters = await this.getTemplateVersionRichParameters(
-      activeVersionId,
-    );
+    const templateParameters =
+      await this.getTemplateVersionRichParameters(activeVersionId);
 
     const missingParameters = getMissingParameters(
       oldBuildParameters,
