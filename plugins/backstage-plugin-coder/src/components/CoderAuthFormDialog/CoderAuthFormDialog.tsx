@@ -41,7 +41,7 @@ const useStyles = makeStyles(theme => ({
   },
 
   dialogTitle: {
-    fontSize: '24px',
+    fontSize: theme.typography.h5.fontSize ?? '24px',
     borderBottom: `${theme.palette.divider} 1px solid`,
     padding: `${theme.spacing(1)}px ${theme.spacing(3)}px`,
   },

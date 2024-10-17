@@ -1,3 +1,10 @@
+/**
+ * A custom focus color chosen to look close to a system default, while
+ * remaining visible in dark and light themes. The focus values from Backstage's
+ * theme object are too low-contrast to meet accessibility requirements.
+ */
+export const CUSTOM_FOCUS_COLOR = 'hsl(213deg, 94%, 68%)';
+
 export function scaleCssUnit(
   baseSize: string | number | undefined,
   scale: number,
