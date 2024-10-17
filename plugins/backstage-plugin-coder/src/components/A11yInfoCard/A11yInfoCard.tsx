@@ -23,10 +23,10 @@ const useStyles = makeStyles(theme => ({
   },
 
   headerContent: {
-    // Ideally wouldn't be using hard-coded font sizes, but couldn't figure out
-    // how to use the theme.typography property, especially since not all
-    // sub-properties have font sizes defined
-    fontSize: '1.5rem',
+    // Not a fan of using a random <h5> element's styles, but it's the only
+    // typographic category that has a font size of 1.5x the base font size. We
+    // need that size to match the header sizes of the official InfoCard.
+    fontSize: theme.typography.h5.fontSize ?? '1.5rem',
     color: theme.palette.text.primary,
     fontWeight: 700,
     borderBottom: `1px solid ${theme.palette.divider}`,

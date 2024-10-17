@@ -26,7 +26,7 @@ const useStyles = makeStyles(theme => ({
     marginLeft: 'auto',
     marginRight: 'auto',
     color: theme.palette.text.primary,
-    fontSize: '1rem',
+    fontSize: theme.typography.body1.fontSize,
   },
 
   statusArea: {
@@ -35,13 +35,9 @@ const useStyles = makeStyles(theme => ({
     alignItems: 'center',
   },
 
-  logo: {
-    //
-  },
-
   text: {
     textAlign: 'center',
-    lineHeight: '1rem',
+    lineHeight: theme.typography.body1.fontSize,
   },
 }));
 
@@ -51,8 +47,8 @@ export function CoderAuthSuccessStatus() {
   return (
     <div className={styles.root}>
       <div className={styles.statusArea}>
-        <CoderLogo className={styles.logo} />
-        <p className={styles.text}>You are fully authenticated with Coder!</p>
+        <CoderLogo />
+        <p className={styles.text}>You are fully authenticated with Coder.</p>
       </div>
 
       <UnlinkAccountButton />

@@ -18,14 +18,17 @@ const useStyles = makeStyles<Theme, {}, StyleKey>(theme => ({
   },
 
   header: {
-    fontSize: '1.5rem',
-    lineHeight: 1,
+    // Want the header text to be set solid (typography term for setting line
+    // height equal to font size) to reduce gaps between it and the subtitle,
+    // but only MUI's h3 line height is the smallest value/closest match
+    lineHeight: theme.typography.h3.lineHeight ?? 1,
+    fontSize: theme.typography.h5.fontSize ?? '1.5rem',
     margin: 0,
   },
 
   subheader: {
     margin: '0',
-    fontSize: '0.875rem',
+    fontSize: theme.typography.subtitle2.fontSize ?? '0.875rem',
     fontWeight: 400,
     color: theme.palette.text.secondary,
     paddingTop: theme.spacing(0.5),

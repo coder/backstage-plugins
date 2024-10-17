@@ -60,6 +60,10 @@ const useStyles = makeStyles(theme => ({
   },
 
   closeButton: {
+    // MUI's typography object doesn't expose any letter tracking values, even
+    // though you need them to make sure that all-caps text doesn't bunch up.
+    // Even if the text of the button changes, the styles might look slightly
+    // wonky, but they won't cause any obvious readability/styling issues
     letterSpacing: '0.05em',
     padding: `${theme.spacing(0.5)}px ${theme.spacing(1)}px`,
     color: theme.palette.primary.main,

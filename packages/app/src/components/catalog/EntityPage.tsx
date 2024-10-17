@@ -159,7 +159,7 @@ const overviewContent = (
     </Grid>
 
     <Grid item md={6} xs={12}>
-      <CoderProvider appConfig={coderAppConfig}>
+      <CoderProvider appConfig={coderAppConfig} fallbackAuthUiMode="assertive">
         <CoderWorkspacesCard readEntityData />
       </CoderProvider>
     </Grid>

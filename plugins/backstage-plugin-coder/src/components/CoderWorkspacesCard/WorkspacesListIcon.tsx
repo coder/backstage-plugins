@@ -1,6 +1,7 @@
 import React, { ForwardedRef, HTMLAttributes, useState } from 'react';
 import { useUrlSync } from '../../hooks/useUrlSync';
 import { Theme, makeStyles } from '@material-ui/core';
+import { scaleCssUnit } from '../../utils/styling';
 
 type WorkspaceListIconProps = Readonly<
   Omit<HTMLAttributes<HTMLDivElement>, 'children' | 'aria-hidden'> & {
@@ -21,7 +22,7 @@ const useStyles = makeStyles<Theme, MakeStylesInput, StyleKey>(theme => ({
   root: {
     width: theme.spacing(2.5),
     height: theme.spacing(2.5),
-    fontSize: '0.625rem',
+    fontSize: scaleCssUnit(theme.typography.body1.fontSize, 0.625),
     backgroundColor: theme.palette.background.default,
     borderRadius: '9999px',
     display: 'flex',
