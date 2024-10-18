@@ -7,6 +7,7 @@ import DialogContent from '@material-ui/core/DialogContent';
 import DialogTitle from '@material-ui/core/DialogTitle';
 import DialogActions from '@material-ui/core/DialogActions';
 import { CoderAuthForm } from '../CoderAuthForm/CoderAuthForm';
+import { scaleCssUnit } from '../../utils/styling';
 
 const useStyles = makeStyles(theme => ({
   trigger: {
@@ -41,7 +42,7 @@ const useStyles = makeStyles(theme => ({
   },
 
   dialogTitle: {
-    fontSize: theme.typography.h5.fontSize ?? '24px',
+    fontSize: scaleCssUnit(theme.typography.body1.fontSize, 1.5),
     borderBottom: `${theme.palette.divider} 1px solid`,
     padding: `${theme.spacing(1)}px ${theme.spacing(3)}px`,
   },

@@ -2,6 +2,7 @@ import React, { HTMLAttributes, ReactNode } from 'react';
 import { type Theme, makeStyles } from '@material-ui/core';
 import { useWorkspacesCardContext } from './Root';
 import type { HtmlHeader } from '../../typesConstants';
+import { scaleCssUnit } from '../../utils/styling';
 
 type StyleKey = 'root' | 'header' | 'hgroup' | 'subheader';
 const useStyles = makeStyles<Theme, {}, StyleKey>(theme => ({
@@ -18,17 +19,16 @@ const useStyles = makeStyles<Theme, {}, StyleKey>(theme => ({
   },
 
   header: {
-    // Want the header text to be set solid (typography term for setting line
-    // height equal to font size) to reduce gaps between it and the subtitle,
-    // but only MUI's h3 line height is the smallest value/closest match
-    lineHeight: theme.typography.h3.lineHeight ?? 1,
-    fontSize: theme.typography.h5.fontSize ?? '1.5rem',
+    // Setting line height solid (when leading and font size are equal) to make
+    // it easier for header and subtitle to sit next to each other
+    lineHeight: 1,
+    fontSize: scaleCssUnit(theme.typography.body1.fontSize, 1.5),
     margin: 0,
   },
 
   subheader: {
     margin: '0',
-    fontSize: theme.typography.subtitle2.fontSize ?? '0.875rem',
+    fontSize: scaleCssUnit(theme.typography.body1.fontSize, 0.875),
     fontWeight: 400,
     color: theme.palette.text.secondary,
     paddingTop: theme.spacing(0.5),

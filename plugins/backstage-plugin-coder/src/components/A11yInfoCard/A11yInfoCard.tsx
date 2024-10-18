@@ -6,6 +6,7 @@
  */
 import React, { type HTMLAttributes, type ReactNode, forwardRef } from 'react';
 import { makeStyles } from '@material-ui/core';
+import { scaleCssUnit } from '../../utils/styling';
 
 export type A11yInfoCardProps = Readonly<
   HTMLAttributes<HTMLDivElement> & {
@@ -23,10 +24,7 @@ const useStyles = makeStyles(theme => ({
   },
 
   headerContent: {
-    // Not a fan of using a random <h5> element's styles, but it's the only
-    // typographic category that has a font size of 1.5x the base font size. We
-    // need that size to match the header sizes of the official InfoCard.
-    fontSize: theme.typography.h5.fontSize ?? '1.5rem',
+    fontSize: scaleCssUnit(theme.typography.body1.fontSize, 1.5),
     color: theme.palette.text.primary,
     fontWeight: 700,
     borderBottom: `1px solid ${theme.palette.divider}`,
