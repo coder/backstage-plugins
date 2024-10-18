@@ -1,13 +1,14 @@
 import React, { type HTMLAttributes, type ReactNode, useState } from 'react';
 import { useId } from '../../hooks/hookPolyfills';
 import { makeStyles } from '@material-ui/core';
+import { scaleCssUnit } from '../../utils/styling';
 
 const useStyles = makeStyles(theme => ({
   disclosureTriangle: {
     display: 'inline-block',
     textAlign: 'right',
     width: theme.spacing(2.25),
-    fontSize: '0.7rem',
+    fontSize: scaleCssUnit(theme.typography.body1.fontSize, 0.7),
   },
 
   disclosureBody: {

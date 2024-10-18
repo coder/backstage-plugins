@@ -11,6 +11,7 @@ import { useWorkspacesCardContext } from './Root';
 import { makeStyles } from '@material-ui/core';
 import { CoderLogo } from '../CoderLogo';
 import { VisuallyHidden } from '../VisuallyHidden';
+import { scaleCssUnit } from '../../utils/styling';
 
 const usePlaceholderStyles = makeStyles(theme => ({
   root: {
@@ -24,7 +25,7 @@ const usePlaceholderStyles = makeStyles(theme => ({
     textAlign: 'center',
     padding: `0 ${theme.spacing(2.5)}px`,
     fontWeight: 400,
-    fontSize: '1.125rem',
+    fontSize: scaleCssUnit(theme.typography.body1.fontSize, 1.125),
     color: theme.palette.text.secondary,
     lineHeight: 1.1,
   },
