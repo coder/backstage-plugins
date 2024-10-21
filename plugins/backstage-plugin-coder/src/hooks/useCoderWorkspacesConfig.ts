@@ -1,7 +1,7 @@
 import { useMemo, useState } from 'react';
 
 import {
-  type Output,
+  type InferOutput,
   literal,
   object,
   optional,
@@ -30,7 +30,9 @@ const workspaceCreationModeSchema = optional(
   ),
 );
 
-export type WorkspaceCreationMode = Output<typeof workspaceCreationModeSchema>;
+export type WorkspaceCreationMode = InferOutput<
+  typeof workspaceCreationModeSchema
+>;
 
 // Very loose parsing requirements to make interfacing with various kinds of
 // YAML files as easy as possible
@@ -57,7 +59,7 @@ const yamlConfigSchema = union([
  * repo's catalog-info.yaml file. The entire value will be undefined if a repo
  * does not have the file
  */
-export type YamlConfig = Output<typeof yamlConfigSchema>;
+export type YamlConfig = InferOutput<typeof yamlConfigSchema>;
 
 /**
  * Provides a cleaned and pre-processed version of all repo data that can be
