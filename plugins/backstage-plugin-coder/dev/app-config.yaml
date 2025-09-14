@@ -1,0 +1,36 @@
+app:
+  title: Backstage Example App
+  baseUrl: http://localhost:3000
+
+  extensions:
+    # Redirect from the Home to the Catalog page
+    - 'page:catalog':
+        config:
+          path: '/'
+    # Disable these Catalog plugin extensions
+    - 'entity-card:catalog/has-subcomponents': false
+    - 'entity-card:catalog/depends-on-components': false
+    - 'entity-card:catalog/depends-on-resources': false
+
+    # Defining the Coder provider app config
+    - 'app-root-wrapper:coder':
+        config:
+          appConfig:
+            deployment:
+              accessUrl: 'https://dev.coder.app'
+            workspaces:
+              defaultTemplateName: 'devcontainers'
+              defaultMode: 'manual'
+              repoUrlParamKeys: ['custom_repo', 'repo_url']
+              params:
+                repo: 'custom'
+                region: 'eu-helsinki'
+    # - 'entity-card:coder':
+    #     config:
+    #       defaultQueryFilter: 'owner:guest'
+    #       readEntityData: true
+
+backend:
+  baseUrl: http://localhost:7007
+  listen:
+    port: 7007
