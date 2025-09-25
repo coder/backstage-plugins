@@ -58,7 +58,8 @@ jobs:
         with:
           node-version-file: .node-version
           cache: yarn
-      - run: yarn install --frozen-lockfile
+      - run: '[[ "$(yarn --version)" =~ "1.*" ]] && yarn install --frozen-lockfile || yarn install --immutable'
+        shell: bash
       # The Prettier command is in the root package.json.
       - run: yarn prettier --check plugins/backstage-plugin-${{ matrix.plugin }}
         id: fmt
