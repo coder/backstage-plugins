@@ -13,16 +13,29 @@
     "url": "git+https://github.com/coder/backstage-plugins.git"
   },
   "publishConfig": {
-    "access": "public",
-    "main": "dist/index.esm.js",
-    "types": "dist/index.d.ts"
+    "access": "public"
   },
   "backstage": {
     "role": "frontend-plugin"
   },
+  "exports": {
+    ".": "./src/index.ts",
+    "./alpha": "./src/alpha/index.ts",
+    "./package.json": "./package.json"
+  },
+  "typesVersions": {
+    "*": {
+      "alpha": [
+        "src/alpha/index.ts"
+      ],
+      "package.json": [
+        "package.json"
+      ]
+    }
+  },
   "sideEffects": false,
   "scripts": {
-    "start": "backstage-cli package start",
+    "start": "backstage-cli package start --config ./dev/app-config.yaml",
     "build": "backstage-cli package build",
     "lint": "backstage-cli package lint",
     "test": "backstage-cli package test",
@@ -32,11 +45,13 @@
     "postpack": "backstage-cli package postpack"
   },
   "dependencies": {
-    "@backstage/core-components": "^0.13.10",
-    "@backstage/core-plugin-api": "^1.8.2",
-    "@backstage/integration-react": "^1.1.24",
-    "@backstage/plugin-catalog-react": "^1.10.0",
-    "@backstage/theme": "^0.5.0",
+    "@backstage/core-compat-api": "backstage:^",
+    "@backstage/core-components": "backstage:^",
+    "@backstage/core-plugin-api": "backstage:^",
+    "@backstage/frontend-plugin-api": "backstage:^",
+    "@backstage/integration-react": "backstage:^",
+    "@backstage/plugin-catalog-react": "backstage:^",
+    "@backstage/theme": "backstage:^",
     "@material-ui/core": "^4.12.2",
     "@material-ui/icons": "^4.9.1",
     "@material-ui/lab": "4.0.0-alpha.61",
@@ -52,10 +67,13 @@
     "react-dom": "^16.13.1 || ^17.0.0 || ^18.0.0"
   },
   "devDependencies": {
-    "@backstage/cli": "^0.25.1",
-    "@backstage/core-app-api": "^1.11.3",
-    "@backstage/dev-utils": "^1.0.26",
-    "@backstage/test-utils": "^1.4.7",
+    "@backstage/cli": "backstage:^",
+    "@backstage/core-app-api": "backstage:^",
+    "@backstage/dev-utils": "backstage:^",
+    "@backstage/frontend-defaults": "backstage:^",
+    "@backstage/plugin-app": "backstage:^",
+    "@backstage/plugin-catalog": "backstage:^",
+    "@backstage/test-utils": "backstage:^",
     "@testing-library/jest-dom": "^5.10.1",
     "@testing-library/react": "^14.2.1",
     "@testing-library/user-event": "^14.0.0",
@@ -73,5 +91,8 @@
     "ide",
     "vscode",
     "jetbrains"
-  ]
+  ],
+  "msw": {
+    "workerDirectory": "public"
+  }
 }

@@ -30,5 +30,6 @@ jobs:
         with:
           node-version-file: .node-version
           cache: yarn
-      - run: yarn install --frozen-lockfile
+      - run: '[[ "$(yarn --version)" =~ "1.*" ]] && yarn install --frozen-lockfile || yarn install --immutable'
+        shell: bash
       - run: yarn prettier --check .github

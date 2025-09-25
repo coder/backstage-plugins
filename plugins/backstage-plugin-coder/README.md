@@ -44,6 +44,8 @@ the Dev Container.
            X-Custom-Source: backstage
    ```
 
+### Old Frontend System
+
 3. Add the `CoderProvider` to the application:
 
    ```tsx
@@ -116,6 +118,277 @@ the Dev Container.
      </Grid>
    );
    ```
+
+### New Frontend System
+
+Follow these steps to detect and configure the Coder plugin if you'd like to use it in an application that supports the new Backstage frontend system.
+
+#### Package detection
+
+Once you install the `@coder/backstage-plugin-coder` package using your preferred package manager, you have to choose how the package should be detected by the app. The package can be automatically discovered when the feature discovery config is set, or it can be manually enabled via code (for more granular package customization cases, such as extension overrides).
+
+<table>
+  <tr>
+    <td>Via config</td>
+    <td>Via code</td>
+  </tr>
+  <tr>
+    <td>
+      <pre lang="yaml">
+        <code>
+# app-config.yaml
+  app:
+    # Enable package discovery for all plugins
+    packages: 'all'
+  ---
+  app:
+    # Enable package discovery only for Coder
+    packages:
+      include:
+        - '@coder/backstage-plugin-coder'
+        </code>
+      </pre>
+    </td>
+    <td>
+      <pre lang="javascript">
+       <code>
+// packages/app/src/App.tsx
+import { createApp } from '@backstage/frontend-defaults';
+import coderPlugin from '@coder/backstage-plugin-coder/alpha';
+//...
+const app = createApp({
+  // ...
+  features: [
+    //...
+    coderPlugin,
+  ],
+});
+
+//...
+       </code>
+      </pre>
+    </td>
+  </tr>
+</table>
+
+#### Extension configurations
+
+Currently, the plugin installs 4 extensions: 2 APIs (url sync and client wrapper), 1 App root wrapper (the coder provider), and 1 Entity page card (the overview workspaces card).
+
+To be able to connect to your Coder organization it is mandotory that you set the Coder provider configuration in the `app-config.yaml` file:
+
+```yml
+# app-config.yaml
+app:
+  extensions:
+    # Defining the Coder provider app config
+    - 'app-root-wrapper:coder':
+        config:
+          # (required)
+          appConfig:
+            deployment:
+              # Replace with your Coder deployment access URL
+              accessUrl: 'https://dev.coder.app'
+            # Set the default template (and parameters) for
+            # catalog items. Individual properties can be overridden
+            # by a repo's catalog-info.yaml file
+            workspaces:
+              defaultTemplateName: 'devcontainers'
+              defaultMode: 'manual'
+              # This property defines which parameters in your Coder
+              # workspace templates are used to store repository links
+              repoUrlParamKeys: ['custom_repo', 'repo_url']
+              params:
+                repo: 'custom'
+                region: 'eu-helsinki'
+```
+
+The Coder plugin also installs the `workspaces` card in the Catalog entity overview tab by default. No code is needed to see it on the screen, but there are a few optional customizations that can be set via the `app-config.yaml` file:
+
+```yml
+# app-config.yaml
+app:
+  extensions:
+    - 'entity-card:coder':
+        config:
+          # (optional) determine in which Catalog overview tab area the card will be shown
+          # defaults to "content", but can be changed to "info" or "summary"
+          type: 'summary'
+          # (optional) determines whether to show the card or not
+          # the card is always shown, but you can add a filter for example to show it only for
+          # entities of kind component
+          filter:
+            kind: 'component'
+          # (optional) define a default filter for the workspaces search
+          # defaults to "owner:me"
+          defaultQueryFilter: 'owner:guest'
+          # (optional) whether to read entity metadata from catalog-info.yaml
+          readEntityData: true
+```
+
+#### Extension overrides
+
+If you want to use your own custom version of the Workspaces Card component, override the default Workspaces Card component as follows:
+
+```tsx
+// packages/app/src/plugins/coder/index.tsx
+import React, { useState } from 'react';
+import { compatWrapper } from '@backstage/core-compat-api';
+import coderPlugin from '@coder/backstage-plugin-coder/alpha';
+// ...
+
+export default coderPlugin.withOverrides({
+  extensions: [
+    // Get the default workspaces card and override its component loader
+    coderPlugin.getExtension('entity-card:coder').override({
+      params: {
+        async loader() {
+          const { CoderWorkspacesCard } = await import(
+            '@coder/backstage-plugin-coder'
+          );
+          function Component() {
+            const [searchText, setSearchText] = useState('owner:me');
+            // The "compatWrapper" is needed because CoderWorkspacesCard is still using legacy frontend system utilities
+            // such as the AppContext
+            return compatWrapper(
+              <CoderWorkspacesCard
+                queryFilter={searchText}
+                onFilterChange={newSearchText => setSearchText(newSearchText)}
+              />,
+            );
+          }
+          return <Component />;
+        },
+      },
+    }),
+  ],
+});
+
+// packages/app/src/App.tsx
+// ...
+import coderPluginWithOverrides from './plugins/coder';
+
+// ...
+
+const app = createApp({
+  features: [
+    // ...
+    coderPluginWithOverrides,
+  ],
+});
+```
+
+Additionally, if you don't want a global Coder provider installed and would rather create your own page to view Coder information, here's an example of how you can do that:
+
+```tsx
+// packages/app/src/plugins/coder/index.tsx
+import { PageBlueprint } from '@backstage/frontend-plugin-api';
+import coderPlugin from '@coder/backstage-plugin-coder/alpha';
+// ...
+
+function CustomCoderWorkspacesPage() {
+  // Your page code goes here
+}
+
+// In this case there is no Coder page to override as the Coder plugin do not provide a page extension by default
+// We have to create a brand new page extension
+const customCoderWorspacesPage = PageBlueprint.makeWithOverrides({
+  // You can decide if you want to keep config in the "app-config.yaml" file, or define it in the code instead.
+  // In this example we decided to define a config schema for the page so the config value continue be set in the "app-config.yaml" file
+  config: {
+    schema: {
+      fallbackAuthUiMode: z => z
+        .union([
+          z.literal('restrained'),
+          z.literal('assertive'),
+          z.literal('hidden')
+        ])
+        .optional(),
+      appConfig: z => z.object({
+        deployment: z.object({
+          accessUrl: z.string(),
+        }),
+        workspaces: z.object({
+          defaultMode: z
+            .union([z.literal('manual'), z.literal('auto')])
+            .optional(),
+          defaultTemplateName: z.string().optional(),
+          params: z.record(z.string(), z.string().optional()).optional(),
+          repoUrlParamKeys: z.tuple([z.string()]).rest(z.string()),
+        }),
+      }),
+    }
+  },
+  factory(originalFactory, context) {
+    // Getting the appConfig defined in the "app-config.yaml" file
+    const appConfig = context.config.appConfig;
+    return originalFactory({
+        path: '/coder',
+        async loader() {
+          const { CoderProvider } = await import('@coder/backstage-plugin-coder');
+          // The "compatWrapper" is needed because CoderProvider is still using legacy frontend system utilities
+          return compatWrapper(
+            <CoderProvider appConfig={appConfig}>
+              <CustomCoderWorkspacesPage />
+            </CoderProvider>
+          );
+        }
+    });
+  },
+});
+
+export default coderPlugin.withOverrides({
+  extensions: [
+    customCoderWorspacesPage,
+  ],
+});
+
+// packages/app/src/App.tsx
+import { createApp } from '@backstage/frontend-defaults';
+import coderPluginWithOverrides from './plugins/coder';
+// ...
+
+const app = createApp({
+  features: [
+    // ...
+    coderPluginWithOverrides,
+  ],
+});
+```
+
+Now we just need to update the configs in the `app-config.yaml` file:
+
+```diff
+# app-config.yaml
+app:
+  extensions:
+    # ...
+-   - 'app-root-wrapper:coder':
++   # As the provider extension was disabled, the app config is now passed to the new page extension
++   - 'page:coder':
+        config:
+          # (required)
+          appConfig:
+            deployment:
+              # Replace with your Coder deployment access URL
+              accessUrl: 'https://dev.coder.app'
+            # Set the default template (and parameters) for
+            # catalog items. Individual properties can be overridden
+            # by a repo's catalog-info.yaml file
+            workspaces:
+              defaultTemplateName: 'devcontainers'
+              defaultMode: 'manual'
+              # This property defines which parameters in your Coder
+              # workspace templates are used to store repository links
+              repoUrlParamKeys: ['custom_repo', 'repo_url']
+              params:
+                repo: 'custom'
+                region: 'eu-helsinki'
++   # Disabling the default provider extension as we are not using it anymore 
++   - app-root-wrapper:coder: false
++   # Also disabling the default entity card as we now have a page for it
++   - entity-card:coder: false
+```
 
 ### `catalog-info.yaml` files
 

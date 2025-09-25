@@ -40,7 +40,8 @@ jobs:
         with:
           node-version-file: .node-version
           cache: yarn
-      - run: yarn install --frozen-lockfile
+      - run: '[[ "$(yarn --version)" =~ "1.*" ]] && yarn install --frozen-lockfile || yarn install --immutable'
+        shell: bash
       - run: yarn lint
       - run: yarn test
       # Must run tsc first to generate the .d.ts files.
