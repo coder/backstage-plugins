@@ -5,6 +5,7 @@ import {
 } from '@backstage/plugin-auth-backend';
 import { Router } from 'express';
 import { PluginEnvironment } from '../types';
+import { coder } from '../providers/coder';
 
 export default async function createPlugin(
   env: PluginEnvironment,
@@ -38,6 +39,15 @@ export default async function createPlugin(
       github: providers.github.create({
         signIn: {
           resolver: providers.github.resolvers.usernameMatchingUserEntityName(),
+        },
+      }),
+      
+      // Custom Coder OAuth provider
+      // This allows users to authenticate using their Coder deployment as an OAuth provider
+      // The provider supports multiple resolvers for different user matching strategies
+      coder: coder.create({
+        signIn: {
+          resolver: coder.resolvers.usernameMatchingUserEntityName(),
         },
       }),
     },

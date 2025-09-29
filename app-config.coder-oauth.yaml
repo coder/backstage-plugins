@@ -1,0 +1,42 @@
+# Example configuration for Coder OAuth provider
+# This shows how to configure the Coder OAuth integration in app-config.yaml
+
+auth:
+  providers:
+    # Existing GitHub provider
+    github:
+      development:
+        clientId: ${AUTH_GITHUB_CLIENT_ID}
+        clientSecret: ${AUTH_GITHUB_CLIENT_SECRET}
+    
+    # New Coder OAuth provider configuration
+    coder:
+      # Global client credentials (used for all Coder deployments if no specific config)
+      clientId: ${CODER_OAUTH_CLIENT_ID}
+      clientSecret: ${CODER_OAUTH_CLIENT_SECRET}
+      
+      # Per-deployment configuration (optional)
+      # This allows different OAuth apps for different Coder deployments
+      # dev.coder.example.com:
+      #   clientId: ${DEV_CODER_OAUTH_CLIENT_ID}
+      #   clientSecret: ${DEV_CODER_OAUTH_CLIENT_SECRET}
+      # 
+      # prod.coder.example.com:
+      #   clientId: ${PROD_CODER_OAUTH_CLIENT_ID}
+      #   clientSecret: ${PROD_CODER_OAUTH_CLIENT_SECRET}
+
+# Backend configuration - ensure CORS allows your Coder deployments
+backend:
+  baseUrl: http://localhost:7007
+  cors:
+    origin: 
+      - http://localhost:3000
+      # Add your Coder deployment URLs here
+      # - https://dev.coder.example.com
+      # - https://prod.coder.example.com
+    methods: [GET, HEAD, PATCH, POST, PUT, DELETE]
+    credentials: true
+
+# Frontend configuration
+app:
+  baseUrl: http://localhost:3000
