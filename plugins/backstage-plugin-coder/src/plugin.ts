@@ -1,6 +1,5 @@
 import {
   createPlugin,
-  createRoutableExtension,
   createComponentExtension,
   createApiFactory,
   discoveryApiRef,

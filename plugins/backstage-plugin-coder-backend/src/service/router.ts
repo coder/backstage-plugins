@@ -20,7 +20,7 @@ export async function createRouter(
 
   // OAuth callback endpoint
   router.get('/oauth/callback', async (req, res) => {
-    const { code, state } = req.query;
+    const { code } = req.query;
 
     if (!code || typeof code !== 'string') {
       logger.error('OAuth callback missing authorization code');
