@@ -5,6 +5,13 @@ app:
 organization:
   name: Coder
 
+coder:
+  deployment:
+    accessUrl: https://dev.coder.com
+  oauth:
+    clientId: ${CODER_OAUTH_CLIENT_ID:-backstage}
+    clientSecret: ${CODER_OAUTH_CLIENT_SECRET:-change-me}
+
 backend:
   # Used for enabling authentication, secret is shared by all backend plugins
   # See https://backstage.io/docs/auth/service-to-service-auth for

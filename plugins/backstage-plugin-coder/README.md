@@ -59,6 +59,12 @@ the Dev Container.
        accessUrl: 'https://coder.example.com',
      },
 
+     // Optional: OAuth configuration for "Sign in with Coder" button
+     // Get the clientId from your Coder OAuth2 apps settings
+     oauth: {
+       clientId: 'your-oauth-client-id',
+     },
+
      // Set the default template (and parameters) for
      // catalog items. Individual properties can be overridden
      // by a repo's catalog-info.yaml file

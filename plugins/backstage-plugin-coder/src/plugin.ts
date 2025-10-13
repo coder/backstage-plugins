@@ -1,5 +1,6 @@
 import {
   createPlugin,
+  createRoutableExtension,
   createComponentExtension,
   createApiFactory,
   discoveryApiRef,
@@ -15,7 +16,9 @@ import {
 
 export const coderPlugin = createPlugin({
   id: 'coder',
-  routes: { root: rootRouteRef },
+  routes: {
+    root: rootRouteRef,
+  },
   apis: [
     createApiFactory({
       api: urlSyncApiRef,
@@ -198,7 +201,7 @@ export { useCoderQuery } from './hooks/reactQueryWrappers';
 
 // Deliberately renamed so that end users don't have to be aware that there are
 // two different versions of the auth hook
-export { useEndUserCoderAuth as useCoderAuth } from './components/CoderProvider/CoderAuthProvider';
+export { useEndUserCoderAuth as useCoderAuth } from './components/CoderProvider';
 
 /**
  * General constants

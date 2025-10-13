@@ -136,6 +136,11 @@ const coderAppConfig: CoderAppConfig = {
     accessUrl: 'https://dev.coder.com',
   },
 
+  oauth: {
+    clientId: '09cd00cf-9517-401c-9601-3712f187b53c',
+    backendUrl: 'http://localhost:7007',
+  },
+
   workspaces: {
     defaultTemplateName: 'devcontainers',
     defaultMode: 'manual',

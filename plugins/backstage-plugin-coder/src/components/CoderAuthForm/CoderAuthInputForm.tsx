@@ -1,4 +1,4 @@
-import React, { type FormEvent, useState } from 'react';
+import React, { type FormEvent, useState, useEffect } from 'react';
 import { useId } from '../../hooks/hookPolyfills';
 import {
   type CoderAuthStatus,
@@ -43,6 +43,37 @@ const useStyles = makeStyles(theme => ({
     marginLeft: 'auto',
     marginRight: 'auto',
   },
+
+  oauthSection: {
+    marginTop: theme.spacing(3),
+    marginBottom: theme.spacing(2),
+  },
+
+  oauthButton: {
+    display: 'block',
+    width: '100%',
+    maxWidth: '100%',
+  },
+
+  divider: {
+    display: 'flex',
+    alignItems: 'center',
+    textAlign: 'center',
+    marginTop: theme.spacing(2),
+    marginBottom: theme.spacing(2),
+
+    '&::before, &::after': {
+      content: '""',
+      flex: 1,
+      borderBottom: `1px solid ${theme.palette.divider}`,
+    },
+  },
+
+  dividerText: {
+    padding: `0 ${theme.spacing(1)}px`,
+    color: theme.palette.text.secondary,
+    fontSize: '0.875rem',
+  },
 }));
 
 export const CoderAuthInputForm = () => {
@@ -51,6 +82,28 @@ export const CoderAuthInputForm = () => {
   const appConfig = useCoderAppConfig();
   const { status, registerNewToken } = useInternalCoderAuth();
 
+  useEffect(() => {
+    const handleOAuthMessage = (event: MessageEvent) => {
+      // Verify the message is from our OAuth callback backend
+      const backendUrl = appConfig.oauth?.backendUrl;
+
+      // If backendUrl is configured, verify the origin matches
+      if (backendUrl) {
+        const backendOrigin = new URL(backendUrl).origin;
+        if (event.origin !== backendOrigin) {
+          return;
+        }
+      }
+
+      if (event.data?.type === 'coder-oauth-success' && event.data?.token) {
+        registerNewToken(event.data.token);
+      }
+    };
+
+    window.addEventListener('message', handleOAuthMessage);
+    return () => window.removeEventListener('message', handleOAuthMessage);
+  }, [registerNewToken, appConfig.oauth?.backendUrl]);
+
   const onSubmit = (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     const formData = Object.fromEntries(new FormData(event.currentTarget));
@@ -58,6 +111,32 @@ export const CoderAuthInputForm = () => {
       typeof formData.authToken === 'string' ? formData.authToken : '';
 
     registerNewToken(newToken);
+  };
+
+  const handleOAuthLogin = () => {
+    const authUrl = `${appConfig.deployment.accessUrl}/oauth2/authorize`;
+    const clientId = appConfig.oauth?.clientId || 'backstage';
+    const backendUrl =
+      appConfig.oauth?.backendUrl ||
+      `${window.location.protocol}//${window.location.hostname}:7007`;
+    const redirectUri = `${backendUrl}/api/auth/coder/oauth/callback`;
+    const state = btoa(JSON.stringify({ returnTo: window.location.pathname }));
+
+    const oauthUrl = `${authUrl}?client_id=${clientId}&redirect_uri=${encodeURIComponent(
+      redirectUri,
+    )}&response_type=code&state=${state}`;
+
+    // Open OAuth flow in popup window
+    const width = 600;
+    const height = 700;
+    const left = window.screen.width / 2 - width / 2;
+    const top = window.screen.height / 2 - height / 2;
+
+    window.open(
+      oauthUrl,
+      'Coder OAuth',
+      `width=${width},height=${height},left=${left},top=${top},popup=yes`,
+    );
   };
 
   const formHeaderId = `${hookId}-form-header`;
@@ -77,19 +156,36 @@ export const CoderAuthInputForm = () => {
 
       <div>
         <CoderLogo className={styles.coderLogo} />
-        <p>
-          Link your Coder account to create remote workspaces. Please enter a
-          new token from your{' '}
-          <Link
-            to={`${appConfig.deployment.accessUrl}/cli-auth`}
-            target="_blank"
-          >
-            Coder deployment's token page
-            <VisuallyHidden> (link opens in new tab)</VisuallyHidden>
-          </Link>
-          .
-        </p>
+        <p>Link your Coder account to create remote workspaces.</p>
       </div>
+
+      <div className={styles.oauthSection}>
+        <LinkButton
+          disableRipple
+          to=""
+          component="button"
+          type="button"
+          color="primary"
+          variant="contained"
+          className={styles.oauthButton}
+          onClick={handleOAuthLogin}
+        >
+          Sign in with Coder
+        </LinkButton>
+      </div>
+
+      <div className={styles.divider}>
+        <span className={styles.dividerText}>OR</span>
+      </div>
+
+      <p>
+        Alternatively, enter a token from your{' '}
+        <Link to={`${appConfig.deployment.accessUrl}/cli-auth`} target="_blank">
+          Coder deployment's token page
+          <VisuallyHidden> (link opens in new tab)</VisuallyHidden>
+        </Link>
+        .
+      </p>
 
       <fieldset className={styles.authInputFieldset} aria-labelledby={legendId}>
         <legend hidden id={legendId}>
