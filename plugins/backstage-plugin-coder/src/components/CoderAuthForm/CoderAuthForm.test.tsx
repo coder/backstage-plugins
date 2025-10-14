@@ -1,15 +1,13 @@
 import React from 'react';
 import { screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { CoderProviderWithMockAuth } from '../../testHelpers/setup';
+import { renderInCoderEnvironment } from '../../testHelpers/setup';
 import type { CoderAuth, CoderAuthStatus } from '../CoderProvider';
 import {
-  mockAppConfig,
   mockAuthStates,
   mockCoderAuthToken,
 } from '../../testHelpers/mockBackstageData';
 import { CoderAuthForm } from './CoderAuthForm';
-import { renderInTestApp } from '@backstage/test-utils';
 
 type RenderInputs = Readonly<{
   authStatus: CoderAuthStatus;
@@ -34,11 +32,10 @@ async function renderAuthWrapper({ authStatus }: RenderInputs) {
    * migration to React 18. Need to figure out where this issue is coming from,
    * and open an issue upstream if necessary
    */
-  const renderOutput = await renderInTestApp(
-    <CoderProviderWithMockAuth appConfig={mockAppConfig} auth={auth}>
-      <CoderAuthForm />
-    </CoderProviderWithMockAuth>,
-  );
+  const renderOutput = await renderInCoderEnvironment({
+    children: <CoderAuthForm />,
+    auth: auth,
+  });
 
   return { ...renderOutput, unlinkToken, registerNewToken };
 }
@@ -103,7 +100,7 @@ describe(`${CoderAuthForm.name}`, () => {
       }
     });
 
-    it('Lets the user submit a new token', async () => {
+    it('Lets the user submit a new access token', async () => {
       const { registerNewToken } = await renderAuthWrapper({
         authStatus: 'tokenMissing',
       });
@@ -117,7 +114,7 @@ describe(`${CoderAuthForm.name}`, () => {
        *    have to use a regex selector
        */
       const inputField = screen.getByLabelText(/Auth token/);
-      const submitButton = screen.getByRole('button', { name: 'Authenticate' });
+      const submitButton = screen.getByRole('button', { name: 'Use token' });
 
       const user = userEvent.setup();
       await user.click(inputField);

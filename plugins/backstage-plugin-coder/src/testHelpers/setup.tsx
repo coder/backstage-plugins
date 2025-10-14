@@ -6,10 +6,11 @@ import {
   renderHook,
   waitFor,
   render,
+  RenderResult,
 } from '@testing-library/react';
 /* eslint-enable @backstage/no-undeclared-imports */
 
-import React from 'react';
+import React, { ReactElement, ReactNode } from 'react';
 import {
   type QueryClientConfig,
   QueryClient,
@@ -204,29 +205,37 @@ export async function renderInCoderEnvironment({
   entity = mockEntity,
   queryClient = getMockQueryClient(),
   appConfig = mockAppConfig,
-}: RenderInCoderEnvironmentInputs) {
-  const mainMarkup = (
-    <TestApiProvider apis={getMockApiList()}>
-      <EntityProvider entity={entity}>
-        <CoderProviderWithMockAuth
-          appConfig={appConfig}
-          auth={auth}
-          queryClient={queryClient}
-        >
-          {children}
-        </CoderProviderWithMockAuth>
-      </EntityProvider>
-    </TestApiProvider>
-  );
+}: RenderInCoderEnvironmentInputs): Promise<RenderResult> {
+  const apiList = getMockApiList();
+  const addDependencies = (node: ReactNode): ReactElement => {
+    return wrapInTestApp(
+      <TestApiProvider apis={apiList}>
+        <EntityProvider entity={entity}>
+          <CoderProviderWithMockAuth
+            appConfig={appConfig}
+            auth={auth}
+            queryClient={queryClient}
+          >
+            {node}
+          </CoderProviderWithMockAuth>
+        </EntityProvider>
+      </TestApiProvider>,
+    );
+  };
 
-  const wrapped = wrapInTestApp(mainMarkup) as unknown as typeof mainMarkup;
-  const renderOutput = render(wrapped);
-  const loadingIndicator = renderOutput.container.querySelector(
+  const { rerender, ...renderHelpers } = render(addDependencies(children));
+  const loadingIndicator = renderHelpers.container.querySelector(
     'div[data-testid="progress"]',
   );
 
   await waitFor(() => expect(loadingIndicator).not.toBeInTheDocument());
-  return renderOutput;
+
+  return {
+    ...renderHelpers,
+    rerender: newNode => {
+      rerender(addDependencies(newNode));
+    },
+  };
 }
 
 type InvertedPromiseResult<TData = unknown, TError = Error> = Readonly<{
