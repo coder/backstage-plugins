@@ -159,17 +159,15 @@ export const CoderAuthInputForm = () => {
       state: btoa(JSON.stringify({ returnTo: window.location.pathname })),
       response_type: 'code',
       client_id: clientId,
-      redirect_uri: encodeURIComponent(
-        `${backendUrl}/api/auth/coder/oauth/callback`,
-      ),
+      redirect_uri: `${backendUrl}/api/auth/coder/oauth/callback`,
     });
 
     const oauthUrl = `${
       appConfig.deployment.accessUrl
     }/oauth2/authorize?${params.toString()}`;
 
-    const width = 600;
-    const height = 700;
+    const width = 800;
+    const height = 800;
     const left = window.screen.width / 2 - width / 2;
     const top = window.screen.height / 2 - height / 2;
 
