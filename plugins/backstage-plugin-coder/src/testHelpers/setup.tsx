@@ -10,7 +10,7 @@ import {
 } from '@testing-library/react';
 /* eslint-enable @backstage/no-undeclared-imports */
 
-import React, { ReactElement, ReactNode } from 'react';
+import React, { type ReactElement, type ReactNode } from 'react';
 import {
   type QueryClientConfig,
   QueryClient,
@@ -31,7 +31,7 @@ import {
   mockAppConfig,
   mockEntity,
   mockAuthStates,
-  BackstageEntity,
+  type BackstageEntity,
   getMockApiList,
 } from './mockBackstageData';
 import { CoderErrorBoundary } from '../plugin';
@@ -232,8 +232,8 @@ export async function renderInCoderEnvironment({
 
   return {
     ...renderHelpers,
-    rerender: newNode => {
-      rerender(addDependencies(newNode));
+    rerender: newChildren => {
+      rerender(addDependencies(newChildren));
     },
   };
 }
