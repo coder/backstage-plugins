@@ -1,13 +1,9 @@
 import React from 'react';
 import { screen } from '@testing-library/react';
-import { CoderProviderWithMockAuth } from '../../testHelpers/setup';
+import { renderInCoderEnvironment } from '../../testHelpers/setup';
 import type { CoderAuthStatus } from '../CoderProvider';
-import {
-  mockAppConfig,
-  mockAuthStates,
-} from '../../testHelpers/mockBackstageData';
+import { mockAuthStates } from '../../testHelpers/mockBackstageData';
 import { CoderAuthFormCardWrapper } from './CoderAuthFormCardWrapper';
-import { renderInTestApp } from '@backstage/test-utils';
 
 type RenderInputs = Readonly<{
   authStatus: CoderAuthStatus;
@@ -18,16 +14,14 @@ async function renderAuthWrapper({
   authStatus,
   childButtonText,
 }: RenderInputs) {
-  return renderInTestApp(
-    <CoderProviderWithMockAuth
-      appConfig={mockAppConfig}
-      auth={mockAuthStates[authStatus]}
-    >
+  return renderInCoderEnvironment({
+    children: (
       <CoderAuthFormCardWrapper>
         <button>{childButtonText}</button>
       </CoderAuthFormCardWrapper>
-    </CoderProviderWithMockAuth>,
-  );
+    ),
+    auth: mockAuthStates[authStatus],
+  });
 }
 
 describe(`${CoderAuthFormCardWrapper.name}`, () => {
@@ -91,14 +85,9 @@ describe(`${CoderAuthFormCardWrapper.name}`, () => {
     const button = await screen.findByRole('button', { name: buttonText });
 
     rerender(
-      <CoderProviderWithMockAuth
-        appConfig={mockAppConfig}
-        authStatus="distrusted"
-      >
-        <CoderAuthFormCardWrapper>
-          <button>{buttonText}</button>
-        </CoderAuthFormCardWrapper>
-      </CoderProviderWithMockAuth>,
+      <CoderAuthFormCardWrapper>
+        <button>{buttonText}</button>
+      </CoderAuthFormCardWrapper>,
     );
 
     // Assert that the button is gone after the re-render flushes

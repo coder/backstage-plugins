@@ -10,11 +10,6 @@ export type CoderAppConfig = Readonly<{
     accessUrl: string;
   }>;
 
-  oauth?: Readonly<{
-    clientId?: string;
-    backendUrl?: string;
-  }>;
-
   // Type is meant to be used with YamlConfig from useCoderWorkspacesConfig;
   // not using a mapped type because there's just enough differences that
   // maintaining a relationship that way would be a nightmare of ternaries

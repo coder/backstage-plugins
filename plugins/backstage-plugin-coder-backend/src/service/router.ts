@@ -3,7 +3,7 @@ import { Config } from '@backstage/config';
 import express from 'express';
 import Router from 'express-promise-router';
 import { Logger } from 'winston';
-import axios from 'axios';
+import axios, { type AxiosResponse } from 'axios';
 
 export interface RouterOptions {
   logger: Logger;
@@ -28,19 +28,18 @@ export async function createRouter(
       return;
     }
 
+    const coderConfig = config.getOptionalConfig('coder');
+    const accessUrl = coderConfig?.getString('deployment.accessUrl') || '';
+    const clientId = coderConfig?.getString('oauth.clientId') || '';
+    const clientSecret = coderConfig?.getString('oauth.clientSecret') || '';
+    const redirectUri = `${req.protocol}://${req.get(
+      'host',
+    )}/api/auth/coder/oauth/callback`;
+
+    let tokenResponse: AxiosResponse<{ access_token?: string }, unknown>;
     try {
-      // Get Coder configuration from coder.oauth
-      const coderConfig = config.getOptionalConfig('coder');
-
-      const accessUrl = coderConfig?.getString('deployment.accessUrl') || '';
-      const clientId = coderConfig?.getString('oauth.clientId') || 'backstage';
-      const clientSecret = coderConfig?.getString('oauth.clientSecret') || '';
-      const redirectUri = `${req.protocol}://${req.get(
-        'host',
-      )}/api/auth/coder/oauth/callback`;
-
       // Exchange authorization code for access token
-      const tokenResponse = await axios.post(
+      tokenResponse = await axios.post(
         `${accessUrl}/oauth2/tokens`,
         new URLSearchParams({
           grant_type: 'authorization_code',
@@ -55,12 +54,40 @@ export async function createRouter(
           },
         },
       );
+    } catch (error) {
+      logger.error('OAuth token exchange failed', error);
+      res
+        .status(500)
+        .send(
+          `<html><body><h1>Authentication failed</h1><p>${
+            error instanceof Error ? error.message : 'Unknown error'
+          }</p></body></html>`,
+        );
+      return;
+    }
 
-      const { access_token } = tokenResponse.data;
+    const { access_token } = tokenResponse.data;
+    if (!access_token) {
+      const message = 'Coder deployment did not respond with access token';
+      logger.error(message);
+      res.status(502).send(
+        `<!DOCTYPE html>
+          <html>
+           <head>
+            <title>Authentication Failed</title>
+          </head>
+          <body>
+            <h1>Authentication failed</h1>
+            <p>${message}</p>
+          </body>
+          </html>`,
+      );
+      return;
+    }
 
-      // Return HTML that sends the token to the opener window via postMessage
-      res.setHeader('Content-Security-Policy', "script-src 'unsafe-inline'");
-      res.send(`
+    // Return HTML that sends the token to the opener window via postMessage
+    res.setHeader('Content-Security-Policy', "script-src 'unsafe-inline'");
+    res.send(`
         <!DOCTYPE html>
         <html>
           <head>
@@ -96,19 +123,7 @@ export async function createRouter(
         </html>
       `);
 
-      logger.info('OAuth authentication successful');
-      return;
-    } catch (error) {
-      logger.error('OAuth token exchange failed', error);
-      res
-        .status(500)
-        .send(
-          `<html><body><h1>Authentication failed</h1><p>${
-            error instanceof Error ? error.message : 'Unknown error'
-          }</p></body></html>`,
-        );
-      return;
-    }
+    logger.info('OAuth authentication successful');
   });
 
   router.get('/health', (_, response) => {
