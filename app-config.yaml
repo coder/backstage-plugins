@@ -5,6 +5,13 @@ app:
 organization:
   name: Coder
 
+coder:
+  deployment:
+    accessUrl: https://dev.coder.com
+  oauth:
+    clientId: ${CODER_OAUTH_CLIENT_ID:-backstage}
+    clientSecret: ${CODER_OAUTH_CLIENT_SECRET:-change-me}
+
 backend:
   # Used for enabling authentication, secret is shared by all backend plugins
   # See https://backstage.io/docs/auth/service-to-service-auth for
@@ -15,8 +22,7 @@ backend:
   baseUrl: http://localhost:7007
   listen:
     port: 7007
-    # Uncomment the following host directive to bind to specific interfaces
-    # host: 127.0.0.1
+    host: localhost
   csp:
     connect-src: ["'self'", 'http:', 'https:']
     # Content-Security-Policy directives follow the Helmet format: https://helmetjs.github.io/#reference

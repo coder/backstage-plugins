@@ -2,3 +2,5 @@ dist
 dist-types
 coverage
 .vscode
+.coder.yaml
+app-config.local.yaml

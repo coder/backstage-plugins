@@ -1,11 +1,10 @@
-import React, { type FormEvent, useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useId } from '../../hooks/hookPolyfills';
 import {
   type CoderAuthStatus,
   useCoderAppConfig,
   useInternalCoderAuth,
 } from '../CoderProvider';
-
 import { CoderLogo } from '../CoderLogo';
 import { Link, LinkButton } from '@backstage/core-components';
 import { VisuallyHidden } from '../VisuallyHidden';
@@ -13,6 +12,8 @@ import { makeStyles } from '@material-ui/core';
 import TextField from '@material-ui/core/TextField';
 import ErrorIcon from '@material-ui/icons/ErrorOutline';
 import SyncIcon from '@material-ui/icons/Sync';
+import { configApiRef, errorApiRef, useApi } from '@backstage/core-plugin-api';
+import { useUrlSync } from '../../hooks/useUrlSync';
 
 const useStyles = makeStyles(theme => ({
   formContainer: {
@@ -43,21 +44,138 @@ const useStyles = makeStyles(theme => ({
     marginLeft: 'auto',
     marginRight: 'auto',
   },
+
+  oauthSection: {
+    paddingTop: theme.spacing(0.5),
+    paddingBottom: theme.spacing(0.5),
+  },
+
+  oauthButton: {
+    display: 'block',
+    // Deliberately making this button bigger than the token button, because we
+    // want to start pushing users to use oauth as the default. The old token
+    // approach may end up getting deprecated
+    width: '100%',
+  },
+
+  divider: {
+    display: 'flex',
+    alignItems: 'center',
+    textAlign: 'center',
+    paddingTop: theme.spacing(2),
+    paddingBottom: theme.spacing(0.5),
+
+    '&::before, &::after': {
+      content: '""',
+      flexGrow: 1,
+      borderBottom: `1px solid ${theme.palette.divider}`,
+    },
+  },
+
+  dividerText: {
+    textTransform: 'uppercase',
+    padding: `0 ${theme.spacing(1)}px`,
+    color: theme.palette.text.secondary,
+    fontSize: '0.75rem',
+    fontWeight: 500,
+  },
+
+  tokenSection: {
+    paddingTop: `${theme.spacing(1.5)}px`,
+  },
+
+  tokenInstructions: {
+    margin: 0,
+    marginBottom: `-${theme.spacing(0.5)}px`,
+  },
 }));
 
 export const CoderAuthInputForm = () => {
   const hookId = useId();
   const styles = useStyles();
   const appConfig = useCoderAppConfig();
+  const urlSync = useUrlSync();
+  const configApi = useApi(configApiRef);
+  const errorApi = useApi(errorApiRef);
   const { status, registerNewToken } = useInternalCoderAuth();
 
-  const onSubmit = (event: FormEvent<HTMLFormElement>) => {
-    event.preventDefault();
-    const formData = Object.fromEntries(new FormData(event.currentTarget));
-    const newToken =
-      typeof formData.authToken === 'string' ? formData.authToken : '';
+  const backendUrl = urlSync.state.baseUrl;
+  useEffect(() => {
+    if (!backendUrl) {
+      return undefined;
+    }
 
-    registerNewToken(newToken);
+    const onOauthMessage = (event: MessageEvent<unknown>): void => {
+      // Even though we're going to add the event listener to the window object
+      // directly, we still want to make sure that the event originated on the
+      // window, and wasn't received from a DOM node via event bubbling
+      if (event.target !== window) {
+        return;
+      }
+
+      const backendOrigin = new URL(backendUrl).origin;
+      const originMismatch = event.origin !== backendOrigin;
+      if (originMismatch) {
+        return;
+      }
+
+      const { data } = event;
+      const messageIsOauthPayload =
+        typeof data === 'object' && data !== null && 'token' in data;
+      if (!messageIsOauthPayload) {
+        return;
+      }
+      // For some reason, TypeScript won't narrow properly if you move this
+      // check to the messageIsOauthPayload boolean
+      if (typeof data.token === 'string') {
+        registerNewToken(data.token);
+      }
+    };
+
+    window.addEventListener('message', onOauthMessage);
+    return () => window.removeEventListener('message', onOauthMessage);
+  }, [registerNewToken, backendUrl]);
+
+  const handleOAuthLogin = () => {
+    const clientId = configApi.getOptionalString('coder.oauth.clientId');
+    if (!clientId) {
+      errorApi.post(
+        {
+          name: 'Coder oauth clientId is missing',
+          message:
+            'Please see plugin documentation for how to add clientId to your Backstage deployment',
+        },
+        { hidden: false },
+      );
+      return;
+    }
+
+    const params = new URLSearchParams({
+      /**
+       * @todo See what we can do to move the state calculations to the backend.
+       * The state should actually be cryptographically generated and should
+       * have a high number of bits of entropy, too.
+       */
+      state: btoa(JSON.stringify({ returnTo: window.location.pathname })),
+      response_type: 'code',
+      client_id: clientId,
+      redirect_uri: `${backendUrl}/api/auth/coder/oauth/callback`,
+    });
+
+    const oauthUrl = `${
+      appConfig.deployment.accessUrl
+    }/oauth2/authorize?${params.toString()}`;
+
+    const width = 800;
+    const height = 800;
+    const left = window.screen.width / 2 - width / 2;
+    const top = window.screen.height / 2 - height / 2;
+
+    window.open(
+      oauthUrl,
+      'Coder OAuth',
+      `width=${width},height=${height},left=${left},top=${top},popup=yes`,
+    );
   };
 
   const formHeaderId = `${hookId}-form-header`;
@@ -69,7 +187,14 @@ export const CoderAuthInputForm = () => {
     <form
       aria-labelledby={formHeaderId}
       className={styles.formContainer}
-      onSubmit={onSubmit}
+      onSubmit={event => {
+        event.preventDefault();
+        const formData = Object.fromEntries(new FormData(event.currentTarget));
+        const newToken =
+          typeof formData.authToken === 'string' ? formData.authToken : '';
+
+        registerNewToken(newToken);
+      }}
     >
       <h3 hidden id={formHeaderId}>
         Authenticate with Coder
@@ -77,9 +202,31 @@ export const CoderAuthInputForm = () => {
 
       <div>
         <CoderLogo className={styles.coderLogo} />
-        <p>
-          Link your Coder account to create remote workspaces. Please enter a
-          new token from your{' '}
+        <p>Link your Coder account to create remote workspaces.</p>
+      </div>
+
+      <div className={styles.oauthSection}>
+        <LinkButton
+          disableRipple
+          to=""
+          component="button"
+          type="button"
+          color="primary"
+          variant="contained"
+          className={styles.oauthButton}
+          onClick={handleOAuthLogin}
+        >
+          Sign in with Coder OAuth
+        </LinkButton>
+      </div>
+
+      <div className={styles.divider}>
+        <span className={styles.dividerText}>or</span>
+      </div>
+
+      <div className={styles.tokenSection}>
+        <p className={styles.tokenInstructions}>
+          Enter a token from your{' '}
           <Link
             to={`${appConfig.deployment.accessUrl}/cli-auth`}
             target="_blank"
@@ -89,41 +236,44 @@ export const CoderAuthInputForm = () => {
           </Link>
           .
         </p>
-      </div>
 
-      <fieldset className={styles.authInputFieldset} aria-labelledby={legendId}>
-        <legend hidden id={legendId}>
-          Auth input
-        </legend>
-
-        <TextField
-          // Adding the label prop directly to the TextField will place a label
-          // in the HTML, so sighted users are fine. But for some reason, it
-          // won't connect the label and input together, which breaks
-          // accessibility for screen readers. Need to wire up extra IDs, sadly.
-          label="Auth token"
-          InputLabelProps={{ htmlFor: authTokenInputId }}
-          InputProps={{ id: authTokenInputId }}
-          required
-          name="authToken"
-          type="password"
-          defaultValue=""
-          aria-errormessage={warningBannerId}
-          style={{ width: '100%' }}
-        />
-
-        <LinkButton
-          disableRipple
-          to=""
-          component="button"
-          type="submit"
-          color="primary"
-          variant="contained"
-          className={styles.authButton}
+        <fieldset
+          className={styles.authInputFieldset}
+          aria-labelledby={legendId}
         >
-          Authenticate
-        </LinkButton>
-      </fieldset>
+          <legend hidden id={legendId}>
+            Auth input
+          </legend>
+
+          <TextField
+            // Adding the label prop directly to the TextField will place a label
+            // in the HTML, so sighted users are fine. But for some reason, it
+            // won't connect the label and input together, which breaks
+            // accessibility for screen readers. Need to wire up extra IDs, sadly.
+            label="Auth token"
+            InputLabelProps={{ htmlFor: authTokenInputId }}
+            InputProps={{ id: authTokenInputId }}
+            required
+            name="authToken"
+            type="password"
+            defaultValue=""
+            aria-errormessage={warningBannerId}
+            style={{ width: '100%' }}
+          />
+
+          <LinkButton
+            disableRipple
+            to=""
+            component="button"
+            type="submit"
+            color="primary"
+            variant="contained"
+            className={styles.authButton}
+          >
+            Use token
+          </LinkButton>
+        </fieldset>
+      </div>
 
       {(status === 'invalid' || status === 'authenticating') && (
         <InvalidStatusNotifier authStatus={status} bannerId={warningBannerId} />

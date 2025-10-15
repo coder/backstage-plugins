@@ -38,7 +38,8 @@ the Dev Container.
          target: 'https://coder.example.com/'
 
          changeOrigin: true
-         allowedMethods: ['GET'] # Additional methods will be supported soon!
+         # Add methods based on what API calls you need
+         allowedMethods: ['GET', 'POST']
          allowedHeaders: ['Authorization', 'Coder-Session-Token']
          headers:
            X-Custom-Source: backstage
@@ -116,6 +117,29 @@ the Dev Container.
      </Grid>
    );
    ```
+
+### Adding support for OAuth2
+
+> [!IMPORTANT]
+> Support for OAuth2 requires that you also install the `backstage-plugin-coder-backend` package through NPM. [You can find its README here](../backstage-plugin-coder-backend/README.md). These instrutions assume that you will be installing this plugin before that one.
+
+1. Register Backstage as an OAuth application. [See the instructions in Coder's documentation for more information](https://coder.com/docs/admin/integrations/oauth2-provider).
+2. Add the following values to one of your `app-config.yaml` files:
+   ```yaml
+   coder:
+     deployment:
+       # Change the value to match your Coder deployment
+       accessUrl: https://dev.coder.com
+     oauth:
+       clientId: oauth2-client-id-goes-here
+       # The client secret isn't used by the frontend plugin, but the backend
+       # plugin needs it for oauth functionality to work
+       clientSecret: oauth2-secret-goes-here
+   ```
+
+(Once the values have been added, you may need to restart the Backstage server for the new values to be recognized.)
+
+Only the Client ID is exposed in the frontend application (and is used to generate OAuth2 consent links). The client secret stays exclusively on the server.
 
 ### `catalog-info.yaml` files
 

@@ -37,6 +37,7 @@
     "@backstage/plugin-search-backend-module-techdocs": "^0.1.13",
     "@backstage/plugin-search-backend-node": "^1.2.13",
     "@backstage/plugin-techdocs-backend": "^1.9.2",
+    "@coder/backstage-plugin-coder-backend": "0.0.0",
     "@coder/backstage-plugin-devcontainers-backend": "0.0.0",
     "app": "link:../app",
     "better-sqlite3": "^9.0.0",

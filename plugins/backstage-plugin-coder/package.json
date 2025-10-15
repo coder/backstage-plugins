@@ -63,7 +63,8 @@
     "msw": "^1.0.0"
   },
   "files": [
-    "dist"
+    "dist",
+    "config.d.ts"
   ],
   "keywords": [
     "backstage",
@@ -73,5 +74,6 @@
     "ide",
     "vscode",
     "jetbrains"
-  ]
+  ],
+  "configSchema": "config.d.ts"
 }

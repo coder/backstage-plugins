@@ -6,8 +6,8 @@
     "node": "18 || 20"
   },
   "scripts": {
-    "dev": "concurrently \"yarn dev-init\" \"yarn start\" \"yarn start-backend\"",
-    "dev-init": "/bin/bash ./scripts/dev-init.sh",
+    "dev": "yarn dev-init && concurrently --names \"react,backend\" -c \"green,blue\" \"yarn start\" \"yarn start-backend\"",
+    "dev-init": "./scripts/dev-init.sh",
     "start": "yarn workspace app start",
     "start-backend": "yarn workspace backend start",
     "build:backend": "yarn workspace backend build",
@@ -55,5 +55,6 @@
     "*.{json,md}": [
       "prettier --write"
     ]
-  }
+  },
+  "packageManager": "yarn@1.22.22+sha512.a6b2f7906b721bba3d67d4aff083df04dad64c399707841b7acf00f6b133b7ac24255f2652fa22ae3534329dc6180534e98d17432037ff6fd140556e2bb3137e"
 }
