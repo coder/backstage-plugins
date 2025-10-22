@@ -27,10 +27,10 @@
     "@backstage/config": "^1.1.1",
     "@backstage/errors": "^1.2.3",
     "@types/express": "*",
+    "axios": "^1.6.8",
     "express": "^4.17.1",
     "express-promise-router": "^4.1.0",
-    "winston": "^3.2.1",
-    "axios": "^1.6.8"
+    "winston": "^3.2.1"
   },
   "devDependencies": {
     "@backstage/cli": "^0.25.1",
