@@ -93,8 +93,11 @@ backend.add(import('@backstage/plugin-auth-backend-module-github-provider'));
 /**
  * @todo Need to convert the backstage-plugin-coder-backend plugin to use the
  * New Backend System, as well.
+ *
  * This was the old setup:
  * ```
+ * import { createRouter as createCoderRouter } from '@coder/backstage-plugin-coder-backend';
+ *
  * // module comes from the Node.js global namespace
  * const coderEnv = useHotMemoize(module, () => createEnv('coder'));
  * apiRouter.use(
@@ -106,5 +109,6 @@ backend.add(import('@backstage/plugin-auth-backend-module-github-provider'));
  * );
  * ```
  */
+// backend.add(import('@coder/backstage-plugin-coder-backend'));
 
 backend.start();
