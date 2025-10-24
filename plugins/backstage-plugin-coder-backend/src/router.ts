@@ -1,14 +1,14 @@
 import { errorHandler } from '@backstage/backend-common';
-import { Config } from '@backstage/config';
+import type { Config } from '@backstage/config';
 import express from 'express';
 import Router from 'express-promise-router';
-import { Logger } from 'winston';
+import type { LoggerService } from '@backstage/backend-plugin-api';
 import axios, { type AxiosResponse } from 'axios';
 
-export interface RouterOptions {
-  logger: Logger;
+type RouterOptions = Readonly<{
+  logger: LoggerService;
   config: Config;
-}
+}>;
 
 export async function createRouter(
   options: RouterOptions,
@@ -54,14 +54,17 @@ export async function createRouter(
           },
         },
       );
-    } catch (error) {
-      logger.error('OAuth token exchange failed', error);
+    } catch (err) {
+      let errMessage = 'Unknown error';
+      if (err instanceof Error) {
+        logger.error('OAuth token exchange failed', err);
+        errMessage = err.message;
+      }
+
       res
         .status(500)
         .send(
-          `<html><body><h1>Authentication failed</h1><p>${
-            error instanceof Error ? error.message : 'Unknown error'
-          }</p></body></html>`,
+          `<html><body><h1>Authentication failed</h1><p>${errMessage}</p></body></html>`,
         );
       return;
     }
