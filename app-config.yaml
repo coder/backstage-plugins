@@ -125,7 +125,7 @@ catalog:
   providers:
     github:
       coderDemoAppConfiguration:
-        organzation: coder
+        organization: coder
         schedule:
           frequency:
             minutes: 60
