@@ -13,7 +13,10 @@ type RouterOptions = Readonly<{
 export async function createRouter(
   options: RouterOptions,
 ): Promise<express.Router> {
-  const { logger, config } = options;
+  const { logger: parentLogger, config } = options;
+  const logger = parentLogger.child({
+    service: 'backstage-plugin-coder-backend',
+  });
 
   const router = Router();
   router.use(express.json());
