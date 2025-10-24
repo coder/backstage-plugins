@@ -31,6 +31,12 @@
       "plugins/*"
     ]
   },
+  "dependencies": {
+    "zod": "^4.1.12"
+  },
+  "dependenciesComents": {
+    "zod--2025-10-24": "Not used directly, but needed for the zod-validation-error override"
+  },
   "devDependencies": {
     "@backstage/cli": "backstage:^",
     "@backstage/e2e-test-utils": "backstage:^",
@@ -48,7 +54,7 @@
     "zod-validation-error": "3.5.2"
   },
   "resolutionsComments": {
-    "zod-validation-error--2025-10-24": "This library accidentally pushed a breaking change on version 3.5.3, which broke internal Backstage packages when trying to install new dependencies (it uses ^3.4.0). Waiting to see if they'll publish a 3.5.4 to revert the change."
+    "zod-validation-error--2025-10-24": "This library pushed a breaking change on version 3.5.3, which broke internal Backstage packages when trying to install new dependencies (it uses ^3.4.0). Waiting to see if they'll publish a 3.5.4 to revert the change."
   },
   "prettier": "@spotify/prettier-config",
   "lint-staged": {
@@ -60,8 +66,5 @@
       "prettier --write"
     ]
   },
-  "packageManager": "yarn@4.9.4",
-  "dependencies": {
-    "zod": "^4.1.12"
-  }
+  "packageManager": "yarn@4.9.4"
 }
