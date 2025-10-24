@@ -2751,7 +2751,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@backstage/backend-tasks@npm:^0.5.14, @backstage/backend-tasks@npm:^0.5.17, @backstage/backend-tasks@npm:^0.5.21":
+"@backstage/backend-tasks@npm:^0.5.17, @backstage/backend-tasks@npm:^0.5.21":
   version: 0.5.21
   resolution: "@backstage/backend-tasks@npm:0.5.21"
   dependencies:
@@ -17745,8 +17745,6 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "backend@workspace:packages/backend"
   dependencies:
-    "@backstage/backend-common": "npm:^0.20.1"
-    "@backstage/backend-tasks": "npm:^0.5.14"
     "@backstage/catalog-client": "backstage:^"
     "@backstage/catalog-model": "backstage:^"
     "@backstage/cli": "backstage:^"
