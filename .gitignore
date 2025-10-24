@@ -19,7 +19,7 @@ node_modules/
 .pnp.*
 .yarn/*
 # This is skipped because we specify the Yarn version in the root package.json
-.yarn/releases
+!.yarn/releases
 !.yarn/patches
 !.yarn/plugins
 !.yarn/sdks
