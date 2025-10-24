@@ -79,6 +79,8 @@ auth:
   providers:
     github:
       development:
+        # It's expected that these will be shadowed via an
+        # app-config.local.yaml file
         clientId: ${AUTH_GITHUB_CLIENT_ID}
         clientSecret: ${AUTH_GITHUB_CLIENT_SECRET}
         signIn:
