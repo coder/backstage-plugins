@@ -70,6 +70,13 @@ backend.add(import('@backstage/plugin-signals-backend'));
 backend.add(import('@backstage/plugin-catalog-backend-module-github'));
 
 /**
+ * Add the official auth provider for GitHub. This also has a lot of its values
+ * configured via the app-config.yaml files.
+ * @see {@link https://backstage.io/docs/auth/github/provider/}
+ */
+backend.add(import('@backstage/plugin-auth-backend-module-github-provider'));
+
+/**
  * @todo Update the Devcontainers plugin to use the New Backend System.
  *
  * Previous setup (that will NOT work with the new system):

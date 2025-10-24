@@ -1,0 +1,17 @@
+# This YAML follows the format from Backstage's guide on setting up GitHub for
+# authentication
+# https://backstage.io/docs/getting-started/config/authentication/#adding-a-user
+#
+# Make sure that the `name` field matches your actual GitHub username, and that
+# the `memberOf` field matches actual organizations that have been added to the
+# app-config.yaml file. Multiple users can be added by turning this file into a
+# multi-document YAML file by adding more --- seperators. The apiVersion and
+# kind fields should not ever need to be changed, regardless of the user(s)
+# added.
+---
+apiVersion: backstage.io/v1alpha1
+kind: User
+metadata:
+  name: Parkreiner
+spec:
+  memberOf: [coder]
