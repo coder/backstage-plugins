@@ -4,10 +4,7 @@
 #
 # Make sure that the `name` field matches your actual GitHub username, and that
 # the `memberOf` field matches actual organizations that have been added to the
-# app-config.yaml file. Multiple users can be added by turning this file into a
-# multi-document YAML file by adding more --- seperators. The apiVersion and
-# kind fields should not ever need to be changed, regardless of the user(s)
-# added.
+# app-config.yaml file.
 ---
 apiVersion: backstage.io/v1alpha1
 kind: User
@@ -15,3 +12,20 @@ metadata:
   name: Parkreiner
 spec:
   memberOf: [coder]
+---
+# https://backstage.io/docs/features/software-catalog/descriptor-format#kind-user
+apiVersion: backstage.io/v1alpha1
+kind: User
+metadata:
+  name: guest
+spec:
+  memberOf: [guests]
+---
+# https://backstage.io/docs/features/software-catalog/descriptor-format#kind-group
+apiVersion: backstage.io/v1alpha1
+kind: Group
+metadata:
+  name: guests
+spec:
+  type: team
+  children: []
