@@ -1,6 +1,6 @@
 {
   "name": "@coder/backstage-plugin-devcontainers-backend",
-  "version": "0.1.0",
+  "version": "0.0.0",
   "license": "Apache-2.0",
   "private": true,
   "main": "src/index.ts",
@@ -28,8 +28,8 @@
     "@backstage/backend-plugin-api": "backstage:^",
     "@backstage/catalog-client": "backstage:^",
     "@backstage/errors": "backstage:^",
-    "@backstage/types": "backstage:^",
     "@backstage/plugin-catalog-node": "backstage:^",
+    "@backstage/types": "backstage:^",
     "express": "^4.17.1",
     "express-promise-router": "^4.1.0",
     "zod": "^3.22.4"
