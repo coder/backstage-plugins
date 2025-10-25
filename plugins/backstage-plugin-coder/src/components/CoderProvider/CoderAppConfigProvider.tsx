@@ -1,8 +1,4 @@
-import React, {
-  type PropsWithChildren,
-  createContext,
-  useContext,
-} from 'react';
+import { type PropsWithChildren, createContext, useContext } from 'react';
 import type { WorkspaceCreationMode } from '../../hooks/useCoderWorkspacesConfig';
 
 export type CoderAppConfig = Readonly<{

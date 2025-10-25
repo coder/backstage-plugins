@@ -1,5 +1,4 @@
-import React, { type HTMLAttributes, type ReactNode, Fragment } from 'react';
-
+import { type HTMLAttributes, type ReactNode, Fragment } from 'react';
 import { type Theme, makeStyles } from '@material-ui/core';
 import type { Workspace } from '../../api/vendoredSdk';
 import { useWorkspacesCardContext } from './Root';

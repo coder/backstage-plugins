@@ -4,7 +4,7 @@
  *
  * Does not support all of InfoCard's properties just yet.
  */
-import React, { type HTMLAttributes, type ReactNode, forwardRef } from 'react';
+import { type HTMLAttributes, type ReactNode, forwardRef } from 'react';
 import { makeStyles } from '@material-ui/core';
 
 export type A11yInfoCardProps = Readonly<

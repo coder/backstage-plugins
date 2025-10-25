@@ -1,5 +1,5 @@
 import { makeStyles } from '@material-ui/core';
-import React, { type HTMLAttributes } from 'react';
+import type { HTMLAttributes } from 'react';
 
 type CoderLogoProps = Readonly<
   Omit<HTMLAttributes<HTMLOrSVGElement>, 'children'>

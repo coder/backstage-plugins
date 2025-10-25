@@ -2,7 +2,7 @@
  * @file Wires up all the core logic for passing values down to the
  * sub-components in the same directory.
  */
-import React, {
+import {
   type HTMLAttributes,
   type ReactNode,
   createContext,

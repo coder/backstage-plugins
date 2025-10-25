@@ -1,4 +1,3 @@
-import React from 'react';
 import { renderInCoderEnvironment } from '../../testHelpers/setup';
 import { CardContext, WorkspacesCardContext } from './Root';
 import { SearchBox } from './SearchBox';

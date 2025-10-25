@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { CoderLogo } from '../CoderLogo';
 import { makeStyles } from '@material-ui/core';
 import { VisuallyHidden } from '../VisuallyHidden';

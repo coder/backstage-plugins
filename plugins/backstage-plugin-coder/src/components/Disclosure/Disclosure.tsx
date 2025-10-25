@@ -1,4 +1,4 @@
-import React, { type HTMLAttributes, type ReactNode, useState } from 'react';
+import { type HTMLAttributes, type ReactNode, useState } from 'react';
 import { useId } from '../../hooks/hookPolyfills';
 import { makeStyles } from '@material-ui/core';
 

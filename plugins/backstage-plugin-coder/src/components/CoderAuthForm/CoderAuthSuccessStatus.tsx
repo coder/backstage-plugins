@@ -10,7 +10,6 @@
  * want the entire plugin to blow up if an auth conditional in a different
  * component is accidentally set up wrong.
  */
-import React from 'react';
 import { makeStyles } from '@material-ui/core';
 import { CoderLogo } from '../CoderLogo';
 import { UnlinkAccountButton } from './UnlinkAccountButton';

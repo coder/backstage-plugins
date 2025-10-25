@@ -1,4 +1,4 @@
-import React, {
+import {
   type ChangeEvent,
   type FieldsetHTMLAttributes,
   type ForwardedRef,

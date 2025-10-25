@@ -1,4 +1,3 @@
-import React from 'react';
 import { screen } from '@testing-library/react';
 import { renderInCoderEnvironment } from '../../testHelpers/setup';
 import type { CoderAuthStatus } from '../CoderProvider';

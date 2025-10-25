@@ -1,4 +1,4 @@
-import React, { ForwardedRef, HTMLAttributes, useState } from 'react';
+import { type ForwardedRef, type HTMLAttributes, useState } from 'react';
 import { useUrlSync } from '../../hooks/useUrlSync';
 import { Theme, makeStyles } from '@material-ui/core';
 

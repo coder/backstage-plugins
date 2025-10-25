@@ -1,4 +1,4 @@
-import React, { type ReactNode, Fragment, useState } from 'react';
+import { type ReactNode, Fragment, useState } from 'react';
 import { type Theme, makeStyles } from '@material-ui/core';
 import { VisuallyHidden } from '../VisuallyHidden';
 import { useWorkspacesCardContext } from './Root';

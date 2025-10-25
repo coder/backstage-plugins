@@ -1,4 +1,3 @@
-import React from 'react';
 import { useInternalCoderAuth } from '../CoderProvider';
 import { CoderAuthDistrustedForm } from './CoderAuthDistrustedForm';
 import { CoderAuthLoadingState } from './CoderAuthLoadingState';

@@ -1,4 +1,4 @@
-import React, { type ReactElement } from 'react';
+import type { ReactElement } from 'react';
 import { render, screen } from '@testing-library/react';
 import { CoderErrorBoundary } from './CoderErrorBoundary';
 import { TestApiProvider } from '@backstage/test-utils';

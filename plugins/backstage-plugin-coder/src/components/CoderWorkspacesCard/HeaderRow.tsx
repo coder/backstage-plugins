@@ -1,4 +1,4 @@
-import React, { HTMLAttributes, ReactNode } from 'react';
+import type { HTMLAttributes, ReactNode } from 'react';
 import { type Theme, makeStyles } from '@material-ui/core';
 import { useWorkspacesCardContext } from './Root';
 import type { HtmlHeader } from '../../typesConstants';

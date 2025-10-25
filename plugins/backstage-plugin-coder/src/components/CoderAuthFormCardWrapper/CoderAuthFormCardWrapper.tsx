@@ -1,4 +1,3 @@
-import React from 'react';
 import { A11yInfoCard, A11yInfoCardProps } from '../A11yInfoCard';
 import { useInternalCoderAuth } from '../CoderProvider';
 import {

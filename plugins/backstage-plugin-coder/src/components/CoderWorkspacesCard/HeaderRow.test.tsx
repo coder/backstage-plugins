@@ -1,4 +1,3 @@
-import React from 'react';
 import { renderInCoderEnvironment } from '../../testHelpers/setup';
 import { HeaderRow } from './HeaderRow';
 import { Root } from './Root';

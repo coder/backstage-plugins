@@ -1,4 +1,4 @@
-import React, {
+import {
   type KeyboardEvent,
   type LiHTMLAttributes,
   type MouseEvent,

@@ -1,4 +1,3 @@
-import React from 'react';
 import { fireEvent, screen } from '@testing-library/react';
 import { renderInCoderEnvironment } from '../../testHelpers/setup';
 import { mockBackstageApiEndpoint } from '../../testHelpers/mockBackstageData';

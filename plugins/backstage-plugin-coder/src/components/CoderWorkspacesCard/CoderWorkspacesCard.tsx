@@ -1,6 +1,4 @@
-import React from 'react';
 import { makeStyles } from '@material-ui/core';
-
 import { type WorkspacesCardProps, Root } from './Root';
 import { HeaderRow } from './HeaderRow';
 import { SearchBox } from './SearchBox';

@@ -1,4 +1,3 @@
-import React from 'react';
 import { CoderLogo } from '../CoderLogo';
 import { makeStyles } from '@material-ui/core';
 import { UnlinkAccountButton } from './UnlinkAccountButton';

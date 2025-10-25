@@ -1,11 +1,6 @@
-import React, {
-  type AnchorHTMLAttributes,
-  type ForwardedRef,
-  type ReactElement,
-} from 'react';
+import type { AnchorHTMLAttributes, ForwardedRef, ReactElement } from 'react';
 import { type Theme, makeStyles } from '@material-ui/core';
 import { useWorkspacesCardContext } from './Root';
-
 import { VisuallyHidden } from '../VisuallyHidden';
 import AddIcon from '@material-ui/icons/AddCircleOutline';
 import Tooltip, { type TooltipProps } from '@material-ui/core/Tooltip';

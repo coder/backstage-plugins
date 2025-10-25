@@ -6,7 +6,7 @@
  * This does not need to be exported as a plugin component yet, but that may
  * change in the future.
  */
-import React, { PropsWithChildren } from 'react';
+import type { PropsWithChildren } from 'react';
 import { useWorkspacesCardContext } from './Root';
 import { makeStyles } from '@material-ui/core';
 import { CoderLogo } from '../CoderLogo';

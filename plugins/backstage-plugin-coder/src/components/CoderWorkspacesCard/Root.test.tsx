@@ -5,7 +5,7 @@
  * For full integration tests (and test cases for the vast majority of
  * meaningful functionality), see CoderWorkspacesCard.test.tsx
  */
-import React, { type ReactNode } from 'react';
+import type { ReactNode } from 'react';
 import { renderInCoderEnvironment } from '../../testHelpers/setup';
 import { Root } from './Root';
 import { screen } from '@testing-library/react';
