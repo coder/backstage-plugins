@@ -26,9 +26,10 @@ import { catalogProcessingExtensionPoint } from '@backstage/plugin-catalog-node/
 /**
  * @public
  */
-export const backstagePluginDevcontainersModule = createBackendModule({
+export const devcontainersProcessorCatalogModule = createBackendModule({
   pluginId: 'catalog',
-  moduleId: 'backstage-plugin-devcontainers-backend',
+  moduleId:
+    'backstage-plugin-devcontainers-backend.devcontainers-processor-module',
   register: env => {
     env.registerInit({
       deps: {
@@ -40,13 +41,8 @@ export const backstagePluginDevcontainersModule = createBackendModule({
       async init({ catalog, urlReader, logger, config }) {
         const tagName =
           config.getOptionalString('devcontainers.tagName') ?? DEFAULT_TAG_NAME;
-        catalog.addProcessor(
-          new DevcontainersProcessor({
-            urlReader,
-            logger,
-            tagName,
-          }),
-        );
+        const dPro = new DevcontainersProcessor({ urlReader, logger, tagName });
+        catalog.addProcessor(dPro);
       },
     });
   },

@@ -104,10 +104,14 @@ function setupProcessor(options?: SetupOptions) {
         })),
       };
     }),
+
+    // Have to define as const to retain the Jest type information on the mock
+    // callbacks
   } as const satisfies UrlReader;
 
-  const processor = new DevcontainersProcessor(mockReader, {
+  const processor = new DevcontainersProcessor({
     tagName,
+    urlReader: mockReader,
     logger: getVoidLogger(),
   });
 

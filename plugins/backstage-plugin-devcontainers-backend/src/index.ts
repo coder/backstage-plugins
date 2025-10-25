@@ -1,5 +1,2 @@
-export * from './service/router';
-export {
-  DevcontainersProcessor,
-  type VsCodeUrlKey,
-} from './processors/DevcontainersProcessor';
+export { devcontainersProcessorCatalogModule } from './plugin';
+export { devcontainersProcessorCatalogModule as default } from './plugin';
