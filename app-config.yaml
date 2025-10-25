@@ -88,7 +88,7 @@ auth:
             - resolver: usernameMatchingUserEntityName
 
 # see https://backstage.io/docs/features/software-templates/configuration for software template options
-scaffolder: {}
+# scaffolder:
 
 catalog:
   import:
@@ -133,7 +133,7 @@ catalog:
             minutes: 15
 
 # see https://backstage.io/docs/features/kubernetes/configuration for kubernetes configuration options
-kubernetes: {}
+# kubernetes:
 
 # see https://backstage.io/docs/permissions/getting-started for more on the permission framework
 permission:
