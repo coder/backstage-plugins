@@ -1,5 +1,4 @@
 import { useMemo, useState } from 'react';
-
 import {
   type Output,
   literal,
@@ -11,7 +10,6 @@ import {
   union,
   parse,
 } from 'valibot';
-
 import { useApi } from '@backstage/core-plugin-api';
 import { scmIntegrationsApiRef } from '@backstage/integration-react';
 import {
@@ -185,8 +183,25 @@ function useDynamicEntity(readEntityData: boolean): UseDynamicEntityResult {
      protect you from */
   if (readEntityData) {
     const { entity } = useEntity();
-    const sourceControlApi = useApi(scmIntegrationsApiRef);
-    const repoData = getEntitySourceLocation(entity, sourceControlApi);
+    const sourceControlRegistry = useApi(scmIntegrationsApiRef);
+
+    /**
+     * @todo 2025-10-25 - This looks like another victim of the Backstage Yarn
+     * plugin. getEntitySourceLocation is supposed to take exact type that is
+     * bound to scmIntegrationsApiRef, but because they're coming from different
+     * libraries, a slight version mismatch means that getEntitySourceLocation
+     * expects a few more properties than are not present on the version
+     * imported from this file.
+     *
+     * We're not using any of those properties, so that shouldn't ever cause
+     * things to break, but we should figure out how to get the versions back
+     * in sync with each other, and remove the need for this assertion.
+     */
+    type TypeAdapter = Parameters<typeof getEntitySourceLocation>[1];
+    const repoData = getEntitySourceLocation(
+      entity,
+      sourceControlRegistry as unknown as TypeAdapter,
+    );
 
     rawYaml = entity.spec?.coder;
     repoUrl = repoData?.locationTargetUrl;
