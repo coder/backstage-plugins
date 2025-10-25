@@ -5,6 +5,7 @@ import {
 import {
   DEFAULT_TAG_NAME,
   DevcontainersProcessor,
+  PROCESSOR_NAME_PREFIX,
 } from './processors/DevcontainersProcessor';
 
 /**
@@ -28,8 +29,7 @@ import { catalogProcessingExtensionPoint } from '@backstage/plugin-catalog-node/
  */
 export const devcontainersProcessorCatalogModule = createBackendModule({
   pluginId: 'catalog',
-  moduleId:
-    'backstage-plugin-devcontainers-backend.devcontainers-processor-module',
+  moduleId: `${PROCESSOR_NAME_PREFIX}.devcontainers-processor-module`,
   register: env => {
     env.registerInit({
       deps: {

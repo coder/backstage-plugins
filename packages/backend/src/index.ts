@@ -76,20 +76,7 @@ backend.add(import('@backstage/plugin-catalog-backend-module-github'));
  */
 backend.add(import('@backstage/plugin-auth-backend-module-github-provider'));
 
-/**
- * @todo Update the Devcontainers plugin to use the New Backend System.
- *
- * Previous setup (that will NOT work with the new system):
- * ```
- * builder.addProcessor(
- *   DevcontainersProcessor.fromConfig(env.config, {
- *     logger: env.logger,
- *   }),
- * );
- * ```
- */
-// backend.add(import('@coder/backstage-plugin-devcontainers-backend'));
-
+backend.add(import('@coder/backstage-plugin-devcontainers-backend'));
 backend.add(import('@coder/backstage-plugin-coder-backend'));
 
 backend.start();
