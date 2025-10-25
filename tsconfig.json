@@ -2,18 +2,16 @@
   "extends": "@backstage/cli/config/tsconfig.json",
   "include": [
     "packages/*/src",
+    "packages/*/config.d.ts",
     "plugins/*/src",
+    "plugins/*/config.d.ts",
     "plugins/*/dev",
     "plugins/*/migrations"
   ],
-
   "exclude": ["node_modules"],
   "compilerOptions": {
     "outDir": "dist-types",
     "rootDir": ".",
-
-    // Have to disable in order to prevent flag conflicts from base config file
-    // when linting types; noEmit and emitDeclarationOnly are incompatible
-    "emitDeclarationOnly": false
+    "jsx": "react"
   }
 }

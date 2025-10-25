@@ -3,7 +3,7 @@
   "version": "1.0.0",
   "private": true,
   "engines": {
-    "node": "18 || 20"
+    "node": "20 || 22"
   },
   "scripts": {
     "dev": "yarn dev-init && concurrently --names \"react,backend\" -c \"green,blue\" \"yarn start\" \"yarn start-backend\"",
@@ -23,7 +23,7 @@
     "lint": "backstage-cli repo lint --since origin/main",
     "lint:all": "backstage-cli repo lint",
     "prettier:check": "prettier --check .",
-    "new": "backstage-cli new --scope internal"
+    "new": "backstage-cli new"
   },
   "workspaces": {
     "packages": [
@@ -43,10 +43,9 @@
     "@playwright/test": "^1.32.3",
     "@spotify/prettier-config": "^12.0.0",
     "concurrently": "^8.0.0",
-    "lerna": "^7.3.0",
     "node-gyp": "^9.0.0",
     "prettier": "^2.3.2",
-    "typescript": "~5.2.0"
+    "typescript": "~5.8.0"
   },
   "resolutions": {
     "@types/react": "^18",
@@ -56,7 +55,7 @@
   "resolutionsComments": {
     "zod-validation-error--2025-10-24": "This library pushed a breaking change on version 3.5.3, which broke internal Backstage packages when trying to install new dependencies (it uses ^3.4.0). Waiting to see if they'll publish a 3.5.4 to revert the change."
   },
-  "prettier": "@spotify/prettier-config",
+  "prettier": "@backstage/cli/config/prettier",
   "lint-staged": {
     "*.{js,jsx,ts,tsx,mjs,cjs}": [
       "eslint --fix",

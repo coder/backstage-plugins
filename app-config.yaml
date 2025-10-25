@@ -87,9 +87,9 @@ auth:
           resolvers:
             - resolver: usernameMatchingUserEntityName
 
-scaffolder:
-  # see https://backstage.io/docs/features/software-templates/configuration for software template options
-  {}
+# see https://backstage.io/docs/features/software-templates/configuration for software template options
+scaffolder: {}
+
 catalog:
   import:
     entityFilename: catalog-info.yaml
@@ -131,3 +131,11 @@ catalog:
             minutes: 60
           timeout:
             minutes: 15
+
+# see https://backstage.io/docs/features/kubernetes/configuration for kubernetes configuration options
+kubernetes: {}
+
+# see https://backstage.io/docs/permissions/getting-started for more on the permission framework
+permission:
+  # setting this to `false` will disable permissions
+  enabled: true

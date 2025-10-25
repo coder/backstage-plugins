@@ -19,13 +19,16 @@ backend:
   baseUrl: ${BASE_URL}
   # The listener can also be expressed as a single <host>:<port> string. In this case we bind to
   # all interfaces, the most permissive setting. The right value depends on your specific deployment.
-  listen: ':8080'
+  listen: ':7007'
 
-  # config options: https://node-postgres.com/api/client
+  # config options: https://node-postgres.com/apis/client
   database:
     client: pg
     connection:
-      ${DATABASE_URL}
+      host: ${POSTGRES_HOST}
+      port: ${POSTGRES_PORT}
+      user: ${POSTGRES_USER}
+      password: ${POSTGRES_PASSWORD}
       # https://node-postgres.com/features/ssl
       # you can set the sslmode configuration option via the `PGSSLMODE` environment variable
       # see https://www.postgresql.org/docs/current/libpq-ssl.html Table 33.1. SSL Mode Descriptions (e.g. require)
@@ -33,8 +36,28 @@ backend:
       #   ca: # if you have a CA file and want to verify it you can uncomment this section
       #     $file: <file-path>/ca/server.crt
 
+auth:
+  providers:
+    guest: {}
+
 catalog:
   # Overrides the default list locations from app-config.yaml as these contain example data.
   # See https://backstage.io/docs/features/software-catalog/#adding-components-to-the-catalog for more details
   # on how to get entities into the catalog.
-  locations: []
+  locations:
+    # Local example data, replace this with your production config, these are intended for demo use only.
+    # File locations are relative to the backend process, typically in a deployed context, such as in a Docker container, this will be the root
+    - type: file
+      target: ./examples/entities.yaml
+
+    # Local example template
+    - type: file
+      target: ./examples/template/template.yaml
+      rules:
+        - allow: [Template]
+
+    # Local example organizational data
+    - type: file
+      target: ./examples/org.yaml
+      rules:
+        - allow: [User, Group]
