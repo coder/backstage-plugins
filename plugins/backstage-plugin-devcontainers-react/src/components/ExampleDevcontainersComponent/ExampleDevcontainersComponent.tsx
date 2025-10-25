@@ -1,4 +1,3 @@
-import React from 'react';
 import { useDevcontainers } from '../../hooks/useDevcontainers';
 import { InfoCard } from '@backstage/core-components';
 import { VisuallyHidden } from '../VisuallyHidden';

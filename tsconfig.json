@@ -12,6 +12,6 @@
   "compilerOptions": {
     "outDir": "dist-types",
     "rootDir": ".",
-    "jsx": "react"
+    "jsx": "react-jsx"
   }
 }
