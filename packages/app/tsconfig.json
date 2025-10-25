@@ -1,0 +1,10 @@
+// This is a temporary file so that we can update the app directory indepdently
+// of the plugins directory without seeing a bunch of errors in the editor. Once
+// the plugins directory has been updated, updated the root tsconfig file to
+// use "react-jsx", and then delete this file
+{
+  "extends": "../../tsconfig.json",
+  "compilerOptions": {
+    "jsx": "react-jsx"
+  }
+}
