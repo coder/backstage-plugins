@@ -187,20 +187,23 @@ function useDynamicEntity(readEntityData: boolean): UseDynamicEntityResult {
 
     /**
      * @todo 2025-10-25 - This looks like another victim of the Backstage Yarn
-     * plugin. getEntitySourceLocation is supposed to take exact type that is
-     * bound to scmIntegrationsApiRef, but because they're coming from different
-     * libraries, a slight version mismatch means that getEntitySourceLocation
-     * expects a few more properties than are not present on the version
-     * imported from this file.
+     * plugin. getEntitySourceLocation is supposed to take the exact type that
+     * is bound to scmIntegrationsApiRef, but because they're coming from
+     * different packages, their versions are getting out of sync. TypeScript is
+     * complaining about properties present on one, but not the other.
      *
-     * We're not using any of those properties, so that shouldn't ever cause
-     * things to break, but we should figure out how to get the versions back
-     * in sync with each other, and remove the need for this assertion.
+     * Specifically, our plugin version is using 1.1.24, while
+     * plugin-catalog-react depends on verison ^1.2.11.
+     *
+     * The function doesn't need to access those missing properties, so that
+     * shouldn't ever cause things to break, but we should figure out how to get
+     * the versions back in sync with each other, and remove the need for this
+     * assertion.
      */
-    type TypeAdapter = Parameters<typeof getEntitySourceLocation>[1];
+    type LaterVersion = Parameters<typeof getEntitySourceLocation>[1];
     const repoData = getEntitySourceLocation(
       entity,
-      sourceControlRegistry as unknown as TypeAdapter,
+      sourceControlRegistry as unknown as LaterVersion,
     );
 
     rawYaml = entity.spec?.coder;
