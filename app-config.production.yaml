@@ -5,6 +5,7 @@ app:
 auth:
   environment: development
   providers:
+    guest: {}
     github:
       development:
         clientId: ${GITHUB_CLIENT_ID}
@@ -35,10 +36,6 @@ backend:
       # ssl:
       #   ca: # if you have a CA file and want to verify it you can uncomment this section
       #     $file: <file-path>/ca/server.crt
-
-auth:
-  providers:
-    guest: {}
 
 catalog:
   # Overrides the default list locations from app-config.yaml as these contain example data.
