@@ -159,7 +159,7 @@ export const CoderAuthInputForm = () => {
       state: btoa(JSON.stringify({ returnTo: window.location.pathname })),
       response_type: 'code',
       client_id: clientId,
-      redirect_uri: `${backendUrl}/api/auth/coder/oauth/callback`,
+      redirect_uri: `${backendUrl}/api/coder/oauth/callback`,
     });
 
     const oauthUrl = `${

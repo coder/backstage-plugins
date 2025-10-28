@@ -6,8 +6,46 @@
 ## Features
 
 - Management of OAuth2 state for requests sent from the Backstage backend.
+- Provides OAuth callback endpoint at `/api/coder/oauth/callback`
 
 ## Installing the plugin to support oauth2
+
+### For the New Backend System
+
+If you're using Backstage's new backend system (v1.20+), follow these steps:
+
+1. Run the following command from your Backstage app to install the plugin:
+   ```bash
+   yarn --cwd packages/backend add @coder/backstage-plugin-coder-backend
+   ```
+2. Add the module to your backend in `packages/backend/src/index.ts`:
+   ```ts
+   backend.add(import('@coder/backstage-plugin-coder-backend'));
+   ```
+3. [If you haven't already, be sure to register Backstage as an oauth app through Coder](https://coder.com/docs/admin/integrations/oauth2-provider).
+   
+   When registering the OAuth application, use the following callback URL format:
+   ```
+   https://backstage.example.com/api/coder/oauth/callback
+   ```
+   Replace `backstage.example.com` with your actual Backstage domain.
+
+4. Add the following values to one of your `app-config.yaml` files:
+   ```yaml
+   coder:
+     deployment:
+       # Change the value to match your Coder deployment
+       accessUrl: https://dev.coder.com
+     oauth:
+       clientId: oauth2-client-id-goes-here
+       # The client secret isn't used by the frontend plugin, but the backend
+       # plugin needs it for oauth functionality to work
+       clientSecret: oauth2-secret-goes-here
+   ```
+
+Note that the `clientSecret` value is given `secret`-level visibility, and will never be logged anywhere by Backstage.
+
+### For the Legacy Backend System
 
 1. Run the following command from your Backstage app to install the plugin:
    ```bash
@@ -25,7 +63,7 @@
 4. Register the plugin's oauth route with Backstage from inside the same `main` function:
    ```ts
    apiRouter.use(
-     '/auth/coder',
+     '/coder',
      await createCoderRouter({
        logger: coderEnv.logger,
        config: coderEnv.config,
@@ -33,6 +71,13 @@
    );
    ```
 5. [If you haven't already, be sure to register Backstage as an oauth app through Coder](https://coder.com/docs/admin/integrations/oauth2-provider).
+   
+   When registering the OAuth application, use the following callback URL format:
+   ```
+   https://backstage.example.com/api/coder/oauth/callback
+   ```
+   Replace `backstage.example.com` with your actual Backstage domain.
+
 6. Add the following values to one of your `app-config.yaml` files:
    ```yaml
    coder:

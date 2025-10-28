@@ -34,7 +34,7 @@ export async function createRouter(
     const clientSecret = coderConfig?.getString('oauth.clientSecret') || '';
     const redirectUri = `${req.protocol}://${req.get(
       'host',
-    )}/api/auth/coder/oauth/callback`;
+    )}/api/coder/oauth/callback`;
 
     let tokenResponse: AxiosResponse<{ access_token?: string }, unknown>;
     try {
