@@ -49,7 +49,7 @@ Note that the `clientSecret` value is given `secret`-level visibility, and will 
 
 1. Run the following command from your Backstage app to install the plugin:
    ```bash
-   yarn --cwd packages/app add @coder/backstage-plugin-coder
+   yarn --cwd packages/backend add @coder/backstage-plugin-coder-backend
    ```
 2. Import the `createRouter` function from the `@coder/backstage-plugin-coder` package:
    ```ts
