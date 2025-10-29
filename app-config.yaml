@@ -8,9 +8,6 @@ organization:
 coder:
   deployment:
     accessUrl: https://dev.coder.com
-  oauth:
-    clientId: ${CODER_OAUTH_CLIENT_ID}
-    clientSecret: ${CODER_OAUTH_CLIENT_SECRET}
 
 backend:
   # Used for enabling authentication, secret is shared by all backend plugins
@@ -47,7 +44,8 @@ integrations:
     - host: github.com
       # This is a Personal Access Token or PAT from GitHub. You can find out how to generate this token, and more information
       # about setting up the GitHub integration here: https://backstage.io/docs/getting-started/configuration#setting-up-a-github-integration
-      token: ${GITHUB_TOKEN}
+      # Leave empty for unauthenticated access (you'll hit rate limits faster)
+      # token: YOUR_GITHUB_TOKEN_HERE
     ### Example for how to add your GitHub Enterprise instance using the API:
     # - host: ghe.example.net
     #   apiBaseUrl: https://ghe.example.net/api/v3
@@ -76,11 +74,22 @@ techdocs:
 
 auth:
   # see https://backstage.io/docs/auth/ to learn about auth providers
+  environment: development  # Enable guest auth for easier development
   providers:
+    guest: {}  # Simple guest authentication - no OAuth setup required!
+    
+    # Coder OAuth for workspace access (and optional sign-in)
+    coder:
+      development:
+        clientId: ${CODER_OAUTH_CLIENT_ID}
+        clientSecret: ${CODER_OAUTH_CLIENT_SECRET}
+        deploymentUrl: ${CODER_DEPLOYMENT_URL}
+        signIn:
+          resolvers:
+            - resolver: usernameMatchingUserEntityName
+    
     github:
       development:
-        # It's expected that these will be shadowed via an
-        # app-config.local.yaml file
         clientId: ${AUTH_GITHUB_CLIENT_ID}
         clientSecret: ${AUTH_GITHUB_CLIENT_SECRET}
         signIn:

@@ -77,6 +77,9 @@ backend.add(import('@backstage/plugin-catalog-backend-module-github'));
 backend.add(import('@backstage/plugin-auth-backend-module-github-provider'));
 
 backend.add(import('@coder/backstage-plugin-devcontainers-backend'));
-backend.add(import('@coder/backstage-plugin-coder-backend'));
+
+// Coder OAuth provider for third-party resource access
+// Registers at /api/auth/coder/* endpoints
+backend.add(import('@coder/plugin-auth-backend-module-coder-provider'));
 
 backend.start();

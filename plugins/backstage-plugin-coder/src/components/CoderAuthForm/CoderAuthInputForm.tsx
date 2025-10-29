@@ -12,7 +12,11 @@ import { makeStyles } from '@material-ui/core';
 import TextField from '@material-ui/core/TextField';
 import ErrorIcon from '@material-ui/icons/ErrorOutline';
 import SyncIcon from '@material-ui/icons/Sync';
-import { configApiRef, errorApiRef, useApi } from '@backstage/core-plugin-api';
+import {
+  errorApiRef,
+  oauthRequestApiRef,
+  useApi,
+} from '@backstage/core-plugin-api';
 import { useUrlSync } from '../../hooks/useUrlSync';
 
 const useStyles = makeStyles(theme => ({
@@ -95,8 +99,8 @@ export const CoderAuthInputForm = () => {
   const styles = useStyles();
   const appConfig = useCoderAppConfig();
   const urlSync = useUrlSync();
-  const configApi = useApi(configApiRef);
   const errorApi = useApi(errorApiRef);
+  const oauthRequestApi = useApi(oauthRequestApiRef);
   const { status, registerNewToken } = useInternalCoderAuth();
 
   const backendUrl = urlSync.state.baseUrl;
@@ -120,6 +124,28 @@ export const CoderAuthInputForm = () => {
       }
 
       const { data } = event;
+
+      if (
+        typeof data === 'object' &&
+        data !== null &&
+        'type' in data &&
+        data.type === 'authorization_response'
+      ) {
+        const response = data as {
+          type: string;
+          response?: {
+            providerInfo?: { accessToken?: string };
+            profile?: { email?: string };
+          };
+        };
+        const accessToken = response.response?.providerInfo?.accessToken;
+
+        if (typeof accessToken === 'string') {
+          registerNewToken(accessToken);
+          return;
+        }
+      }
+
       const messageIsOauthPayload =
         typeof data === 'object' && data !== null && 'token' in data;
       if (!messageIsOauthPayload) {
@@ -136,46 +162,103 @@ export const CoderAuthInputForm = () => {
     return () => window.removeEventListener('message', onOauthMessage);
   }, [registerNewToken, backendUrl]);
 
-  const handleOAuthLogin = () => {
-    const clientId = configApi.getOptionalString('coder.oauth.clientId');
-    if (!clientId) {
+  const handleOAuthLogin = async () => {
+    try {
+      if (!backendUrl) {
+        throw new Error('Backend URL not configured');
+      }
+
+      const authRequester = oauthRequestApi.createAuthRequester({
+        provider: {
+          id: 'coder',
+          title: 'Coder',
+          icon: () => <CoderLogo />,
+        },
+        onAuthRequest: (_scopes: Set<string>) => {
+          return new Promise((resolve, reject) => {
+            const authUrl = `${backendUrl}/api/auth/coder/start?env=development`;
+            const width = 800;
+            const height = 800;
+            const left = window.screen.width / 2 - width / 2;
+            const top = window.screen.height / 2 - height / 2;
+
+            const popup = window.open(
+              authUrl,
+              'Coder OAuth',
+              `width=${width},height=${height},left=${left},top=${top},popup=yes`,
+            );
+
+            if (!popup) {
+              reject(
+                new Error(
+                  'Failed to open OAuth popup. Please allow popups for this site.',
+                ),
+              );
+              return;
+            }
+
+            const messageHandler = (event: MessageEvent) => {
+              if (event.origin !== new URL(backendUrl).origin) {
+                return;
+              }
+
+              const { data } = event;
+
+              if (data && typeof data === 'object' && 'type' in data) {
+                if (data.type === 'authorization_response') {
+                  window.removeEventListener('message', messageHandler);
+                  popup.close();
+                  resolve(data.response || data.payload || data);
+                } else if (data.type === 'authorization_response_error') {
+                  window.removeEventListener('message', messageHandler);
+                  popup.close();
+                  reject(new Error(data.error?.message || 'OAuth failed'));
+                }
+              }
+            };
+
+            window.addEventListener('message', messageHandler);
+
+            const checkClosed = setInterval(() => {
+              if (popup.closed) {
+                clearInterval(checkClosed);
+                window.removeEventListener('message', messageHandler);
+                reject(new Error('OAuth popup was closed'));
+              }
+            }, 1000);
+          });
+        },
+      });
+
+      const response = await authRequester(new Set());
+
+      if (response && typeof response === 'object') {
+        const credentials = response as any;
+        const token =
+          credentials.providerInfo?.accessToken ||
+          credentials.accessToken ||
+          credentials.token;
+
+        if (typeof token === 'string') {
+          registerNewToken(token);
+        } else {
+          console.error('OAuth response structure:', response);
+          throw new Error('No access token found in OAuth response');
+        }
+      }
+    } catch (error) {
+      console.error('Coder OAuth error:', error);
       errorApi.post(
         {
-          name: 'Coder oauth clientId is missing',
+          name: 'Coder OAuth failed',
           message:
-            'Please see plugin documentation for how to add clientId to your Backstage deployment',
+            error instanceof Error
+              ? error.message
+              : 'Unknown error occurred during OAuth flow',
         },
         { hidden: false },
       );
-      return;
     }
-
-    const params = new URLSearchParams({
-      /**
-       * @todo See what we can do to move the state calculations to the backend.
-       * The state should actually be cryptographically generated and should
-       * have a high number of bits of entropy, too.
-       */
-      state: btoa(JSON.stringify({ returnTo: window.location.pathname })),
-      response_type: 'code',
-      client_id: clientId,
-      redirect_uri: `${backendUrl}/api/auth/coder/oauth/callback`,
-    });
-
-    const oauthUrl = `${
-      appConfig.deployment.accessUrl
-    }/oauth2/authorize?${params.toString()}`;
-
-    const width = 800;
-    const height = 800;
-    const left = window.screen.width / 2 - width / 2;
-    const top = window.screen.height / 2 - height / 2;
-
-    window.open(
-      oauthUrl,
-      'Coder OAuth',
-      `width=${width},height=${height},left=${left},top=${top},popup=yes`,
-    );
   };
 
   const formHeaderId = `${hookId}-form-header`;

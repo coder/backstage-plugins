@@ -1,0 +1,37 @@
+{
+  "name": "@coder/plugin-auth-backend-module-coder-provider",
+  "version": "0.1.0",
+  "main": "src/index.ts",
+  "types": "src/index.ts",
+  "license": "MIT",
+  "private": true,
+  "publishConfig": {
+    "access": "public"
+  },
+  "backstage": {
+    "role": "backend-plugin-module",
+    "pluginId": "auth",
+    "pluginPackage": "@backstage/plugin-auth-backend"
+  },
+  "scripts": {
+    "start": "backstage-cli package start",
+    "build": "backstage-cli package build",
+    "lint": "backstage-cli package lint",
+    "test": "backstage-cli package test",
+    "clean": "backstage-cli package clean",
+    "prepack": "backstage-cli package prepack",
+    "postpack": "backstage-cli package postpack"
+  },
+  "dependencies": {
+    "@backstage/backend-plugin-api": "^0.8.0",
+    "@backstage/plugin-auth-node": "^0.5.0",
+    "passport-oauth2": "^1.8.0"
+  },
+  "devDependencies": {
+    "@backstage/cli": "^0.27.0",
+    "@types/passport-oauth2": "^1.4.17"
+  },
+  "files": [
+    "dist"
+  ]
+}

@@ -53,6 +53,7 @@ const app = createApp({
             message: 'Sign in using GitHub',
             apiRef: githubAuthApiRef,
           },
+          'guest',
         ]}
       />
     ),

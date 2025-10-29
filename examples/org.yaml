@@ -13,6 +13,13 @@ metadata:
 spec:
   memberOf: [coder]
 ---
+apiVersion: backstage.io/v1alpha1
+kind: User
+metadata:
+  name: DevelopmentCats
+spec:
+  memberOf: [coder]
+---
 # https://backstage.io/docs/features/software-catalog/descriptor-format#kind-user
 apiVersion: backstage.io/v1alpha1
 kind: User

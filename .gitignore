@@ -56,3 +56,5 @@ e2e-test-report/
 
 # Cache
 .cache/
+# Local configuration overrides (contains secrets)
+app-config.local.yaml
