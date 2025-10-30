@@ -1,30 +1,29 @@
-import { fireEvent, screen } from '@testing-library/react';
+import { screen } from '@testing-library/react';
 import { renderInCoderEnvironment } from '../../testHelpers/setup';
 import { mockBackstageApiEndpoint } from '../../testHelpers/mockBackstageData';
+import { mockAuthStates } from '../../testHelpers/mockBackstageData';
 import { WorkspacesListIcon } from './WorkspacesListIcon';
 
 describe(`${WorkspacesListIcon.name}`, () => {
-  it('Should display a fallback UI element instead of a broken image when the image fails to load', async () => {
+  it('Should display a fallback UI element when user is not authenticated', async () => {
     const workspaceName = 'blah';
     const imgPath = `${mockBackstageApiEndpoint}/wrongUrlPal.png`;
 
     await renderInCoderEnvironment({
+      auth: mockAuthStates.tokenMissing,
       children: (
         <WorkspacesListIcon src={imgPath} workspaceName={workspaceName} />
       ),
     });
 
-    // Have to use test ID because the icon image itself has role "none" (it's
-    // decorative only and shouldn't be exposed to screen readers)
-    const imageIcon = screen.getByTestId('icon-image');
-
-    // Simulate the image automatically making a network request, but for
-    // whatever reason, the load fails (error code 404/500, proxy issues, etc.)
-    fireEvent.error(imageIcon);
-
-    const fallbackGraphic = await screen.findByTestId('icon-fallback');
+    // When not authenticated, the component immediately shows the fallback
+    // without attempting to fetch the icon from the Coder API
+    const fallbackGraphic = screen.getByTestId('icon-fallback');
     const formattedName = workspaceName.slice(0, 1).toUpperCase();
     expect(fallbackGraphic.textContent).toBe(formattedName);
+    
+    // Verify the image is not rendered
+    const imageIcon = screen.queryByTestId('icon-image');
     expect(imageIcon).not.toBeInTheDocument();
   });
 });

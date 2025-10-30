@@ -30,6 +30,7 @@ import {
   CoderClientWrapper,
   coderClientWrapperApiRef,
 } from '../../api/CoderClient';
+import { coderAuthApiRef } from '../../api/CoderAuthApi';
 
 describe(`${CoderProvider.name}`, () => {
   describe('AppConfig', () => {
@@ -83,6 +84,34 @@ describe(`${CoderProvider.name}`, () => {
 
               [urlSyncApiRef, urlSync],
               [coderClientWrapperApiRef, coderClientApi],
+              [coderAuthApiRef, {
+                getAccessToken: async () => mockCoderAuthToken,
+                logout: async () => {},
+                signIn: async () => {},
+                signOut: async () => {},
+                sessionState$: () => ({
+                  subscribe: (observer: any) => {
+                    if (typeof observer === 'function') {
+                      observer('SignedIn');
+                    } else if (observer.next) {
+                      observer.next('SignedIn');
+                    }
+                    return { unsubscribe: () => {} };
+                  },
+                }),
+                getProfile: async () => ({
+                  email: 'test@example.com',
+                  displayName: 'Test User',
+                }),
+                getBackstageIdentity: async () => ({
+                  type: 'user' as const,
+                  userEntityRef: 'user:default/test',
+                  ownershipEntityRefs: ['user:default/test'],
+                }),
+                getCredentials: async () => ({
+                  token: mockCoderAuthToken,
+                }),
+              }],
             ]}
           >
             <CoderProvider

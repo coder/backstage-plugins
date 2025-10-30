@@ -16,6 +16,7 @@
     "build-image": "docker build ../.. -f Dockerfile --tag backstage"
   },
   "dependencies": {
+    "@backstage/backend-defaults": "backstage:^",
     "@backstage/catalog-client": "backstage:^",
     "@backstage/catalog-model": "backstage:^",
     "@backstage/config": "backstage:^",
@@ -36,6 +37,7 @@
     "@backstage/plugin-permission-node": "backstage:^",
     "@backstage/plugin-proxy-backend": "backstage:^",
     "@backstage/plugin-scaffolder-backend": "backstage:^",
+    "@backstage/plugin-scaffolder-backend-module-github": "backstage:^",
     "@backstage/plugin-scaffolder-backend-module-notifications": "backstage:^",
     "@backstage/plugin-search-backend": "backstage:^",
     "@backstage/plugin-search-backend-module-catalog": "backstage:^",
@@ -46,6 +48,7 @@
     "@backstage/plugin-techdocs-backend": "backstage:^",
     "@coder/backstage-plugin-coder-backend": "0.0.0",
     "@coder/backstage-plugin-devcontainers-backend": "0.0.0",
+    "@coder/plugin-auth-backend-module-coder-provider": "0.0.0",
     "app": "link:../app",
     "better-sqlite3": "12",
     "node-gyp": "10",

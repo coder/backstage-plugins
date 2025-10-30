@@ -1,6 +1,5 @@
-import { errorHandler } from '@backstage/backend-common';
 import type { Config } from '@backstage/config';
-import express from 'express';
+import express, { type ErrorRequestHandler } from 'express';
 import Router from 'express-promise-router';
 import type { LoggerService } from '@backstage/backend-plugin-api';
 import axios, { type AxiosResponse } from 'axios';
@@ -134,6 +133,12 @@ export async function createRouter(
     response.json({ status: 'ok' });
   });
 
-  router.use(errorHandler());
+  // Error handler middleware
+  const errorHandler: ErrorRequestHandler = (error, _req, res, _next) => {
+    logger.error(`Error: ${error.message}`);
+    res.status(error.status || 500).json({ error: error.message });
+  };
+  router.use(errorHandler);
+
   return router;
 }

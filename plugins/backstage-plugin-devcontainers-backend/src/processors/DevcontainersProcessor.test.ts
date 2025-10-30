@@ -1,10 +1,10 @@
-import {
-  type ReadUrlOptions,
-  type ReadUrlResponse,
-  type SearchResponse,
-  type UrlReader,
-  getVoidLogger,
-} from '@backstage/backend-common';
+import type {
+  UrlReaderServiceReadUrlOptions as ReadUrlOptions,
+  UrlReaderServiceReadUrlResponse as ReadUrlResponse,
+  UrlReaderServiceSearchResponse as SearchResponse,
+  UrlReaderService as UrlReader,
+} from '@backstage/backend-plugin-api';
+import { mockServices } from '@backstage/backend-test-utils';
 import { NotFoundError } from '@backstage/errors';
 import type { LocationSpec } from '@backstage/plugin-catalog-common';
 import {
@@ -112,7 +112,7 @@ function setupProcessor(options?: SetupOptions) {
   const processor = new DevcontainersProcessor({
     tagName,
     urlReader: mockReader,
-    logger: getVoidLogger(),
+    logger: mockServices.logger.mock(),
   });
 
   return { mockReader, processor } as const;

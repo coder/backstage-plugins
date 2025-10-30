@@ -72,7 +72,7 @@ export const WorkspacesListIcon = ({
   useEffect(() => {
     if (!auth.isAuthenticated) {
       setHasError(true);
-      return;
+      return undefined;
     }
 
     let isMounted = true;

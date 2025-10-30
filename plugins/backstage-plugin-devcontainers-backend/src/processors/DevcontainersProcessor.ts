@@ -7,7 +7,7 @@ import {
 import type { Entity } from '@backstage/catalog-model';
 import type { Config } from '@backstage/config';
 import { isError, NotFoundError } from '@backstage/errors';
-import { type UrlReader, UrlReaders } from '@backstage/backend-common';
+import { type UrlReader, UrlReaders } from '@backstage/backend-defaults/urlReader';
 import { parseGitUrl } from '../utils/git';
 import type { LoggerService } from '@backstage/backend-plugin-api';
 
@@ -243,7 +243,9 @@ function serializeValue(value: unknown): string {
     default: {
       try {
         return JSON.stringify(value);
-      } catch {}
+      } catch {
+        // JSON.stringify can fail on circular references, continue to fallback
+      }
 
       const constructor = value?.constructor.name;
       if (constructor) {

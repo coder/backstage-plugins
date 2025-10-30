@@ -37,6 +37,7 @@
   },
   "devDependencies": {
     "@backstage/backend-test-utils": "backstage:^",
+    "@backstage/catalog-model": "backstage:^",
     "@backstage/cli": "backstage:^",
     "@types/express": "^4.17.6",
     "@types/git-url-parse": "^9.0.3",

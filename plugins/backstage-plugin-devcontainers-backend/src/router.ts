@@ -1,6 +1,5 @@
-import { errorHandler } from '@backstage/backend-common';
 import type { LoggerService } from '@backstage/backend-plugin-api';
-import express from 'express';
+import express, { type ErrorRequestHandler } from 'express';
 import Router from 'express-promise-router';
 
 export interface RouterOptions {
@@ -19,6 +18,13 @@ export async function createRouter(
     logger.info('PONG!');
     response.json({ status: 'ok' });
   });
-  router.use(errorHandler());
+
+  // Error handler middleware
+  const errorHandler: ErrorRequestHandler = (error, _req, res, _next) => {
+    logger.error(`Error: ${error.message}`);
+    res.status(error.status || 500).json({ error: error.message });
+  };
+  router.use(errorHandler);
+
   return router;
 }

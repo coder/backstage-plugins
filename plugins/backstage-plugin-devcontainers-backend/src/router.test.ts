@@ -1,10 +1,10 @@
-import { getVoidLogger } from '@backstage/backend-common';
+import { mockServices } from '@backstage/backend-test-utils';
 import express from 'express';
 import request from 'supertest';
 import { createRouter } from './router';
 
 async function initApp(): Promise<express.Express> {
-  const logger = getVoidLogger();
+  const logger = mockServices.logger.mock();
   const router = await createRouter({ logger });
   const app = express().use(router);
   return app;
