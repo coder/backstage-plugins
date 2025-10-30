@@ -73,8 +73,8 @@ jobs:
       - run: yarn test
         id: test
         if: success() || failure()
-      # Must run tsc first to generate the .d.ts files.
-      - run: yarn tsc && yarn build
+      # Build the plugin (backstage-cli handles type checking)
+      - run: yarn build
         id: build
       # Version it with the SHA and upload to the run as an artifact in case
       # someone needs to download it for testing.
