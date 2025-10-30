@@ -86,7 +86,7 @@ jobs:
         if: success() || failure()
       # Version it with the SHA and upload to the run as an artifact in case
       # someone needs to download it for testing.
-      - run: yarn version --new-version "0.0.0-devel+$GITHUB_SHA"
+      - run: yarn version "0.0.0-devel+$GITHUB_SHA"
         id: version
       - run: yarn pack
         id: pack
