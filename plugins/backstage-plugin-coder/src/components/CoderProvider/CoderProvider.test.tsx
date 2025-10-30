@@ -88,32 +88,35 @@ describe(`${CoderProvider.name}`, () => {
                 coderAuthApiRef,
                 {
                   getAccessToken: async () => mockCoderAuthToken,
-                  logout: async () => {},
                   signIn: async () => {},
                   signOut: async () => {},
-                  sessionState$: () => ({
-                    subscribe: (observer: any) => {
-                      if (typeof observer === 'function') {
-                        observer('SignedIn');
-                      } else if (observer.next) {
-                        observer.next('SignedIn');
-                      }
-                      return { unsubscribe: () => {} };
-                    },
-                  }),
+                  sessionState$: () =>
+                    ({
+                      subscribe: (subscriber: any) => {
+                        if (typeof subscriber === 'function') {
+                          subscriber('SignedIn');
+                        } else if (subscriber.next) {
+                          subscriber.next('SignedIn');
+                        }
+                        return { unsubscribe: () => {} };
+                      },
+                      [Symbol.observable]() {
+                        return this;
+                      },
+                    } as any),
                   getProfile: async () => ({
                     email: 'test@example.com',
                     displayName: 'Test User',
                   }),
                   getBackstageIdentity: async () => ({
-                    type: 'user' as const,
-                    userEntityRef: 'user:default/test',
-                    ownershipEntityRefs: ['user:default/test'],
-                  }),
-                  getCredentials: async () => ({
                     token: mockCoderAuthToken,
+                    identity: {
+                      type: 'user' as const,
+                      userEntityRef: 'user:default/test',
+                      ownershipEntityRefs: ['user:default/test'],
+                    },
                   }),
-                },
+                } as any,
               ],
             ]}
           >

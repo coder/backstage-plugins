@@ -7,12 +7,12 @@ import {
 import type { Entity } from '@backstage/catalog-model';
 import type { Config } from '@backstage/config';
 import { isError, NotFoundError } from '@backstage/errors';
-import {
-  type UrlReader,
-  UrlReaders,
-} from '@backstage/backend-defaults/urlReader';
+import { UrlReaders } from '@backstage/backend-defaults/urlReader';
 import { parseGitUrl } from '../utils/git';
-import type { LoggerService } from '@backstage/backend-plugin-api';
+import type {
+  LoggerService,
+  UrlReaderService,
+} from '@backstage/backend-plugin-api';
 
 export const DEFAULT_TAG_NAME = 'devcontainers';
 export const PROCESSOR_NAME_PREFIX = 'backstage-plugin-devcontainers-backend';
@@ -25,7 +25,7 @@ const vsCodeUrlKey = 'vsCodeUrl';
 export type VsCodeUrlKey = typeof vsCodeUrlKey;
 
 type ProcessorOptions = Readonly<{
-  urlReader: UrlReader;
+  urlReader: UrlReaderService;
   tagName: string;
   logger: LoggerService;
 }>;
@@ -37,7 +37,7 @@ type FromConfigOptions = Readonly<
 >;
 
 export class DevcontainersProcessor implements CatalogProcessor {
-  readonly #urlReader: UrlReader;
+  readonly #urlReader: UrlReaderService;
   readonly #logger: LoggerService;
   readonly #tagName: string;
 
