@@ -1,12 +1,21 @@
 {
   "name": "@coder/plugin-auth-backend-module-coder-provider",
-  "version": "0.1.0",
+  "description": "Backstage authentication backend module for Coder OAuth2 provider",
+  "version": "0.0.0",
   "main": "src/index.ts",
   "types": "src/index.ts",
-  "license": "MIT",
-  "private": true,
+  "license": "Apache-2.0",
+  "bugs": {
+    "url": "https://github.com/coder/backstage-plugins/issues"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/coder/backstage-plugins.git"
+  },
   "publishConfig": {
-    "access": "public"
+    "access": "public",
+    "main": "dist/index.cjs.js",
+    "types": "dist/index.d.ts"
   },
   "backstage": {
     "role": "backend-plugin-module",
@@ -28,10 +37,19 @@
     "passport-oauth2": "^1.8.0"
   },
   "devDependencies": {
+    "@backstage/backend-test-utils": "^0.5.0",
     "@backstage/cli": "^0.27.0",
-    "@types/passport-oauth2": "^1.4.17"
+    "@types/passport-oauth2": "^1.4.17",
+    "msw": "^1.0.0"
   },
   "files": [
     "dist"
+  ],
+  "keywords": [
+    "backstage",
+    "coder",
+    "oauth2",
+    "authentication",
+    "auth-provider"
   ]
 }

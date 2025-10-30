@@ -3,23 +3,14 @@
 Backend authentication module for integrating Coder OAuth2 with Backstage's native authentication system.
 
 > [!NOTE]
-> This module provides OAuth2 authentication for accessing Coder resources through Backstage. It integrates with Backstage's standard auth system and is designed to work with the `@coder/backstage-plugin-coder` frontend plugin.
+> This module is designed to work with the `@coder/backstage-plugin-coder` frontend plugin. It registers Coder as an OAuth2 provider using Backstage's New Backend System.
 
 ## Features
 
-- **Native Backstage Auth Integration**: Registers Coder as an OAuth2 provider using Backstage's standard authentication system
-- **Resource Access Provider**: Provides authenticated access to Coder API for workspace management
-- **User Profile Fetching**: Automatically retrieves user information from Coder's API
-- **Secure Token Management**: Handles OAuth2 token exchange and refresh using industry-standard practices
-
-## Architecture
-
-This module uses Backstage's New Backend System (NBS) and registers with the `authProvidersExtensionPoint`. It provides:
-
-- OAuth2 authorization flow (`/api/auth/coder/start`)
-- Token exchange and validation
-- User profile fetching from Coder's `/api/v2/users/me` endpoint
-- Session management through Backstage's auth system
+- Native Backstage auth integration using `authProvidersExtensionPoint`
+- OAuth2 authorization flow for Coder API access
+- Automatic user profile fetching from Coder's `/api/v2/users/me` endpoint
+- Session management with token persistence and refresh
 
 ## Installation
 
@@ -108,23 +99,34 @@ auth:
 > [!IMPORTANT]
 > The `clientSecret` is marked as sensitive and will be redacted in logs.
 
-## Usage
+## Frontend Integration
 
-Once configured, users can authenticate with Coder through the Backstage frontend:
+This backend module requires frontend configuration. See the [@coder/backstage-plugin-coder README](../backstage-plugin-coder/README.md#oauth2-authentication-setup) for complete setup instructions.
 
-1. Navigate to a page with the Coder plugin
-2. Click "Sign in with Coder OAuth"
-3. Authorize access in the OAuth popup
-4. The frontend will receive and store the Coder session token
+### Two Ways to Use This Module
 
-The authentication token is automatically used by the `@coder/backstage-plugin-coder` frontend plugin for all Coder API requests.
+This module registers Coder as an auth provider. You can use it for:
 
-## Differences from `@coder/backstage-plugin-coder-backend`
+**Resource Access (Default)** - Users authenticate to Coder via button in workspace card for API access.
 
-This module **replaces** the OAuth functionality previously provided by `@coder/backstage-plugin-coder-backend`.
+**Sign-In Provider (Optional)** - Users can sign in to Backstage with Coder for seamless workspace access. Requires adding `signIn.resolvers` to your `auth.providers.coder` configuration:
 
-> [!NOTE]
-> You can safely remove `@coder/backstage-plugin-coder-backend` from your backend if you are only using it for OAuth. Other functionality from that plugin (if any) should be evaluated separately.
+```yaml
+auth:
+  providers:
+    coder:
+      development:
+        # ... OAuth credentials from steps above
+        signIn:
+          resolvers:
+            - resolver: usernameMatchingUserEntityName
+```
+
+See the frontend plugin README for SignInPage and UserSettings configuration.
+
+## Migrating from `@coder/backstage-plugin-coder-backend`
+
+This module replaces the OAuth functionality in `@coder/backstage-plugin-coder-backend`. If you're only using that plugin for OAuth, you can safely remove it after migrating to this module.
 
 ## Enabling Coder OAuth2 Provider
 

@@ -1,8 +1,9 @@
 import { createBackendModule } from '@backstage/backend-plugin-api';
 import {
   authProvidersExtensionPoint,
-  commonSignInResolvers,
   createOAuthProviderFactory,
+  commonSignInResolvers,
+  createSignInResolverFactory,
 } from '@backstage/plugin-auth-node';
 import { coderAuthenticator } from './authenticator';
 
@@ -26,6 +27,25 @@ export const authModuleCoderProvider = createBackendModule({
             authenticator: coderAuthenticator,
             signInResolverFactories: {
               ...commonSignInResolvers,
+              usernameMatchingUserEntityName: createSignInResolverFactory({
+                create() {
+                  return async (info, ctx) => {
+                    const { result } = info;
+                    const username = result.fullProfile.username;
+                    
+                    if (!username) {
+                      throw new Error('Coder profile is missing username');
+                    }
+
+                    return ctx.signInWithCatalogUser({
+                      entityRef: {
+                        kind: 'User',
+                        name: username,
+                      },
+                    });
+                  };
+                },
+              }),
             },
           }),
         });

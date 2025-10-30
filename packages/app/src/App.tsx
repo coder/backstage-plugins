@@ -21,6 +21,7 @@ import {
 import { TechDocsAddons } from '@backstage/plugin-techdocs-react';
 import { ReportIssue } from '@backstage/plugin-techdocs-module-addons-contrib';
 import { UserSettingsPage } from '@backstage/plugin-user-settings';
+import { CoderProviderSettings } from '@coder/backstage-plugin-coder';
 import { apis } from './apis';
 import { entityPage } from './components/catalog/EntityPage';
 import { searchPage } from './components/search/SearchPage';
@@ -38,6 +39,7 @@ import { catalogEntityCreatePermission } from '@backstage/plugin-catalog-common/
 import { NotificationsPage } from '@backstage/plugin-notifications';
 import { SignalsDisplay } from '@backstage/plugin-signals';
 import { githubAuthApiRef } from '@backstage/core-plugin-api';
+import { coderAuthApiRef } from '@coder/backstage-plugin-coder';
 
 const app = createApp({
   apis,
@@ -47,6 +49,12 @@ const app = createApp({
         {...props}
         auto
         providers={[
+          {
+            id: 'coder-auth-provider',
+            title: 'Coder',
+            message: 'Sign in using Coder',
+            apiRef: coderAuthApiRef,
+          },
           {
             id: 'github-auth-provider',
             title: 'GitHub',
@@ -127,7 +135,10 @@ const routes = (
     <Route path="/search" element={<SearchPage />}>
       {searchPage}
     </Route>
-    <Route path="/settings" element={<UserSettingsPage />} />
+    <Route 
+      path="/settings" 
+      element={<UserSettingsPage providerSettings={<CoderProviderSettings />} />} 
+    />
     <Route path="/catalog-graph" element={<CatalogGraphPage />} />
     <Route path="/notifications" element={<NotificationsPage />} />
   </FlatRoutes>

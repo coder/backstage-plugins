@@ -62,9 +62,13 @@ export const coderAuthenticator = createOAuthAuthenticator({
         });
 
         if (!response.ok) {
-          throw new Error(
-            `Failed to fetch user profile: ${response.status} ${response.statusText}`,
+          const errorText = await response.text().catch(() => response.statusText);
+          done(
+            new Error(
+              `Failed to fetch Coder user profile (${response.status}): ${errorText}`,
+            ),
           );
+          return;
         }
 
         const userData = await response.json();
@@ -82,28 +86,26 @@ export const coderAuthenticator = createOAuthAuthenticator({
 
         done(null, profile);
       } catch (error) {
-        console.error('Error fetching Coder user profile:', error);
-        // Fallback to minimal profile if fetch fails
-        done(null, {
-          id: 'coder-user',
-          displayName: 'Coder User',
-          provider: 'coder',
-        });
+        const errorMessage =
+          error instanceof Error
+            ? error.message
+            : 'Unknown error occurred while fetching user profile';
+        done(new Error(`Coder authentication failed: ${errorMessage}`));
       }
     };
 
     return PassportOAuthAuthenticatorHelper.from(strategy);
   },
 
-  async start(input, helper) {
-    return helper.start(input);
+  async start(input, ctx) {
+    return ctx.start(input, {});
   },
 
-  async authenticate(input, helper) {
-    return helper.authenticate(input);
+  async authenticate(input, ctx) {
+    return ctx.authenticate(input, {});
   },
 
-  async refresh(input, helper) {
-    return helper.refresh(input);
+  async refresh(input, ctx) {
+    return ctx.refresh(input);
   },
 });
