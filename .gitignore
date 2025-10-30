@@ -18,7 +18,7 @@ node_modules/
 .pnp.*
 .yarn/*
 # This is skipped because we specify the Yarn version in the root package.json
-.yarn/releases
+!.yarn/releases
 # Important that we re-include the plugins directory because we need Backstage's
 # official Yarn plugin to simplify managing dependencies for each Backstage
 # release. The package.json files are updated to include the special
