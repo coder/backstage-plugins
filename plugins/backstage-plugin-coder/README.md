@@ -122,8 +122,7 @@ the Dev Container.
 
 The Coder plugin uses Backstage's native OAuth2 system for secure authentication. This requires both backend and frontend configuration.
 
-> [!NOTE]
-> **New Backend System Required**: This setup uses Backstage's New Backend System and the `@coder/plugin-auth-backend-module-coder-provider` module.
+> [!NOTE] > **New Backend System Required**: This setup uses Backstage's New Backend System and the `@coder/plugin-auth-backend-module-coder-provider` module.
 
 #### Two Ways to Use Coder Authentication
 
@@ -139,16 +138,19 @@ Coder is registered as an auth provider. You can use it for:
 #### Backend Setup
 
 1. **Install the auth backend module**:
+
    ```bash
    yarn workspace backend add @coder/plugin-auth-backend-module-coder-provider
    ```
 
 2. **Register the module** in `packages/backend/src/index.ts`:
+
    ```typescript
    backend.add(import('@coder/plugin-auth-backend-module-coder-provider'));
    ```
 
 3. **Create an OAuth2 application in Coder**:
+
    - Navigate to **Deployment Settings → OAuth2 Applications** in your Coder deployment
    - Create a new application
    - Set the callback URL to: `https://your-backstage-instance.com/api/auth/coder/handler/frame`
@@ -184,7 +186,7 @@ import {
 
 export const apis: AnyApiFactory[] = [
   // ... other APIs
-  
+
   createApiFactory({
     api: coderAuthApiRef,
     deps: {
@@ -213,6 +215,7 @@ export const apis: AnyApiFactory[] = [
 To enable Coder as a Backstage sign-in provider (users can sign in to Backstage with Coder):
 
 1. **Add sign-in resolver** to your existing `auth.providers.coder` configuration in `app-config.yaml`:
+
    ```yaml
    auth:
      providers:
@@ -225,6 +228,7 @@ To enable Coder as a Backstage sign-in provider (users can sign in to Backstage 
    ```
 
 2. **Configure SignInPage** in `packages/app/src/App.tsx`:
+
    ```typescript
    import { coderAuthApiRef } from '@coder/backstage-plugin-coder';
    import { SignInPage } from '@backstage/core-components';
@@ -250,14 +254,15 @@ To enable Coder as a Backstage sign-in provider (users can sign in to Backstage 
    ```
 
 3. **Add to User Settings** (shows connected providers):
+
    ```typescript
    import { CoderProviderSettings } from '@coder/backstage-plugin-coder';
    import { UserSettingsPage } from '@backstage/plugin-user-settings';
 
-   <Route 
-     path="/settings" 
-     element={<UserSettingsPage providerSettings={<CoderProviderSettings />} />} 
-   />
+   <Route
+     path="/settings"
+     element={<UserSettingsPage providerSettings={<CoderProviderSettings />} />}
+   />;
    ```
 
 #### How OAuth Works

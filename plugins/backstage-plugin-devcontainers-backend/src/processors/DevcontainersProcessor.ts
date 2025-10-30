@@ -7,7 +7,10 @@ import {
 import type { Entity } from '@backstage/catalog-model';
 import type { Config } from '@backstage/config';
 import { isError, NotFoundError } from '@backstage/errors';
-import { type UrlReader, UrlReaders } from '@backstage/backend-defaults/urlReader';
+import {
+  type UrlReader,
+  UrlReaders,
+} from '@backstage/backend-defaults/urlReader';
 import { parseGitUrl } from '../utils/git';
 import type { LoggerService } from '@backstage/backend-plugin-api';
 

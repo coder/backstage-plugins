@@ -62,7 +62,9 @@ export const coderAuthenticator = createOAuthAuthenticator({
         });
 
         if (!response.ok) {
-          const errorText = await response.text().catch(() => response.statusText);
+          const errorText = await response
+            .text()
+            .catch(() => response.statusText);
           done(
             new Error(
               `Failed to fetch Coder user profile (${response.status}): ${errorText}`,

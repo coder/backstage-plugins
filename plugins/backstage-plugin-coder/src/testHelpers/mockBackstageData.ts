@@ -326,7 +326,7 @@ export function getMockApiList(): readonly ApiTuple[] {
     // OAuthApi methods
     getAccessToken: async () => mockCoderAuthToken,
     logout: async () => {},
-    
+
     // SessionApi methods
     signIn: async () => {},
     signOut: async () => {},
@@ -340,13 +340,13 @@ export function getMockApiList(): readonly ApiTuple[] {
         return { unsubscribe: () => {} };
       },
     }),
-    
+
     // ProfileInfoApi methods
     getProfile: async () => ({
       email: 'test@example.com',
       displayName: 'Test User',
     }),
-    
+
     // BackstageIdentityApi methods
     getBackstageIdentity: async () => ({
       type: 'user' as const,

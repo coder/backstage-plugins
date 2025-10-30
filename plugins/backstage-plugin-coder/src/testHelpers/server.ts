@@ -134,7 +134,8 @@ const mainTestHandlers: readonly RestHandler[] = [
   // Use wildcard to match any emoji filename including those with dots
   rest.get(`${root}/emojis/*`, (_, res, ctx) => {
     // Return a minimal SVG as a blob-compatible response
-    const svgContent = '<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20"><circle cx="10" cy="10" r="8" fill="#ccc"/></svg>';
+    const svgContent =
+      '<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20"><circle cx="10" cy="10" r="8" fill="#ccc"/></svg>';
     return res(
       ctx.status(200),
       ctx.set('Content-Type', 'image/svg+xml'),
@@ -145,7 +146,8 @@ const mainTestHandlers: readonly RestHandler[] = [
   // Catch-all for other icon/image requests (e.g., for testing error handling)
   rest.get(`${root}/*`, (_, res, ctx) => {
     // Return a minimal PNG as a blob for any other asset request
-    const pngContent = '<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20"><circle cx="10" cy="10" r="8" fill="#ccc"/></svg>';
+    const pngContent =
+      '<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20"><circle cx="10" cy="10" r="8" fill="#ccc"/></svg>';
     return res(
       ctx.status(200),
       ctx.set('Content-Type', 'image/png'),

@@ -12,10 +12,7 @@ import { makeStyles } from '@material-ui/core';
 import TextField from '@material-ui/core/TextField';
 import ErrorIcon from '@material-ui/icons/ErrorOutline';
 import SyncIcon from '@material-ui/icons/Sync';
-import {
-  errorApiRef,
-  useApi,
-} from '@backstage/core-plugin-api';
+import { errorApiRef, useApi } from '@backstage/core-plugin-api';
 import { useUrlSync } from '../../hooks/useUrlSync';
 import { coderAuthApiRef } from '../../api/CoderAuthApi';
 

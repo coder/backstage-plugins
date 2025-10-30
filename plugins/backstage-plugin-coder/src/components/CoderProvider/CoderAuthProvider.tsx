@@ -83,7 +83,7 @@ const validAuthStatuses: readonly CoderAuthStatus[] = [
 function useAuthState(): CoderAuth {
   const coderClient = useApi(coderClientWrapperApiRef);
   const coderAuthApi = useApi(coderAuthApiRef);
-  
+
   const [authToken, setAuthToken] = useState('');
   const [readonlyInitialAuthToken, setReadonlyInitialAuthToken] = useState('');
   const [isInsideGracePeriod, setIsInsideGracePeriod] = useState(true);
@@ -96,8 +96,10 @@ function useAuthState(): CoderAuth {
     const loadTokenFromSession = async () => {
       try {
         // Get the OAuth2 session which contains providerInfo.accessToken
-        const accessToken = await coderAuthApi.getAccessToken('', { optional: true });
-        
+        const accessToken = await coderAuthApi.getAccessToken('', {
+          optional: true,
+        });
+
         if (isMounted && accessToken) {
           // Store in CoderClientWrapper for API calls
           coderClient.setToken(accessToken);
@@ -141,7 +143,6 @@ function useAuthState(): CoderAuth {
   if (!isInsideGracePeriod && authState.status === 'authenticated') {
     setIsInsideGracePeriod(true);
   }
-
 
   // Starts ticking down seconds before we start fully distrusting a token
   useEffect(() => {
@@ -201,8 +202,7 @@ function useAuthState(): CoderAuth {
 
   const unlinkToken = useCallback(() => {
     setAuthToken('');
-    coderAuthApi.signOut().catch(() => {
-    });
+    coderAuthApi.signOut().catch(() => {});
     queryClient.removeQueries({ queryKey: [CODER_QUERY_KEY_PREFIX] });
   }, [queryClient, coderAuthApi]);
 

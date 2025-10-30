@@ -32,7 +32,7 @@ export const authModuleCoderProvider = createBackendModule({
                   return async (info, ctx) => {
                     const { result } = info;
                     const username = result.fullProfile.username;
-                    
+
                     if (!username) {
                       throw new Error('Coder profile is missing username');
                     }

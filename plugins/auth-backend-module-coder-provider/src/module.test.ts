@@ -49,4 +49,3 @@ describe('authModuleCoderProvider', () => {
     expect(registerCall[0].providerId).toBe('coder');
   });
 });
-

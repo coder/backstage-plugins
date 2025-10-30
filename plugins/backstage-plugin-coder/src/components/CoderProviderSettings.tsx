@@ -9,21 +9,21 @@ import { CoderLogo } from './CoderLogo';
 
 /**
  * Provider settings component that includes Coder along with all default Backstage auth providers.
- * 
+ *
  * Use this as the `providerSettings` prop for `UserSettingsPage` to display Coder
  * alongside GitHub, Google, and other configured providers in the Settings page.
- * 
+ *
  * @example
  * ```tsx
  * import { UserSettingsPage } from '@backstage/plugin-user-settings';
  * import { CoderProviderSettings } from '@coder/backstage-plugin-coder';
- * 
- * <Route 
- *   path="/settings" 
- *   element={<UserSettingsPage providerSettings={<CoderProviderSettings />} />} 
+ *
+ * <Route
+ *   path="/settings"
+ *   element={<UserSettingsPage providerSettings={<CoderProviderSettings />} />}
  * />
  * ```
- * 
+ *
  * @public
  */
 export const CoderProviderSettings = () => {
@@ -45,4 +45,3 @@ export const CoderProviderSettings = () => {
     </>
   );
 };
-

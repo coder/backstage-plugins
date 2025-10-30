@@ -21,7 +21,7 @@ describe(`${WorkspacesListIcon.name}`, () => {
     const fallbackGraphic = screen.getByTestId('icon-fallback');
     const formattedName = workspaceName.slice(0, 1).toUpperCase();
     expect(fallbackGraphic.textContent).toBe(formattedName);
-    
+
     // Verify the image is not rendered
     const imageIcon = screen.queryByTestId('icon-image');
     expect(imageIcon).not.toBeInTheDocument();
