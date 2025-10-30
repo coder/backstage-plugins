@@ -1,11 +1,11 @@
 import { useDevcontainersConfig } from '../components/DevcontainersProvider';
 import { useEntity } from '@backstage/plugin-catalog-react';
-import type { VsCodeUrlKey } from '@coder/backstage-plugin-devcontainers-backend';
 
-// We avoid importing the actual constant to prevent making the backend plugin a
-// run-time dependency, but we can use the type at compile-time to validate the
-// string is the same.
-const vsCodeUrlKey: VsCodeUrlKey = 'vsCodeUrl';
+// Define the vsCodeUrl key locally to avoid importing from the backend plugin
+// (Backstage forbids frontend plugins from importing backend plugins).
+// This must match the value exported by the backend processor.
+const vsCodeUrlKey = 'vsCodeUrl' as const;
+export type VsCodeUrlKey = typeof vsCodeUrlKey;
 
 export type UseDevcontainersResult = Readonly<
   {

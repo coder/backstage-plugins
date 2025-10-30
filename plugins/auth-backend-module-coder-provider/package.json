@@ -32,13 +32,13 @@
     "postpack": "backstage-cli package postpack"
   },
   "dependencies": {
-    "@backstage/backend-plugin-api": "^0.8.0",
-    "@backstage/plugin-auth-node": "^0.5.0",
+    "@backstage/backend-plugin-api": "backstage:^",
+    "@backstage/plugin-auth-node": "backstage:^",
     "passport-oauth2": "^1.8.0"
   },
   "devDependencies": {
-    "@backstage/backend-test-utils": "^0.5.0",
-    "@backstage/cli": "^0.27.0",
+    "@backstage/backend-test-utils": "backstage:^",
+    "@backstage/cli": "backstage:^",
     "@types/passport-oauth2": "^1.4.17",
     "msw": "^1.0.0"
   },

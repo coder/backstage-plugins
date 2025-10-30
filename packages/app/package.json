@@ -14,6 +14,8 @@
     "lint": "backstage-cli package lint"
   },
   "dependencies": {
+    "@backstage-community/plugin-github-actions": "^0.6.16",
+    "@backstage-community/plugin-tech-radar": "^0.7.4",
     "@backstage/app-defaults": "backstage:^",
     "@backstage/catalog-model": "backstage:^",
     "@backstage/cli": "backstage:^",
@@ -27,7 +29,6 @@
     "@backstage/plugin-catalog-graph": "backstage:^",
     "@backstage/plugin-catalog-import": "backstage:^",
     "@backstage/plugin-catalog-react": "backstage:^",
-    "@backstage/plugin-github-actions": "^0.6.10",
     "@backstage/plugin-kubernetes": "backstage:^",
     "@backstage/plugin-notifications": "backstage:^",
     "@backstage/plugin-org": "backstage:^",
@@ -36,7 +37,6 @@
     "@backstage/plugin-search": "backstage:^",
     "@backstage/plugin-search-react": "backstage:^",
     "@backstage/plugin-signals": "backstage:^",
-    "@backstage/plugin-tech-radar": "^0.6.12",
     "@backstage/plugin-techdocs": "backstage:^",
     "@backstage/plugin-techdocs-module-addons-contrib": "backstage:^",
     "@backstage/plugin-techdocs-react": "backstage:^",
