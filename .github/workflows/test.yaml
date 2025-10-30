@@ -73,9 +73,13 @@ jobs:
       - run: yarn test
         id: test
         if: success() || failure()
-      # Build the plugin (backstage-cli handles type checking)
+      - run: yarn tsc
+        working-directory: .
+        if: success() || failure()
+      # Build the plugin
       - run: yarn build
         id: build
+        if: success() || failure()
       # Version it with the SHA and upload to the run as an artifact in case
       # someone needs to download it for testing.
       - run: yarn version --new-version "0.0.0-devel+$GITHUB_SHA"
