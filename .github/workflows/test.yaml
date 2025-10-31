@@ -92,8 +92,9 @@ jobs:
           SHORT_SHA=$(echo "${{ github.sha }}" | cut -c1-7)
           node -e "const fs=require('fs'); const pkg=JSON.parse(fs.readFileSync('package.json')); pkg.version='dev-${SHORT_SHA}'; fs.writeFileSync('package.json', JSON.stringify(pkg,null,2)+'\n');"
           echo "Set version to dev-${SHORT_SHA}"
-      - run: yarn pack
+      - name: Pack plugin
         id: pack
+        run: yarn pack --out '%s-%v.tgz'
       - uses: actions/upload-artifact@v4
         id: upload
         with:
