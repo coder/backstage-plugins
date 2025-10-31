@@ -32,16 +32,16 @@ jobs:
           parts=(${TAG//\/v/ })
           PLUGIN_NAME="${parts[0]}"
           VERSION="${parts[1]}"
-          
+
           if [[ ! -d "plugins/${PLUGIN_NAME}" ]]; then
             echo "Error: Plugin directory 'plugins/${PLUGIN_NAME}' not found"
             echo "Tag should match the exact directory name in plugins/"
             exit 1
           fi
-          
+
           echo "plugin=${PLUGIN_NAME}" >> $GITHUB_OUTPUT
           echo "version=${VERSION}" >> $GITHUB_OUTPUT
-          
+
           echo "Plugin: ${PLUGIN_NAME}"
           echo "Version: ${VERSION}"
   plugin:
