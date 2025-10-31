@@ -68,7 +68,8 @@ jobs:
         run: |
           node -e "const fs=require('fs'); const pkg=JSON.parse(fs.readFileSync('package.json')); pkg.version='${{ needs.split-tag.outputs.version }}'; fs.writeFileSync('package.json', JSON.stringify(pkg,null,2)+'\n');"
           echo "Set version to ${{ needs.split-tag.outputs.version }}"
-      - run: yarn pack
+      - name: Pack plugin
+        run: yarn pack --out '%s-%v.tgz'
       - uses: softprops/action-gh-release@v2
         with:
           draft: true
