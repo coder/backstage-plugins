@@ -60,12 +60,14 @@ jobs:
       - run: yarn install --frozen-lockfile
       - run: yarn lint
       - run: yarn test
-      # Must run tsc first to generate the .d.ts files.
       - run: yarn tsc
-        working-directory: .
+        working-directory: ${{ github.workspace }}
       - run: yarn build
       # Version it with the version in the tag and upload it to a draft release.
-      - run: yarn version --new-version ${{ needs.split-tag.outputs.version }}
+      - name: Set version
+        run: |
+          node -e "const fs=require('fs'); const pkg=JSON.parse(fs.readFileSync('package.json')); pkg.version='${{ needs.split-tag.outputs.version }}'; fs.writeFileSync('package.json', JSON.stringify(pkg,null,2)+'\n');"
+          echo "Set version to ${{ needs.split-tag.outputs.version }}"
       - run: yarn pack
       - uses: softprops/action-gh-release@v2
         with:
