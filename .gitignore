@@ -7,7 +7,6 @@ logs
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
-lerna-debug.log*
 
 # Coverage directory generated when running tests with coverage
 coverage
@@ -15,17 +14,19 @@ coverage
 # Dependencies
 node_modules/
 
-# Yarn 3 files
+# Yarn files
 .pnp.*
 .yarn/*
-!.yarn/patches
-!.yarn/plugins
+# This is skipped because we specify the Yarn version in the root package.json
 !.yarn/releases
+# Important that we re-include the plugins directory because we need Backstage's
+# official Yarn plugin to simplify managing dependencies for each Backstage
+# release. The package.json files are updated to include the special
+# "backstage:^" value for version numbers, which will break without the plugin
+!.yarn/plugins
+!.yarn/patches
 !.yarn/sdks
 !.yarn/versions
-
-# Node version directives
-.nvmrc
 
 # dotenv environment variables file
 .env
@@ -52,3 +53,8 @@ site
 
 # E2E test reports
 e2e-test-report/
+
+# Cache
+.cache/
+# Local configuration overrides (contains secrets)
+app-config.local.yaml

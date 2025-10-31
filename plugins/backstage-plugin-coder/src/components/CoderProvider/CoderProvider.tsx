@@ -1,4 +1,4 @@
-import React, { type ComponentProps } from 'react';
+import type { ComponentProps } from 'react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 
 import { CoderAuthProvider } from './CoderAuthProvider';

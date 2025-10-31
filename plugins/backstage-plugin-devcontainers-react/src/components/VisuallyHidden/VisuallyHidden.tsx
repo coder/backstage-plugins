@@ -5,7 +5,7 @@
  *
  * @see {@link https://www.joshwcomeau.com/snippets/react-components/visually-hidden/}
  */
-import React, {
+import {
   type CSSProperties,
   type HTMLAttributes,
   type ReactNode,

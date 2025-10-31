@@ -335,6 +335,14 @@ export class CoderClientWrapper implements CoderClientWrapperApi {
       this.removeRequestInterceptorById(validationId);
     }
   };
+
+  getLoadedToken = (): string | undefined => {
+    return this.loadedSessionToken;
+  };
+
+  setToken = (newToken: string): void => {
+    this.loadedSessionToken = newToken;
+  };
 }
 
 function appendParamToQuery(

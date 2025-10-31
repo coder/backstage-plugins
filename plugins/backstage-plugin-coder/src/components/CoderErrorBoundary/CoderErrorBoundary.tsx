@@ -1,5 +1,4 @@
-import React, { type ErrorInfo, type ReactNode, Component } from 'react';
-
+import { type ErrorInfo, type ReactNode, Component } from 'react';
 import { ValiError } from 'valibot';
 import { errorApiRef, useApi } from '@backstage/core-plugin-api';
 

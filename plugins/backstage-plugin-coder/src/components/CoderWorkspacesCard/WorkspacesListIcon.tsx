@@ -1,5 +1,12 @@
-import React, { ForwardedRef, HTMLAttributes, useState } from 'react';
+import {
+  type ForwardedRef,
+  type HTMLAttributes,
+  useState,
+  useEffect,
+} from 'react';
 import { useUrlSync } from '../../hooks/useUrlSync';
+import { useInternalCoderAuth } from '../CoderProvider';
+import { useCoderApi } from '../../hooks/useCoderApi';
 import { Theme, makeStyles } from '@material-ui/core';
 
 type WorkspaceListIconProps = Readonly<
@@ -56,8 +63,50 @@ export const WorkspacesListIcon = ({
   ...delegatedProps
 }: WorkspaceListIconProps) => {
   const [hasError, setHasError] = useState(false);
+  const [blobUrl, setBlobUrl] = useState<string | null>(null);
   const { renderHelpers } = useUrlSync();
+  const auth = useInternalCoderAuth();
+  const coderApi = useCoderApi();
   const styles = useStyles({ isEmoji: renderHelpers.isEmojiUrl(src) });
+
+  useEffect(() => {
+    if (!auth.isAuthenticated) {
+      setHasError(true);
+      return undefined;
+    }
+
+    let isMounted = true;
+
+    const fetchIcon = async () => {
+      try {
+        const response = await coderApi.getAxiosInstance().get(src, {
+          responseType: 'blob',
+        });
+
+        const blob = response.data as Blob;
+        const url = URL.createObjectURL(blob);
+
+        if (isMounted) {
+          setBlobUrl(url);
+        }
+      } catch (error) {
+        if (isMounted) {
+          setHasError(true);
+        }
+      }
+    };
+
+    fetchIcon();
+
+    return () => {
+      isMounted = false;
+      if (blobUrl) {
+        URL.revokeObjectURL(blobUrl);
+        setBlobUrl(null);
+      }
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [src, auth.isAuthenticated]);
 
   return (
     <div
@@ -65,7 +114,7 @@ export const WorkspacesListIcon = ({
       className={`${styles.root} ${className ?? ''}`}
       {...delegatedProps}
     >
-      {hasError ? (
+      {hasError || !blobUrl ? (
         <span role="none" data-testid="icon-fallback">
           {getFirstLetter(workspaceName)}
         </span>
@@ -74,7 +123,7 @@ export const WorkspacesListIcon = ({
           ref={imageRef}
           data-testid="icon-image"
           role="none"
-          src={src}
+          src={blobUrl}
           alt="" // Empty because icon should be purely decorative
           onError={() => setHasError(true)}
           className={`${styles.image} ${imageClassName ?? ''}`}

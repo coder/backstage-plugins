@@ -1,4 +1,4 @@
-import React, { type ComponentProps } from 'react';
+import type { ComponentProps } from 'react';
 import { LinkButton } from '@backstage/core-components';
 import { makeStyles } from '@material-ui/core';
 import { useInternalCoderAuth } from '../CoderProvider';

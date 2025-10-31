@@ -1,4 +1,4 @@
-import React, { type HTMLAttributes, useState } from 'react';
+import { type HTMLAttributes, useState } from 'react';
 import { useId } from '../../hooks/hookPolyfills';
 import { makeStyles } from '@material-ui/core';
 import { LinkButton } from '@backstage/core-components';

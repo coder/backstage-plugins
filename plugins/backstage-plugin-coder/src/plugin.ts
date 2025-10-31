@@ -212,3 +212,9 @@ export { CODER_QUERY_KEY_PREFIX } from './api/queryOptions';
  */
 export type { CoderAppConfig } from './components/CoderProvider';
 export type * from './api/vendoredSdk/api/typesGenerated';
+
+export { coderAuthApiRef } from './api/CoderAuthApi';
+export type { CoderAuthApi } from './api/CoderAuthApi';
+export { coderClientWrapperApiRef } from './api/CoderClient';
+
+export { CoderProviderSettings } from './components/CoderProviderSettings';

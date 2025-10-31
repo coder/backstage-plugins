@@ -2,7 +2,6 @@
  * @file Defines a simple routable component for wrapping around non-page
  * Backstage components.
  */
-import React from 'react';
 import { CoderWorkspacesCard } from '../src/components/CoderWorkspacesCard';
 import {
   type CoderAppConfig,

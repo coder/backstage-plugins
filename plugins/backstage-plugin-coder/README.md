@@ -118,28 +118,159 @@ the Dev Container.
    );
    ```
 
-### Adding support for OAuth2
+### OAuth2 Authentication Setup
 
-> [!IMPORTANT]
-> Support for OAuth2 requires that you also install the `backstage-plugin-coder-backend` package through NPM. [You can find its README here](../backstage-plugin-coder-backend/README.md). These instrutions assume that you will be installing this plugin before that one.
+The Coder plugin uses Backstage's native OAuth2 system for secure authentication. This requires both backend and frontend configuration.
 
-1. Register Backstage as an OAuth application. [See the instructions in Coder's documentation for more information](https://coder.com/docs/admin/integrations/oauth2-provider).
-2. Add the following values to one of your `app-config.yaml` files:
-   ```yaml
-   coder:
-     deployment:
-       # Change the value to match your Coder deployment
-       accessUrl: https://dev.coder.com
-     oauth:
-       clientId: oauth2-client-id-goes-here
-       # The client secret isn't used by the frontend plugin, but the backend
-       # plugin needs it for oauth functionality to work
-       clientSecret: oauth2-secret-goes-here
+> [!NOTE] > **New Backend System Required**: This setup uses Backstage's New Backend System and the `@coder/plugin-auth-backend-module-coder-provider` module.
+
+#### Two Ways to Use Coder Authentication
+
+Coder is registered as an auth provider. You can use it for:
+
+**Resource Access (Default)** - Users authenticate to Coder via button in workspace card for API access.
+
+**Sign-In Provider (Optional)** - Users can sign in to Backstage with Coder for seamless workspace access.
+
+> [!TIP]
+> Resource Access = backend + frontend setup below. Sign-In Provider = Resource Access + signIn configuration (see Optional section).
+
+#### Backend Setup
+
+1. **Install the auth backend module**:
+
+   ```bash
+   yarn workspace backend add @coder/plugin-auth-backend-module-coder-provider
    ```
 
-(Once the values have been added, you may need to restart the Backstage server for the new values to be recognized.)
+2. **Register the module** in `packages/backend/src/index.ts`:
 
-Only the Client ID is exposed in the frontend application (and is used to generate OAuth2 consent links). The client secret stays exclusively on the server.
+   ```typescript
+   backend.add(import('@coder/plugin-auth-backend-module-coder-provider'));
+   ```
+
+3. **Create an OAuth2 application in Coder**:
+
+   - Navigate to **Deployment Settings → OAuth2 Applications** in your Coder deployment
+   - Create a new application
+   - Set the callback URL to: `https://your-backstage-instance.com/api/auth/coder/handler/frame`
+   - For local development: `http://localhost:7007/api/auth/coder/handler/frame`
+   - Save the client ID and client secret
+
+4. **Configure OAuth credentials** in `app-config.yaml` (use environment variables):
+   ```yaml
+   auth:
+     providers:
+       coder:
+         development:
+           clientId: ${CODER_OAUTH_CLIENT_ID}
+           clientSecret: ${CODER_OAUTH_CLIENT_SECRET}
+           deploymentUrl: ${CODER_DEPLOYMENT_URL}
+   ```
+
+For complete backend setup details, see [@coder/plugin-auth-backend-module-coder-provider README](../auth-backend-module-coder-provider/README.md).
+
+#### Frontend Setup (Required)
+
+**Register the Coder auth API** in `packages/app/src/apis.ts`:
+
+```typescript
+import { OAuth2 } from '@backstage/core-app-api';
+import { coderAuthApiRef } from '@coder/backstage-plugin-coder';
+import {
+  discoveryApiRef,
+  oauthRequestApiRef,
+  configApiRef,
+  createApiFactory,
+} from '@backstage/core-plugin-api';
+
+export const apis: AnyApiFactory[] = [
+  // ... other APIs
+
+  createApiFactory({
+    api: coderAuthApiRef,
+    deps: {
+      discoveryApi: discoveryApiRef,
+      oauthRequestApi: oauthRequestApiRef,
+      configApi: configApiRef,
+    },
+    factory: ({ discoveryApi, oauthRequestApi, configApi }) =>
+      OAuth2.create({
+        discoveryApi,
+        oauthRequestApi,
+        provider: {
+          id: 'coder',
+          title: 'Coder',
+          icon: () => null,
+        },
+        environment: configApi.getOptionalString('auth.environment'),
+        defaultScopes: [],
+      }),
+  }),
+];
+```
+
+#### Optional: Enable Sign-In Provider
+
+To enable Coder as a Backstage sign-in provider (users can sign in to Backstage with Coder):
+
+1. **Add sign-in resolver** to your existing `auth.providers.coder` configuration in `app-config.yaml`:
+
+   ```yaml
+   auth:
+     providers:
+       coder:
+         development:
+           # ... OAuth credentials above
+           signIn:
+             resolvers:
+               - resolver: usernameMatchingUserEntityName
+   ```
+
+2. **Configure SignInPage** in `packages/app/src/App.tsx`:
+
+   ```typescript
+   import { coderAuthApiRef } from '@coder/backstage-plugin-coder';
+   import { SignInPage } from '@backstage/core-components';
+
+   const app = createApp({
+     components: {
+       SignInPage: props => (
+         <SignInPage
+           {...props}
+           providers={[
+             {
+               id: 'coder-auth-provider',
+               title: 'Coder',
+               message: 'Sign in using Coder',
+               apiRef: coderAuthApiRef,
+             },
+             // ... other providers
+           ]}
+         />
+       ),
+     },
+   });
+   ```
+
+3. **Add to User Settings** (shows connected providers):
+
+   ```typescript
+   import { CoderProviderSettings } from '@coder/backstage-plugin-coder';
+   import { UserSettingsPage } from '@backstage/plugin-user-settings';
+
+   <Route
+     path="/settings"
+     element={<UserSettingsPage providerSettings={<CoderProviderSettings />} />}
+   />;
+   ```
+
+#### How OAuth Works
+
+- **Resource Access:** Click "Sign in with Coder OAuth" in workspace card → OAuth popup → token stored
+- **Sign-In Provider:** Sign in via Backstage login page → token automatically available
+
+Both support managing connections in Settings → Authentication Providers. Token persistence and refresh handled by Backstage's `OAuth2` helper.
 
 ### `catalog-info.yaml` files
 
@@ -172,6 +303,7 @@ You can find more information about what properties are available (and how they'
 
 This plugin is in active development. The following features are planned:
 
+- [x] OAuth2 support (vs. token auth) for linking Coder accounts
 - [ ] Example component using the Coder API to make authenticated requests on behalf of the user
 - [ ] Add support for only rendering component if `catalog-info.yaml` indicates the item is compatible with Coder
 - [ ] OAuth support (vs. token auth) for linking Coder accounts

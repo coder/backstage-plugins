@@ -29,18 +29,22 @@ jobs:
         id: filter
         with:
           filters: |
-            coder:
+            backstage-plugin-coder:
               - ".github/workflows/test.yaml"
               - "yarn.lock"
               - "plugins/backstage-plugin-coder/**"
-            devcontainers-backend:
+            backstage-plugin-devcontainers-backend:
               - ".github/workflows/test.yaml"
               - "yarn.lock"
               - "plugins/backstage-plugin-devcontainers-backend/**"
-            devcontainers-react:
+            backstage-plugin-devcontainers-react:
               - ".github/workflows/test.yaml"
               - "yarn.lock"
               - "plugins/backstage-plugin-devcontainers-react/**"
+            auth-backend-module-coder-provider:
+              - ".github/workflows/test.yaml"
+              - "yarn.lock"
+              - "plugins/auth-backend-module-coder-provider/**"
   plugin:
     needs: changes
     if: ${{ needs.changes.outputs.plugins != '' && toJson(fromJson(needs.changes.outputs.plugins)) != '[]' }}
@@ -51,7 +55,7 @@ jobs:
     name: ${{ matrix.plugin }}
     defaults:
       run:
-        working-directory: plugins/backstage-plugin-${{ matrix.plugin }}
+        working-directory: plugins/${{ matrix.plugin }}
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -60,7 +64,7 @@ jobs:
           cache: yarn
       - run: yarn install --frozen-lockfile
       # The Prettier command is in the root package.json.
-      - run: yarn prettier --check plugins/backstage-plugin-${{ matrix.plugin }}
+      - run: yarn prettier --check plugins/${{ matrix.plugin }}
         id: fmt
         working-directory: .
       - run: yarn lint
@@ -73,20 +77,29 @@ jobs:
       - run: yarn test
         id: test
         if: success() || failure()
-      # Must run tsc first to generate the .d.ts files.
-      - run: yarn tsc && yarn build
+      - run: yarn tsc
+        working-directory: .
+        if: success() || failure()
+      # Build the plugin
+      - run: yarn build
         id: build
+        if: success() || failure()
       # Version it with the SHA and upload to the run as an artifact in case
       # someone needs to download it for testing.
-      - run: yarn version --new-version "0.0.0-devel+$GITHUB_SHA"
+      - name: Set development version
         id: version
-      - run: yarn pack
+        run: |
+          SHORT_SHA=$(echo "${{ github.sha }}" | cut -c1-7)
+          node -e "const fs=require('fs'); const pkg=JSON.parse(fs.readFileSync('package.json')); pkg.version='dev-${SHORT_SHA}'; fs.writeFileSync('package.json', JSON.stringify(pkg,null,2)+'\n');"
+          echo "Set version to dev-${SHORT_SHA}"
+      - name: Pack plugin
         id: pack
+        run: yarn pack --out '%s-%v.tgz'
       - uses: actions/upload-artifact@v4
         id: upload
         with:
           name: ${{ matrix.plugin }}
-          path: plugins/backstage-plugin-${{ matrix.plugin }}/*.tgz
+          path: plugins/${{ matrix.plugin }}/*.tgz
       # Since we continued on failures above, fail now if there were errors.  We
       # allow skipped jobs to pass, but not failed or cancelled jobs.
       - name: Check required

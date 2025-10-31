@@ -1,4 +1,3 @@
-import React from 'react';
 import { renderHook } from '@testing-library/react';
 import { act, waitFor } from '@testing-library/react';
 
@@ -31,6 +30,7 @@ import {
   CoderClientWrapper,
   coderClientWrapperApiRef,
 } from '../../api/CoderClient';
+import { coderAuthApiRef } from '../../api/CoderAuthApi';
 
 describe(`${CoderProvider.name}`, () => {
   describe('AppConfig', () => {
@@ -84,6 +84,40 @@ describe(`${CoderProvider.name}`, () => {
 
               [urlSyncApiRef, urlSync],
               [coderClientWrapperApiRef, coderClientApi],
+              [
+                coderAuthApiRef,
+                {
+                  getAccessToken: async () => mockCoderAuthToken,
+                  signIn: async () => {},
+                  signOut: async () => {},
+                  sessionState$: () =>
+                    ({
+                      subscribe: (subscriber: any) => {
+                        if (typeof subscriber === 'function') {
+                          subscriber('SignedIn');
+                        } else if (subscriber.next) {
+                          subscriber.next('SignedIn');
+                        }
+                        return { unsubscribe: () => {} };
+                      },
+                      [Symbol.observable]() {
+                        return this;
+                      },
+                    } as any),
+                  getProfile: async () => ({
+                    email: 'test@example.com',
+                    displayName: 'Test User',
+                  }),
+                  getBackstageIdentity: async () => ({
+                    token: mockCoderAuthToken,
+                    identity: {
+                      type: 'user' as const,
+                      userEntityRef: 'user:default/test',
+                      ownershipEntityRefs: ['user:default/test'],
+                    },
+                  }),
+                } as any,
+              ],
             ]}
           >
             <CoderProvider

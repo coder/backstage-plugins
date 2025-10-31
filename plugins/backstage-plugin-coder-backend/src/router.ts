@@ -1,14 +1,13 @@
-import { errorHandler } from '@backstage/backend-common';
-import { Config } from '@backstage/config';
-import express from 'express';
+import type { Config } from '@backstage/config';
+import express, { type ErrorRequestHandler } from 'express';
 import Router from 'express-promise-router';
-import { Logger } from 'winston';
+import type { LoggerService } from '@backstage/backend-plugin-api';
 import axios, { type AxiosResponse } from 'axios';
 
-export interface RouterOptions {
-  logger: Logger;
+type RouterOptions = Readonly<{
+  logger: LoggerService;
   config: Config;
-}
+}>;
 
 export async function createRouter(
   options: RouterOptions,
@@ -54,14 +53,17 @@ export async function createRouter(
           },
         },
       );
-    } catch (error) {
-      logger.error('OAuth token exchange failed', error);
+    } catch (err) {
+      let errMessage = 'Unknown error';
+      if (err instanceof Error) {
+        logger.error('OAuth token exchange failed', err);
+        errMessage = err.message;
+      }
+
       res
         .status(500)
         .send(
-          `<html><body><h1>Authentication failed</h1><p>${
-            error instanceof Error ? error.message : 'Unknown error'
-          }</p></body></html>`,
+          `<html><body><h1>Authentication failed</h1><p>${errMessage}</p></body></html>`,
         );
       return;
     }
@@ -131,6 +133,12 @@ export async function createRouter(
     response.json({ status: 'ok' });
   });
 
-  router.use(errorHandler());
+  // Error handler middleware
+  const errorHandler: ErrorRequestHandler = (error, _req, res, _next) => {
+    logger.error(`Error: ${error.message}`);
+    res.status(error.status || 500).json({ error: error.message });
+  };
+  router.use(errorHandler);
+
   return router;
 }

@@ -4,4 +4,4 @@
  * @packageDocumentation
  */
 
-export { createRouter } from './service/router';
+export { backstagePluginCoderBackendPlugin as default } from './plugin';

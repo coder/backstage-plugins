@@ -1,4 +1,3 @@
-import React from 'react';
 import { renderHook, waitFor } from '@testing-library/react';
 import { useDevcontainers } from './useDevcontainers';
 import { type DevcontainersConfig, DevcontainersProvider } from '../plugin';

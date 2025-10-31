@@ -1,5 +1,4 @@
 import { useMemo, useState } from 'react';
-
 import {
   type Output,
   literal,
@@ -11,7 +10,6 @@ import {
   union,
   parse,
 } from 'valibot';
-
 import { useApi } from '@backstage/core-plugin-api';
 import { scmIntegrationsApiRef } from '@backstage/integration-react';
 import {
@@ -185,8 +183,28 @@ function useDynamicEntity(readEntityData: boolean): UseDynamicEntityResult {
      protect you from */
   if (readEntityData) {
     const { entity } = useEntity();
-    const sourceControlApi = useApi(scmIntegrationsApiRef);
-    const repoData = getEntitySourceLocation(entity, sourceControlApi);
+    const sourceControlRegistry = useApi(scmIntegrationsApiRef);
+
+    /**
+     * @todo 2025-10-25 - This looks like another victim of the Backstage Yarn
+     * plugin. getEntitySourceLocation is supposed to take the exact type that
+     * is bound to scmIntegrationsApiRef, but because they're coming from
+     * different packages, their versions are getting out of sync. TypeScript is
+     * complaining about properties present on one, but not the other.
+     *
+     * Specifically, our plugin version is using 1.1.24, while
+     * plugin-catalog-react depends on verison ^1.2.11.
+     *
+     * The function doesn't need to access those missing properties, so that
+     * shouldn't ever cause things to break, but we should figure out how to get
+     * the versions back in sync with each other, and remove the need for this
+     * assertion.
+     */
+    type LaterVersion = Parameters<typeof getEntitySourceLocation>[1];
+    const repoData = getEntitySourceLocation(
+      entity,
+      sourceControlRegistry as unknown as LaterVersion,
+    );
 
     rawYaml = entity.spec?.coder;
     repoUrl = repoData?.locationTargetUrl;

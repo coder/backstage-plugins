@@ -1,4 +1,4 @@
-import React, {
+import {
   type FC,
   type PropsWithChildren,
   createContext,
@@ -25,12 +25,12 @@ import {
   sharedAuthQueryKey,
 } from '../../api/queryOptions';
 import { coderClientWrapperApiRef } from '../../api/CoderClient';
+import { coderAuthApiRef } from '../../api/CoderAuthApi';
 import { CoderLogo } from '../CoderLogo';
 import { CoderAuthFormDialog } from '../CoderAuthFormDialog';
 
 const BACKSTAGE_APP_ROOT_ID = '#root';
 const FALLBACK_UI_OVERRIDE_CLASS_NAME = 'backstage-root-override';
-const TOKEN_STORAGE_KEY = 'coder-backstage-plugin/token';
 
 // Handles auth edge case where a previously-valid token can't be verified. Not
 // immediately removing token to provide better UX in case someone's internet
@@ -81,17 +81,43 @@ const validAuthStatuses: readonly CoderAuthStatus[] = [
 ];
 
 function useAuthState(): CoderAuth {
-  const [authToken, setAuthToken] = useState(
-    () => window.localStorage.getItem(TOKEN_STORAGE_KEY) ?? '',
-  );
+  const coderClient = useApi(coderClientWrapperApiRef);
+  const coderAuthApi = useApi(coderAuthApiRef);
 
-  // Need to differentiate the current token from the token loaded on mount
-  // because the query object can be disabled. Only want to expose the
-  // initializing state if the app mounts with a token already in localStorage
-  const [readonlyInitialAuthToken] = useState(authToken);
+  const [authToken, setAuthToken] = useState('');
+  const [readonlyInitialAuthToken, setReadonlyInitialAuthToken] = useState('');
   const [isInsideGracePeriod, setIsInsideGracePeriod] = useState(true);
 
-  const coderClient = useApi(coderClientWrapperApiRef);
+  // Load Coder access token from Backstage's OAuth2 session on mount
+  // OAuth2.create() automatically persists the session in localStorage
+  useEffect(() => {
+    let isMounted = true;
+
+    const loadTokenFromSession = async () => {
+      try {
+        // Get the OAuth2 session which contains providerInfo.accessToken
+        const accessToken = await coderAuthApi.getAccessToken('', {
+          optional: true,
+        });
+
+        if (isMounted && accessToken) {
+          // Store in CoderClientWrapper for API calls
+          coderClient.setToken(accessToken);
+          setAuthToken(accessToken);
+          setReadonlyInitialAuthToken(accessToken);
+        }
+      } catch (error) {
+        // No token available, stay unauthenticated
+      }
+    };
+
+    loadTokenFromSession();
+
+    return () => {
+      isMounted = false;
+    };
+  }, [coderAuthApi, coderClient]);
+
   const queryIsEnabled = authToken !== '';
 
   const authValidityQuery = useQuery<boolean>({
@@ -117,12 +143,6 @@ function useAuthState(): CoderAuth {
   if (!isInsideGracePeriod && authState.status === 'authenticated') {
     setIsInsideGracePeriod(true);
   }
-
-  useEffect(() => {
-    if (authState.status === 'authenticated') {
-      window.localStorage.setItem(TOKEN_STORAGE_KEY, authState.token);
-    }
-  }, [authState.status, authState.token]);
 
   // Starts ticking down seconds before we start fully distrusting a token
   useEffect(() => {
@@ -182,9 +202,9 @@ function useAuthState(): CoderAuth {
 
   const unlinkToken = useCallback(() => {
     setAuthToken('');
-    window.localStorage.removeItem(TOKEN_STORAGE_KEY);
+    coderAuthApi.signOut().catch(() => {});
     queryClient.removeQueries({ queryKey: [CODER_QUERY_KEY_PREFIX] });
-  }, [queryClient]);
+  }, [queryClient, coderAuthApi]);
 
   return {
     ...authState,

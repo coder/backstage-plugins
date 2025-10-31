@@ -1,11 +1,10 @@
-import React, {
+import {
   type ButtonHTMLAttributes,
   type ForwardedRef,
   useEffect,
   useRef,
   useState,
 } from 'react';
-
 import { useId } from '../../hooks/hookPolyfills';
 import { useInternalCoderAuth } from '../CoderProvider';
 import { useWorkspacesCardContext } from './Root';

@@ -1,10 +1,10 @@
-import {
-  type ReadUrlOptions,
-  type ReadUrlResponse,
-  type SearchResponse,
-  type UrlReader,
-  getVoidLogger,
-} from '@backstage/backend-common';
+import type {
+  UrlReaderServiceReadUrlOptions as ReadUrlOptions,
+  UrlReaderServiceReadUrlResponse as ReadUrlResponse,
+  UrlReaderServiceSearchResponse as SearchResponse,
+  UrlReaderService as UrlReader,
+} from '@backstage/backend-plugin-api';
+import { mockServices } from '@backstage/backend-test-utils';
 import { NotFoundError } from '@backstage/errors';
 import type { LocationSpec } from '@backstage/plugin-catalog-common';
 import {
@@ -104,11 +104,15 @@ function setupProcessor(options?: SetupOptions) {
         })),
       };
     }),
+
+    // Have to define as const to retain the Jest type information on the mock
+    // callbacks
   } as const satisfies UrlReader;
 
-  const processor = new DevcontainersProcessor(mockReader, {
+  const processor = new DevcontainersProcessor({
     tagName,
-    logger: getVoidLogger(),
+    urlReader: mockReader,
+    logger: mockServices.logger.mock(),
   });
 
   return { mockReader, processor } as const;

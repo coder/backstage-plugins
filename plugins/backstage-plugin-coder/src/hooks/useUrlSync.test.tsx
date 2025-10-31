@@ -1,4 +1,3 @@
-import React from 'react';
 import { renderHook, act } from '@testing-library/react';
 import { TestApiProvider } from '@backstage/test-utils';
 import { UrlSync, urlSyncApiRef } from '../api/UrlSync';

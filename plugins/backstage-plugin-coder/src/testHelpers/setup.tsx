@@ -10,7 +10,7 @@ import {
 } from '@testing-library/react';
 /* eslint-enable @backstage/no-undeclared-imports */
 
-import React, { type ReactElement, type ReactNode } from 'react';
+import type { ReactElement, ReactNode } from 'react';
 import {
   type QueryClientConfig,
   QueryClient,
@@ -192,7 +192,7 @@ export const renderHookAsCoderEntity = async <
 };
 
 type RenderInCoderEnvironmentInputs = Readonly<{
-  children: React.ReactNode;
+  children: ReactNode;
   entity?: BackstageEntity;
   appConfig?: CoderAppConfig;
   queryClient?: QueryClient;

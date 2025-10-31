@@ -1,4 +1,3 @@
-import React from 'react';
 import { type WorkspacesListProps, WorkspacesList } from './WorkspacesList';
 import { renderInCoderEnvironment } from '../../testHelpers/setup';
 import { CardContext, WorkspacesCardContext, WorkspacesQuery } from './Root';

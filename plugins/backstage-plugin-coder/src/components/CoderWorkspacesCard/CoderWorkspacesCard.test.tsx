@@ -2,7 +2,6 @@
  * @file Defines integration tests for all sub-components in the
  * CoderWorkspacesCard directory.
  */
-import React from 'react';
 import { screen, waitFor } from '@testing-library/react';
 import { renderInCoderEnvironment } from '../../testHelpers/setup';
 import { mockAuthStates } from '../../testHelpers/mockBackstageData';

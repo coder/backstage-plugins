@@ -37,6 +37,7 @@ import {
   CoderClientWrapper,
   coderClientWrapperApiRef,
 } from '../api/CoderClient';
+import { coderAuthApiRef } from '../api/CoderAuthApi';
 
 /**
  * This is the key that Backstage checks from the entity data to determine the
@@ -320,6 +321,43 @@ export function getMockApiList(): readonly ApiTuple[] {
     },
   });
 
+  // Mock Coder OAuth API
+  const mockCoderAuthApi = {
+    // OAuthApi methods
+    getAccessToken: async () => mockCoderAuthToken,
+    logout: async () => {},
+
+    // SessionApi methods
+    signIn: async () => {},
+    signOut: async () => {},
+    sessionState$: () => ({
+      subscribe: (observer: any) => {
+        if (typeof observer === 'function') {
+          observer('SignedIn');
+        } else if (observer.next) {
+          observer.next('SignedIn');
+        }
+        return { unsubscribe: () => {} };
+      },
+    }),
+
+    // ProfileInfoApi methods
+    getProfile: async () => ({
+      email: 'test@example.com',
+      displayName: 'Test User',
+    }),
+
+    // BackstageIdentityApi methods
+    getBackstageIdentity: async () => ({
+      type: 'user' as const,
+      userEntityRef: 'user:default/test',
+      ownershipEntityRefs: ['user:default/test'],
+    }),
+    getCredentials: async () => ({
+      token: mockCoderAuthToken,
+    }),
+  };
+
   return [
     // APIs that Backstage ships with normally
     [errorApiRef, mockErrorApi],
@@ -331,5 +369,6 @@ export function getMockApiList(): readonly ApiTuple[] {
     // Custom APIs specific to the Coder plugin
     [urlSyncApiRef, mockUrlSyncApi],
     [coderClientWrapperApiRef, mockCoderClient],
+    [coderAuthApiRef, mockCoderAuthApi],
   ];
 }

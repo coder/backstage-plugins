@@ -1,15 +1,18 @@
-import { LocationSpec } from '@backstage/plugin-catalog-common';
+import type { LocationSpec } from '@backstage/plugin-catalog-common';
 import {
   type CatalogProcessor,
-  CatalogProcessorEmit,
+  type CatalogProcessorEmit,
   processingResult,
 } from '@backstage/plugin-catalog-node';
-import { type Entity } from '@backstage/catalog-model';
-import { type Config } from '@backstage/config';
+import type { Entity } from '@backstage/catalog-model';
+import type { Config } from '@backstage/config';
 import { isError, NotFoundError } from '@backstage/errors';
-import { type UrlReader, UrlReaders } from '@backstage/backend-common';
-import { type Logger } from 'winston';
+import { UrlReaders } from '@backstage/backend-defaults/urlReader';
 import { parseGitUrl } from '../utils/git';
+import type {
+  LoggerService,
+  UrlReaderService,
+} from '@backstage/backend-plugin-api';
 
 export const DEFAULT_TAG_NAME = 'devcontainers';
 export const PROCESSOR_NAME_PREFIX = 'backstage-plugin-devcontainers-backend';
@@ -17,28 +20,32 @@ export const PROCESSOR_NAME_PREFIX = 'backstage-plugin-devcontainers-backend';
 const vsCodeUrlKey = 'vsCodeUrl';
 
 // We export this type instead of the actual constant so we can validate the
-// constant on the frontend at compile-time instead of making the backend plugin
-// a run-time dependency, so it can continue to run standalone.
+// constant used on the frontend at compile-time instead of making the backend
+// plugin a run-time dependency
 export type VsCodeUrlKey = typeof vsCodeUrlKey;
 
 type ProcessorOptions = Readonly<{
+  urlReader: UrlReaderService;
   tagName: string;
-  logger: Logger;
+  logger: LoggerService;
 }>;
 
 type FromConfigOptions = Readonly<
   Partial<ProcessorOptions> & {
-    logger: Logger;
+    logger: LoggerService;
   }
 >;
 
 export class DevcontainersProcessor implements CatalogProcessor {
-  private readonly urlReader: UrlReader;
-  private readonly options: ProcessorOptions;
+  readonly #urlReader: UrlReaderService;
+  readonly #logger: LoggerService;
+  readonly #tagName: string;
 
-  constructor(urlReader: UrlReader, options: ProcessorOptions) {
-    this.urlReader = urlReader;
-    this.options = options;
+  constructor(options: ProcessorOptions) {
+    const { urlReader, logger, tagName } = options;
+    this.#urlReader = urlReader;
+    this.#logger = logger;
+    this.#tagName = tagName;
   }
 
   static fileLocations: readonly string[] = [
@@ -47,17 +54,13 @@ export class DevcontainersProcessor implements CatalogProcessor {
   ];
 
   static fromConfig(readerConfig: Config, options: FromConfigOptions) {
-    const processorOptions: ProcessorOptions = {
-      tagName: options.tagName || DEFAULT_TAG_NAME,
-      logger: options.logger,
-    };
-
-    const reader = UrlReaders.default({
+    const { logger, tagName = DEFAULT_TAG_NAME } = options;
+    const urlReader = UrlReaders.default({
+      logger,
       config: readerConfig,
-      logger: options.logger,
     });
 
-    return new DevcontainersProcessor(reader, processorOptions);
+    return new DevcontainersProcessor({ tagName, urlReader, logger });
   }
 
   getProcessorName(): string {
@@ -89,7 +92,7 @@ export class DevcontainersProcessor implements CatalogProcessor {
     // get this information, or figure out a workaround.
     const rootUrl = location.target.replace(/\/catalog-info\.yaml$/, '');
 
-    const entityLogger = this.options.logger.child({
+    const entityLogger = this.#logger.child({
       name: entity.metadata.name,
       rootUrl,
     });
@@ -97,59 +100,66 @@ export class DevcontainersProcessor implements CatalogProcessor {
     try {
       const jsonUrl = await this.findDevcontainerJson(rootUrl, entityLogger);
       entityLogger.info('Found devcontainer config', { url: jsonUrl });
-      return this.addMetadata(
-        entity,
-        this.options.tagName,
-        location,
-        entityLogger,
-      );
-    } catch (error) {
-      if (!isError(error) || error.name !== 'NotFoundError') {
-        emit(
-          processingResult.generalError(
-            location,
-            `Unable to read ${rootUrl}: ${error}`,
-          ),
-        );
-        entityLogger.warn('Unable to read', { error });
-      } else {
-        entityLogger.info('Did not find devcontainer config');
-      }
-    }
+      return this.#addMetadata(entity, this.#tagName, location, entityLogger);
+    } catch (err) {
+      /**
+       * When an entity goes through the processing loop, and it's no longer
+       * compatible with devcontainers, we don't need to do anything special to
+       * remove the stale devcontainers data. Each entity that goes through is
+       * processed as a diff, so just by virtue of the new entity not having the
+       * data, the "real"/"source" entity will automatically have the data be
+       * removed during normal reconciliation.
+       *
+       * This also means we avoid mistakenly removing any colliding tag added by
+       * the user or another plugin.
+       *
+       * @see {@link https://backstage.io/docs/features/software-catalog/life-of-an-entity/#stitching}
+       */
+      if (!isError(err)) {
+        const message = `Unable to read ${rootUrl}: processing threw non-error ${serializeValue(
+          err,
+        )}`;
 
-    /**
-     * When the entity goes through the processing loop again, it will not
-     * contain the devcontainers tag that we added in the previous round, so we
-     * will not need to remove it.  This also means we avoid mistakenly removing
-     * any colliding tag added by the user or another plugin.
-     *
-     * @see {@link https://backstage.io/docs/features/software-catalog/life-of-an-entity/#stitching}
-     */
-    return entity;
+        emit(processingResult.generalError(location, message));
+        entityLogger.warn(message);
+        return entity;
+      }
+
+      if (err.name === 'NotFoundError') {
+        entityLogger.info('Did not find devcontainer config');
+        return entity;
+      }
+
+      emit(
+        processingResult.generalError(
+          location,
+          `Unable to read ${rootUrl}: ${err.name} - ${err.message}`,
+        ),
+      );
+      entityLogger.warn('Unable to read', err);
+      return entity;
+    }
   }
 
-  private addMetadata(
+  #addMetadata(
     entity: Entity,
     newTag: string,
     location: LocationSpec,
-    logger: Logger,
+    logger: LoggerService,
   ): Entity {
     if (entity.metadata.tags?.includes(newTag)) {
       return entity;
     }
 
     logger.info(`Adding VS Code URL and "${newTag}" tag to component`);
-    return {
-      ...entity,
-      metadata: {
-        ...entity.metadata,
-        annotations: {
-          ...(entity.metadata.annotations ?? {}),
-          [vsCodeUrlKey]: serializeVsCodeUrl(location.target),
-        },
-        tags: [...(entity.metadata?.tags ?? []), newTag],
-      },
+
+    const copy = structuredClone(entity);
+    copy.metadata.annotations = {
+      ...(copy.metadata.annotations ?? {}),
+      [vsCodeUrlKey]: serializeVsCodeUrl(location.target),
     };
+    copy.metadata.tags = [...(entity.metadata.tags ?? []), newTag];
+    return copy;
   }
 
   /**
@@ -166,7 +176,7 @@ export class DevcontainersProcessor implements CatalogProcessor {
    */
   private async findDevcontainerJson(
     rootUrl: string,
-    logger: Logger,
+    logger: LoggerService,
   ): Promise<string> {
     // This could possibly be simplified with a ** glob, but ** appears not to
     // match on directories that begin with a dot.  Unless there is an option
@@ -182,7 +192,7 @@ export class DevcontainersProcessor implements CatalogProcessor {
       // going off about every two minutes so it might be worth it.
       try {
         const fileUrl = `${rootUrl}/${location}`;
-        await this.urlReader.readUrl(fileUrl);
+        await this.#urlReader.readUrl(fileUrl);
         return fileUrl;
       } catch (error) {
         if (!isError(error) || error.name !== 'NotFoundError') {
@@ -197,7 +207,7 @@ export class DevcontainersProcessor implements CatalogProcessor {
     // sub-tree here and traverse it ourselves.  Note that not every provider
     // supports `search` or `readTree`.
     const globUrl = `${rootUrl}/.devcontainer/*/devcontainer.json`;
-    const res = await this.urlReader.search(globUrl);
+    const res = await this.#urlReader.search(globUrl);
     const url = res.files[0]?.url;
 
     if (url === undefined) {
@@ -218,4 +228,33 @@ function serializeVsCodeUrl(repoUrl: string): string {
   const cleanedUrl = cleaners.reduce((str, re) => str.replace(re, ''), repoUrl);
   const rootUrl = parseGitUrl(cleanedUrl);
   return `vscode://ms-vscode-remote.remote-containers/cloneInVolume?url=${rootUrl}`;
+}
+
+function serializeValue(value: unknown): string {
+  switch (typeof value) {
+    case 'bigint':
+    case 'symbol': {
+      return value.toString();
+    }
+    case 'function': {
+      return '[function]';
+    }
+    case 'undefined': {
+      return '[undefined]';
+    }
+
+    default: {
+      try {
+        return JSON.stringify(value);
+      } catch {
+        // JSON.stringify can fail on circular references, continue to fallback
+      }
+
+      const constructor = value?.constructor.name;
+      if (constructor) {
+        return `[Unknown ${constructor} value]`;
+      }
+      return '[Unknown value]';
+    }
+  }
 }
