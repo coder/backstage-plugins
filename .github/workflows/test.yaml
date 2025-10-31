@@ -86,8 +86,11 @@ jobs:
         if: success() || failure()
       # Version it with the SHA and upload to the run as an artifact in case
       # someone needs to download it for testing.
-      - run: yarn version "0.0.0-devel+$GITHUB_SHA"
+      - name: Set development version
         id: version
+        run: |
+          npm version 0.0.0-devel+${{ github.sha }} --no-git-tag-version
+          echo "Set version to 0.0.0-devel+${{ github.sha }}"
       - run: yarn pack
         id: pack
       - uses: actions/upload-artifact@v4
