@@ -34,6 +34,7 @@ export const apis: AnyApiFactory[] = [
       OAuth2.create({
         discoveryApi,
         oauthRequestApi,
+        configApi,
         provider: {
           id: 'coder',
           title: 'Coder',
