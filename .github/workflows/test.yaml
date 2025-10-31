@@ -77,8 +77,9 @@ jobs:
       - run: yarn test
         id: test
         if: success() || failure()
+      # Run tsc from repository root to generate shared .d.ts files for all plugins
       - run: yarn tsc
-        working-directory: .
+        working-directory: ${{ github.workspace }}
         if: success() || failure()
       # Build the plugin
       - run: yarn build
