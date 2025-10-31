@@ -20,7 +20,7 @@ export const apis: AnyApiFactory[] = [
     factory: ({ configApi }) => ScmIntegrationsApi.fromConfig(configApi),
   }),
   ScmAuth.createDefaultApiFactory(),
-  
+
   // Coder OAuth2 provider using Backstage's built-in OAuth2 helper
   // This automatically handles session management, token persistence, and refresh
   createApiFactory({

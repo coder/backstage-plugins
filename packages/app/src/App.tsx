@@ -135,9 +135,11 @@ const routes = (
     <Route path="/search" element={<SearchPage />}>
       {searchPage}
     </Route>
-    <Route 
-      path="/settings" 
-      element={<UserSettingsPage providerSettings={<CoderProviderSettings />} />} 
+    <Route
+      path="/settings"
+      element={
+        <UserSettingsPage providerSettings={<CoderProviderSettings />} />
+      }
     />
     <Route path="/catalog-graph" element={<CatalogGraphPage />} />
     <Route path="/notifications" element={<NotificationsPage />} />

@@ -74,10 +74,10 @@ techdocs:
 
 auth:
   # see https://backstage.io/docs/auth/ to learn about auth providers
-  environment: development  # Enable guest auth for easier development
+  environment: development # Enable guest auth for easier development
   providers:
-    guest: {}  # Simple guest authentication - no OAuth setup required!
-    
+    guest: {} # Simple guest authentication - no OAuth setup required!
+
     # Coder OAuth for workspace access (and optional sign-in)
     coder:
       development:
@@ -87,7 +87,7 @@ auth:
         signIn:
           resolvers:
             - resolver: usernameMatchingUserEntityName
-    
+
     github:
       development:
         clientId: ${AUTH_GITHUB_CLIENT_ID}
