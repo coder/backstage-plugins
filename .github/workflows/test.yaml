@@ -89,8 +89,9 @@ jobs:
       - name: Set development version
         id: version
         run: |
-          npm version 0.0.0-devel+${{ github.sha }} --no-git-tag-version
-          echo "Set version to 0.0.0-devel+${{ github.sha }}"
+          SHORT_SHA=$(echo "${{ github.sha }}" | cut -c1-7)
+          node -e "const fs=require('fs'); const pkg=JSON.parse(fs.readFileSync('package.json')); pkg.version='dev-${SHORT_SHA}'; fs.writeFileSync('package.json', JSON.stringify(pkg,null,2)+'\n');"
+          echo "Set version to dev-${SHORT_SHA}"
       - run: yarn pack
         id: pack
       - uses: actions/upload-artifact@v4
