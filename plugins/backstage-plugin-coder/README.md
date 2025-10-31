@@ -303,7 +303,7 @@ You can find more information about what properties are available (and how they'
 
 This plugin is in active development. The following features are planned:
 
-- [ ] OAuth2 support (vs. token auth) for linking Coder accounts
+- [x] OAuth2 support (vs. token auth) for linking Coder accounts
 - [ ] Example component using the Coder API to make authenticated requests on behalf of the user
 - [ ] Add support for only rendering component if `catalog-info.yaml` indicates the item is compatible with Coder
 - [ ] OAuth support (vs. token auth) for linking Coder accounts

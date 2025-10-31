@@ -4,9 +4,10 @@
 
 A collection of plugins that extend [Backstage](https://backstage.io) to help with developer onboarding, context switching, and automated IDEs (remote or local).
 
-- [backstage-plugin-coder](./plugins/backstage-plugin-coder): A plugin for integrating Coder workspaces with Backstage.
-- [backstage-plugin-devcontainers-backend](./plugins/backstage-plugin-devcontainers-backend): A plugin for integrating VS Code Dev Containers extension with Backstage catalog items (no Coder deployment necessary).
-- [backstage-plugin-devcontainers-react](./plugins/backstage-plugin-devcontainers-react): A plugin for allowing you to detect and work with Dev Containers repo data added by `backstage-plugin-devcontainers-backend`, namely letting you open a repo in VS Code with a full Dev Containers setup (no Coder deployment necessary).
+- [backstage-plugin-coder](./plugins/backstage-plugin-coder): Frontend plugin for integrating Coder workspaces with Backstage.
+- [auth-backend-module-coder-provider](./plugins/auth-backend-module-coder-provider): Backend authentication module for Coder OAuth2 integration with Backstage's New Backend System.
+- [backstage-plugin-devcontainers-backend](./plugins/backstage-plugin-devcontainers-backend): Backend plugin for integrating VS Code Dev Containers with Backstage catalog items (no Coder deployment necessary).
+- [backstage-plugin-devcontainers-react](./plugins/backstage-plugin-devcontainers-react): Frontend plugin for detecting and working with Dev Containers repo data, letting you open repos in VS Code with a full Dev Containers setup (no Coder deployment necessary).
 
 Please use [GitHub issues](https://github.com/coder/backstage-plugins/issues) to report any issues or feature requests.
 
@@ -33,12 +34,11 @@ Backstage app.
 
 ## Releasing
 
-To draft a release for a plugin push a tag named `$name/v$version` without the
-`backstage-plugin-` prefix. For example:
+To draft a release for a plugin, push a tag using the format `<plugin-directory>/v<version>` where `<plugin-directory>` is the exact directory name under `plugins/`:
 
 ```sh
-git tag -a coder/v0.0.0 -m "coder v0.0.0"
-git push origin coder/v0.0.0
+git tag -a backstage-plugin-coder/v0.0.0 -m "backstage-plugin-coder v0.0.0"
+git push origin backstage-plugin-coder/v0.0.0
 ```
 
 This will kick off an action that will create a draft release for the plugin.

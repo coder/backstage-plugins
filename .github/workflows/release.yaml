@@ -1,7 +1,11 @@
 name: Release
 
-# This workflow will draft a release for a plugin when tagged.  The tag format
-# is <name>/v<version> without the backstage-plugin- prefix, e.g. coder/v0.0.0
+# This workflow will draft a release for a plugin when tagged. The tag format
+# is <plugin-directory>/v<version> where plugin-directory is the exact directory
+# name under plugins/, e.g.:
+#   - backstage-plugin-coder/v0.0.0
+#   - auth-backend-module-coder-provider/v0.0.0
+#   - backstage-plugin-devcontainers-backend/v0.0.0
 
 on:
   push:
@@ -20,19 +24,32 @@ jobs:
       plugin: ${{ steps.split.outputs.plugin }}
       version: ${{ steps.split.outputs.version }}
     steps:
+      - uses: actions/checkout@v4
       - env:
           TAG: ${{ github.ref_name }}
         id: split
         run: |
           parts=(${TAG//\/v/ })
-          echo "plugin=${parts[0]}" >> $GITHUB_OUTPUT
-          echo "version=${parts[1]}" >> $GITHUB_OUTPUT
+          PLUGIN_NAME="${parts[0]}"
+          VERSION="${parts[1]}"
+          
+          if [[ ! -d "plugins/${PLUGIN_NAME}" ]]; then
+            echo "Error: Plugin directory 'plugins/${PLUGIN_NAME}' not found"
+            echo "Tag should match the exact directory name in plugins/"
+            exit 1
+          fi
+          
+          echo "plugin=${PLUGIN_NAME}" >> $GITHUB_OUTPUT
+          echo "version=${VERSION}" >> $GITHUB_OUTPUT
+          
+          echo "Plugin: ${PLUGIN_NAME}"
+          echo "Version: ${VERSION}"
   plugin:
     needs: split-tag
     runs-on: ubuntu-latest
     defaults:
       run:
-        working-directory: plugins/backstage-plugin-${{ needs.split-tag.outputs.plugin }}
+        working-directory: plugins/${{ needs.split-tag.outputs.plugin }}
     name: ${{ needs.split-tag.outputs.plugin }} v${{ needs.split-tag.outputs.version }}
     steps:
       - uses: actions/checkout@v4
@@ -51,4 +68,4 @@ jobs:
       - uses: softprops/action-gh-release@v2
         with:
           draft: true
-          files: plugins/backstage-plugin-${{ needs.split-tag.outputs.plugin }}/*.tgz
+          files: plugins/${{ needs.split-tag.outputs.plugin }}/*.tgz
