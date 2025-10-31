@@ -61,7 +61,9 @@ jobs:
       - run: yarn lint
       - run: yarn test
       # Must run tsc first to generate the .d.ts files.
-      - run: yarn tsc && yarn build
+      - run: yarn tsc
+        working-directory: .
+      - run: yarn build
       # Version it with the version in the tag and upload it to a draft release.
       - run: yarn version --new-version ${{ needs.split-tag.outputs.version }}
       - run: yarn pack
