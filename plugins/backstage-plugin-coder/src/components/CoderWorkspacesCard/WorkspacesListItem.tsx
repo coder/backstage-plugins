@@ -82,7 +82,7 @@ const useStyles = makeStyles<Theme, UseStyleInputs, StyleKey>(theme => ({
     alignItems: 'center',
     gap: theme.spacing(1),
     color: theme.palette.text.secondary,
-    fontSize: '16px',
+    fontSize: theme.typography.body1.fontSize ?? '1rem',
   },
 
   onlineStatusLight: ({ isAvailable }) => ({

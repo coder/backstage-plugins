@@ -44,6 +44,9 @@ export const CoderAuthForm = ({ descriptionId }: CoderAuthFormProps) => {
             return <CoderAuthInputForm />;
           }
 
+          // It shouldn't be possible for these branches to run, because parent
+          // code should show main content instead of the form when the user is
+          // authenticated. Still adding them for extra assurance
           case 'authenticated':
           case 'distrustedWithGracePeriod': {
             return <CoderAuthSuccessStatus />;

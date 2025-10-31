@@ -32,7 +32,7 @@ const useStyles = makeStyles(theme => {
       width: theme.spacing(4) + padding,
       height: theme.spacing(4) + padding,
       border: 'none',
-      borderRadius: '9999px',
+      borderRadius: theme.shape.borderRadius,
       backgroundColor: 'inherit',
       lineHeight: 1,
 
