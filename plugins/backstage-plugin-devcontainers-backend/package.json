@@ -12,7 +12,10 @@
   },
   "backstage": {
     "role": "backend-plugin",
-    "pluginId": "backstage-plugin-devcontainers-backend"
+    "pluginId": "backstage-plugin-devcontainers-backend",
+    "pluginPackages": [
+      "@coder/backstage-plugin-devcontainers-backend"
+    ]
   },
   "scripts": {
     "start": "backstage-cli package start",
