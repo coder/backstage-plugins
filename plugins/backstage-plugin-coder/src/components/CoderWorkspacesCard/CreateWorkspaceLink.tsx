@@ -24,7 +24,7 @@ const useStyles = makeStyles<Theme, StyleInput, StyleKeys>(theme => {
       justifyContent: 'center',
       alignItems: 'center',
       backgroundColor: 'inherit',
-      borderRadius: '9999px',
+      borderRadius: theme.shape.borderRadius,
       lineHeight: 1,
       color: canCreateWorkspace
         ? theme.palette.text.primary

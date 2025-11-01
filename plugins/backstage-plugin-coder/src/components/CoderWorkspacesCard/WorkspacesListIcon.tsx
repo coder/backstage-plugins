@@ -8,6 +8,7 @@ import { useUrlSync } from '../../hooks/useUrlSync';
 import { useInternalCoderAuth } from '../CoderProvider';
 import { useCoderApi } from '../../hooks/useCoderApi';
 import { Theme, makeStyles } from '@material-ui/core';
+import { scaleCssUnit } from '../../utils/styling';
 
 type WorkspaceListIconProps = Readonly<
   Omit<HTMLAttributes<HTMLDivElement>, 'children' | 'aria-hidden'> & {
@@ -28,7 +29,7 @@ const useStyles = makeStyles<Theme, MakeStylesInput, StyleKey>(theme => ({
   root: {
     width: theme.spacing(2.5),
     height: theme.spacing(2.5),
-    fontSize: '0.625rem',
+    fontSize: scaleCssUnit(theme.typography.body1.fontSize, 0.625),
     backgroundColor: theme.palette.background.default,
     borderRadius: '9999px',
     display: 'flex',

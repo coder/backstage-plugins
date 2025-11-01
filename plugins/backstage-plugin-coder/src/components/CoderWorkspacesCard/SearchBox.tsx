@@ -14,6 +14,7 @@ import { Theme, makeStyles } from '@material-ui/core';
 import { useWorkspacesCardContext } from './Root';
 import SearchIcon from '@material-ui/icons/Search';
 import CloseIcon from '@material-ui/icons/Close';
+import { CUSTOM_FOCUS_COLOR } from '../../utils/styling';
 
 const LABEL_TEXT = 'Search your Coder workspaces';
 const SEARCH_DEBOUNCE_MS = 400;
@@ -50,7 +51,7 @@ const useStyles = makeStyles<Theme, MakeStylesInput, StyleKey>(theme => ({
     },
 
     '&:focus-within': {
-      boxShadow: '0 0 0 1px hsl(213deg, 94%, 68%)',
+      boxShadow: `0 0 0 1px ${CUSTOM_FOCUS_COLOR}`,
     },
 
     // Makes it so that the container doesn't have visible focus while you're
@@ -93,7 +94,7 @@ const useStyles = makeStyles<Theme, MakeStylesInput, StyleKey>(theme => ({
     cursor: 'pointer',
 
     '&:focus': {
-      boxShadow: '0 0 0 1px hsl(213deg, 94%, 68%)',
+      boxShadow: `0 0 0 1px ${CUSTOM_FOCUS_COLOR}`,
     },
   }),
 }));

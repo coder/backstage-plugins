@@ -6,6 +6,7 @@
  */
 import { type HTMLAttributes, type ReactNode, forwardRef } from 'react';
 import { makeStyles } from '@material-ui/core';
+import { scaleCssUnit } from '../../utils/styling';
 
 export type A11yInfoCardProps = Readonly<
   HTMLAttributes<HTMLDivElement> & {
@@ -23,10 +24,7 @@ const useStyles = makeStyles(theme => ({
   },
 
   headerContent: {
-    // Ideally wouldn't be using hard-coded font sizes, but couldn't figure out
-    // how to use the theme.typography property, especially since not all
-    // sub-properties have font sizes defined
-    fontSize: '1.5rem',
+    fontSize: scaleCssUnit(theme.typography.body1.fontSize, 1.5),
     color: theme.palette.text.primary,
     fontWeight: 700,
     borderBottom: `1px solid ${theme.palette.divider}`,
