@@ -175,7 +175,7 @@ const app = createApp({
 
 Currently, the plugin installs 4 extensions: 2 APIs (url sync and client wrapper), 1 App root wrapper (the coder provider), and 1 Entity page card (the overview workspaces card).
 
-To be able to connect to your Coder organization it is mandotory that you set the Coder provider configuration in the `app-config.yaml` file:
+To be able to connect to your Coder organization it is mandatory that you set the Coder provider configuration in the `app-config.yaml` file:
 
 ```yml
 # app-config.yaml
